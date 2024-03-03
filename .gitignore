@@ -1,0 +1,7 @@
+venv
+.idea
+__pycache__
+.env
+*ER Diagram.drawio*
+*.db
+db.bat
