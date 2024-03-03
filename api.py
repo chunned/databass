@@ -80,7 +80,10 @@ def get_release_data(mbid, artist_id, label_id):
     title = result['title']
     release_date = result['date']
     track_count = result['media'][0]['track-count']
-    area = result['release-events'][0]['area']['name']
+    try:
+        area = result['release-events'][0]['area']['name']
+    except TypeError:
+        area = None
     genre = input("Release genre: ")
     # Get release length (in ms)
     length = 0
