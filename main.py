@@ -62,7 +62,6 @@ def add_release():
         insert_release(cur, con, release)
 
 
-
 def query_stats():
     total_release_query = "SELECT COUNT(*) FROM release"
     cur.execute(total_release_query)
@@ -97,9 +96,10 @@ def query_stats():
     today = datetime.date.today()
     days_this_year = today.timetuple().tm_yday
     try:
-        listens_per_day = days_this_year / listens_this_year
+        listens_per_day = listens_this_year / days_this_year
     except ZeroDivisionError:
         listens_per_day = 0
+
     print(f'Listens per day in 2024: {listens_per_day}')
 
     return None
