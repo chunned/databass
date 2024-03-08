@@ -24,7 +24,7 @@ def create_tables(cur):
     cur.execute("""
     CREATE TABLE IF NOT EXISTS release(
     id INTEGER PRIMARY KEY,
-    mbid TEXT,
+    mbid TEXT UNIQUE,
     artist_id INTEGER,
     label_id INTEGER,
     title TEXT,
@@ -48,7 +48,7 @@ def create_tables(cur):
     cur.execute("""
     CREATE TABLE IF NOT EXISTS artist(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        mbid TEXT,
+        mbid TEXT UNIQUE,
         name TEXT
     )    
     """)
@@ -57,7 +57,7 @@ def create_tables(cur):
     cur.execute("""
     CREATE TABLE IF NOT EXISTS label(
         id INTEGER PRIMARY KEY,
-        mbid TEXT,
+        mbid TEXT UNIQUE,
         name TEXT
     )    
     """)
@@ -87,15 +87,14 @@ def insert_artist(cur, con, artist):
     try:
         cur.execute(query, artist)
         con.commit()
-        return True
+        return cur.lastrowid
     except sqlite3.IntegrityError as e:
-        # print(f"ERROR: {e}")
-        # print("Errored SQLite query:")
-        # print(query)
-        # print("Artist dictionary:")
         print(artist)
         print("Artist already exists in database")
-        return None
+        query = "SELECT id FROM artist WHERE mbid = ?"
+        cur.execute(query, (artist['mbid'],))
+        con.commit()
+        return cur.fetchone()[0]
 
 
 def insert_label(cur, con, label):
@@ -104,14 +103,13 @@ def insert_label(cur, con, label):
     try:
         cur.execute(query, label)
         con.commit()
-        return True
+        return cur.lastrowid
     except sqlite3.IntegrityError as e:
-        # print(f"ERROR: {e}")
-        # print("Errored SQLite query:")
-        # print(query)
-        # print("Label dictionary:")
         print(label)
         print("Label already exists in database")
-        return None
+        query = "SELECT id FROM label WHERE mbid = ?"
+        cur.execute(query, (label['mbid'],))
+        con.commit()
+        return cur.fetchone()[0]
 
 

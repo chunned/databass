@@ -48,12 +48,15 @@ def add_release():
         release_mbid, artist, label = pick_release()
         release = get_release_data(release_mbid, artist, label)
         # Insert data
-        insert_label(cur, con, label)
-        label_id = cur.lastrowid
-        insert_artist(cur, con, artist)
-        artist_id = cur.lastrowid
+        if label:
+            label_id = insert_label(cur, con, label)
+            release['label_id'] = label_id
+        artist_id = insert_artist(cur, con, artist)
         release['artist_id'] = artist_id
-        release['label_id'] = label_id
+        if label:
+            pass
+        else:
+            release['label_id'] = 0
 
     except TypeError:
         print("Release not found on MusicBrainz. Please enter data manually.")
@@ -163,14 +166,8 @@ def manual_data():
             insert_artist(cur, con, a)
             artist_id = cur.lastrowid
 
-    label = None
-    while not label:
-        try:
-            label = input("LABEL: ")
-            if len(label) < 1:
-                raise ValueError
-        except ValueError:
-            print("Label length cannot be zero.")
+    label = input("LABEL: ")
+
     # TODO: proper error checking
     # TODO: check if label exists in musicbrainz
     try:
@@ -194,22 +191,15 @@ def manual_data():
     release_date = ""
     while len(release_date) < 1:
         try:
-            release_date = input("RELEASE DATE - YYYY-MM-DD (leave blank if unknown): ")
+            release_date = input("RELEASE YEAR - YYYY: ")
             if release_date == "":
                 break
-            if len(release_date) != 10:
+            if len(release_date) != 4:
                 raise ValueError
         except ValueError:
-            print("Invalid date entered. Date must be in the format YYYY-MM-DD")
+            print("Invalid value entered.")
 
-    genre = ""
-    while len(genre) < 1:
-        try:
-            genre = input("GENRE: ")
-            if len(genre) == 0:
-                raise ValueError
-        except ValueError:
-            print("Genre cannot be blank.")
+    genre = input("GENRE: ")
 
     runtime = -1
     while runtime <= 0:
@@ -230,17 +220,7 @@ def manual_data():
         except ValueError:
             print("Invalid rating. Try again.")
 
-    country = ""
-    while len(country) < 1:
-        try:
-            country = input("COUNTRY: ")
-            if not country.isalpha():
-                raise ValueError
-            country = country[:1].upper() + country[1:].lower()
-            if country == "Usa":
-                country = country.upper()
-        except ValueError:
-            print("Invalid country. Try again.")
+    country = input("COUNTRY: ")
 
     track_count = 0
     while track_count <= 0:
@@ -249,7 +229,7 @@ def manual_data():
         except ValueError:
             print("Invalid track count. Try again.")
 
-    listen_date = today = datetime.date.today().strftime("%Y-%m-%d")
+    listen_date = datetime.date.today().strftime("%Y-%m-%d")
     release = {"title": title,
                "mbid": None,
                "artist_id": artist_id,
@@ -267,7 +247,7 @@ def manual_data():
 
 if __name__ == '__main__':
     # Create database connection
-    con = create_connection("music2.db")
+    con = create_connection("music.db")
     cur = create_cursor(con)
     # Create tables
     create_tables(cur)

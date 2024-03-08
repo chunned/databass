@@ -60,10 +60,13 @@ def pick_release():
             artist_name = release["artist-credit"][0]["name"]
             artist_id = release["artist-credit"][0]["artist"]["id"]
             artist = {"mbid": artist_id, "name": artist_name}
-            label = {
-                "mbid": release['label-info'][0]['label']['id'],
-                "name": release['label-info'][0]['label']['name']
-            }
+            try:
+                label = {
+                    "mbid": release['label-info'][0]['label']['id'],
+                    "name": release['label-info'][0]['label']['name']
+                }
+            except KeyError:
+                label = None
             return release_id, artist, label
     # TODO: edge cases where match is not found; or more than 5 results exist
 
@@ -78,7 +81,15 @@ def get_release_data(mbid, artist_id, label_id):
     # print(pretty)
 
     title = result['title']
-    release_date = result['date']
+    release_date = None
+    while not release_date:
+        try:
+            release_date = input('Enter the release year: ')
+            if len(release_date) != 4:
+                raise ValueError
+        except ValueError:
+            print('Please enter a 4 digit year.')
+            release_date = None
     track_count = result['media'][0]['track-count']
     try:
         area = result['release-events'][0]['area']['name']
@@ -137,5 +148,6 @@ def get_label_mbid(label_name):
     except KeyError:
         pass
     return mbid
+
 
 
