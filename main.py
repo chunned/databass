@@ -9,18 +9,22 @@ def main():
     art.tprint('DATABASS v0.1')
 
     # Print menu and get user choice
-    user_choice = menu_choose()
-    match user_choice:
-        case "a":
-            add_release()
-        case "s":
-            search_release()
-        case "e":
-            edit_release()
-        case "r":
-            remove_release()
-        case "q":
-            query_stats()
+    print_menu = True
+    while print_menu:
+        user_choice = menu_choose()
+        match user_choice:
+            case "a":
+                add_release()
+            case "s":
+                search_release()
+            case "e":
+                edit_release()
+            case "r":
+                remove_release()
+            case "q":
+                query_stats()
+            case "exit":
+                print_menu = False
 
 
 def menu_choose():
@@ -34,13 +38,13 @@ def menu_choose():
     choice = None
     while not choice:
         try:
-            choice = input('CHOICE (a, s, e, r, q): ')
-            if choice not in 'aserq':
+            choice = input('CHOICE (a, s, e, r, q, EXIT): ')
+            if choice not in 'aserq' and choice.lower() != 'exit':
                 raise ValueError
         except ValueError:
-            print('ERROR: Invalid choice. Please choose one of: a, s, e, r, q')
+            print('ERROR: Invalid choice. Please choose one of: a, s, e, r, q, EXIT')
             choice = None
-    return choice
+    return choice.lower()
 
 
 def add_release():
@@ -104,6 +108,73 @@ def query_stats():
         listens_per_day = 0
 
     print(f'Listens per day in 2024: {listens_per_day}')
+
+    label_query = "SELECT label.name, COUNT(*) as Count FROM label JOIN release ON release.label_id = label.id GROUP BY label.name ORDER BY Count DESC;"
+    cur.execute(label_query)
+    row = cur.fetchone()
+    print(f'Most listened to Label: {row[0]} - Count: {row[1]}')
+
+    print('---')
+    print('Highest Rated Labels (only shows labels with >1 releases)')
+
+    fav_label_query = """
+    SELECT label.name, AVG(release.rating) AS Average_Rating, COUNT(release.label_id) as Release_Count 
+FROM label  
+JOIN release ON release.label_id = label.id
+WHERE label.name IS NOT "none" AND label.name IS NOT "[no label]"
+GROUP BY label.name
+HAVING Release_Count != 1    
+ORDER BY Average_Rating DESC
+LIMIT 5;"""
+    cur.execute(fav_label_query)
+    rows = cur.fetchall()
+    print("{:<30} {:<15} {:<15}".format('Label Name', 'Average Rating', 'Release Count'))
+    for row in rows:
+        label_name = row[0]
+        avg_rating = row[1]
+        release_count = row[2]
+        print("{:<30} {:<15.2f} {:<15}".format(label_name, avg_rating, release_count))
+
+    print('---')
+    print('Highest rated artists with more than 1 release')
+
+    fav_artist_query = """
+    SELECT artist.name, AVG(release.rating) AS Average_Rating, COUNT(release.artist_id) as Release_Count 
+FROM artist
+JOIN release ON release.artist_id = artist.id
+GROUP BY artist.name
+HAVING Release_Count != 1    
+ORDER BY Average_Rating DESC
+LIMIT 5;"""
+    cur.execute(fav_artist_query)
+    rows = cur.fetchall()
+
+    print("{:<30} {:<15} {:<15}".format('Artist Name', 'Average Rating', 'Release Count'))
+
+    for row in rows:
+        artist_name = row[0]
+        avg_rating = row[1]
+        release_count = row[2]
+        print("{:<30} {:<15.2f} {:<15}".format(artist_name, avg_rating, release_count))
+
+    print('---')
+    print('Highest number of releases per artist')
+    cur.execute("""
+    SELECT artist.name, COUNT(release.artist_id) as Count
+FROM artist
+JOIN release ON release.artist_id = artist.id
+WHERE artist.name != "Various Artists"
+GROUP BY artist.id
+ORDER BY Count DESC
+LIMIT 5;""")
+    rows = cur.fetchall()
+
+    print("{:<30} {:<10}".format('Artist Name', 'Count'))
+
+    for row in rows:
+        artist_name = row[0]
+        count = row[1]
+        print("{:<30} {:<10}".format(artist_name, count))
 
     return None
 
