@@ -62,7 +62,8 @@ def add_release():
         else:
             release['label_id'] = 0
 
-    except TypeError:
+    except TypeError as e:
+        print(f"ERROR: {e}")
         print("Release not found on MusicBrainz. Please enter data manually.")
         release, artist, label = manual_data()
     finally:

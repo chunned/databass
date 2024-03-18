@@ -21,7 +21,12 @@ def show_release_details(rel):
         print('DATE: unknown')
 
     # Show release type
-    media_type = rel["media"][0]["format"]
+    try:
+        media_type = rel["media"][0]["format"]
+    except KeyError:
+        print("KeyError, media type not found.")
+    finally:
+        media_type = ""
     tracks = rel["track-count"]
     print(f'TYPE:   {media_type}')
     # Print track count
@@ -95,12 +100,17 @@ def get_release_data(mbid, artist_id, label_id):
         area = result['release-events'][0]['area']['name']
     except TypeError:
         area = None
+    except KeyError:
+        area = None
     genre = input("Release genre: ")
     # Get release length (in ms)
     length = 0
     tracks = result['media'][0]['tracks']
-    for track in tracks:
-        length += track['length']
+    try:
+        for track in tracks:
+            length += track['length']
+    except TypeError:
+        length = 0
     listen_date = datetime.now().strftime("%Y-%m-%d")
     rating = 0
     try:
