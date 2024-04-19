@@ -13,9 +13,10 @@ def home():
     cur = db.create_cursor(con)
 
     query = """
-    SELECT artist.name, release.title, release.rating FROM release
+    SELECT artist.name, release.title, release.rating, release.listen_date, release.genre, release.art FROM release
 JOIN artist on artist.id = release.artist_id
-ORDER BY release.listen_date DESC;
+ORDER BY release.listen_date DESC
+LIMIT 10;
     """
     cur.execute(query)
     data = cur.fetchall()
@@ -40,6 +41,7 @@ def search():
     data = api.pick_release(release, artist, rating, year, genre)
 
     return flask.render_template("search.html", data=data)
+
 
 @app.route("/submit", methods=["POST"])
 def submit():

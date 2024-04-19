@@ -1,5 +1,6 @@
 import sqlite3
 import datetime
+import api
 
 
 def create_connection(db_file):
@@ -146,3 +147,37 @@ def get_stats(cur, con):
         stats["per_day"] = 0
 
     return stats
+
+
+def update_existing_release(cur, con, release):
+    cur.execute("UPDATE release SET mbid = ?, artist_id = ?, label_id = ?, title = ?, release_date = ?,"
+                "runtime = ?, rating = ?, listen_date = ?, track_count = ?, country = ?, genre = ?, art = ?"
+                "WHERE id = ?",
+                (release["mbid"], release["artist_id"], release["label_id"], release["title"],
+                 release["release_date"], release["runtime"], release["rating"], release["listen_date"],
+                 release["track_count"], release["country"], release["genre"], release["art"], release["id"]))
+    con.commit()
+    print(f"UPDATED {release["title"]}")
+
+
+def get_missing_covers(cur, con):
+    cur.execute("SELECT * FROM release WHERE art IS NULL")
+    data = cur.fetchall()
+
+    for release in data:
+        release = list(release)
+        #print(release)
+        mbid = release[1]
+
+        if mbid:
+            art = api.get_cover_art(mbid)
+        else:
+            art = 'https://static.vecteezy.com/system/resources/thumbnails/005/720/408/small_2x/crossed-image-icon-picture-not-available-delete-picture-symbol-free-vector.jpg'
+
+        release[-1] = art
+        release_dict = {"id": release[0], "mbid": release[1], "artist_id": release[2], "label_id": release[3],
+                        "title": release[4], "release_date": release[5], "runtime": release[6],
+                        "rating": release[7], "listen_date": release[8], "track_count": release[9],
+                        "country": release[10], "genre": release[11], "art": release[12]}
+
+        update_existing_release(cur, con, release_dict)

@@ -33,6 +33,11 @@ def pick_release(release, artist, rating, year, genre):
         except KeyError:
             date = "?"
 
+        try:
+            format =  release["media"][0]["format"]
+        except KeyError:
+            format = "unknown"
+
         rel = {
             "release": {
                 "name": release["title"],
@@ -44,7 +49,7 @@ def pick_release(release, artist, rating, year, genre):
             },
             "label": label,
             "date": date,
-            "format": release["media"][0]["format"],
+            "format": format,
             "track-count": release["track-count"],
             "rating": rating,
             "release_date": year,
@@ -63,13 +68,8 @@ def get_release_data(mbid, year, genre, rating):
 
     # pretty = json.dumps(result, indent=4)
     # print(pretty)
-    try:
-        # Try to grab cover art
-        response = requests.get(f'https://coverartarchive.org/release/{mbid}', headers=header)
-        response = response.json()
-        art = response['images'][0]['image']
-    except requests.exceptions.JSONDecodeError:
-        art = 'https://static.vecteezy.com/system/resources/thumbnails/005/720/408/small_2x/crossed-image-icon-picture-not-available-delete-picture-symbol-free-vector.jpg'
+
+    art = get_cover_art(mbid)
 
     title = result['title']
 
@@ -131,4 +131,14 @@ def get_label_mbid(label_name):
     return mbid
 
 
+def get_cover_art(mbid):
+    try:
+        # Try to grab cover art
+        response = requests.get(f'https://coverartarchive.org/release/{mbid}', headers=header)
+        response = response.json()
+        art = response['images'][0]['image']
+    except requests.exceptions.JSONDecodeError:
+        art = 'https://static.vecteezy.com/system/resources/thumbnails/005/720/408/small_2x/crossed-image-icon-picture-not-available-delete-picture-symbol-free-vector.jpg'
+
+    return art
 
