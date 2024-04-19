@@ -5,3 +5,5 @@ __pycache__
 *ER Diagram.drawio*
 *.db
 db.bat
+*.drawio*
+test*

@@ -1,0 +1,24 @@
+<table id="data-table">
+    <tr>
+        <th style="width: 3%;"></th>
+        <th style="width: 25%;">release</th>
+        <th style="width: 25%;">artist</th>
+        <th style="width: 20%;">label</th>
+        <th style="width: 9%;">date</th>
+        <th style="width: 8%;">tracks</th>
+        <th style="width: 10%;">format</th>
+    </tr>
+    {% for item in data %}
+    <tr>
+        <td style="width: 3%;">
+            <input value="{{ item['release']['id'] }}" type="radio">
+        </td>
+        <td style="width: 25%;">{{ item['release']['name'] }}</td>
+        <td style="width: 25%;">{{ item['artist']['name'] }}</td>
+        <td style="width: 20%;">{{ item['label']['name'] }}</td>
+        <td style="width: 6%;">{{ item['date'] }}</td>
+        <td style="width: 6%;">{{ item['track-count'] }}</td>
+        <td style="width: 15%;">{{ item['format'] }}</td>
+    </tr>
+    {% endfor %}
+</table>

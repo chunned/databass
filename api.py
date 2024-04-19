@@ -2,78 +2,54 @@ import json
 import requests
 from datetime import datetime
 
-header = {"Accept": "application/json", "User-Agent": "Databass/0.1 (https://github.com/hcnolan)"}
+header = {"Accept": "application/json", "User-Agent": "databass/0.2 (https://github.com/chunned/databass)"}
 
 
-def show_release_details(rel):
-    # Print title and artist
-    artist = rel["artist-credit"][0]["name"]
-    title = rel["title"]
-    w = 50
-    print(f'ARTIST: {artist}')
-    print(f'TITLE:  {title}')
-
-    # Print date, if it exists
-    if 'date' in rel:
-        date = rel["date"] + " (" + rel["status"] + ")"
-        print(f'DATE:   {date}')
-    else:
-        print('DATE: unknown')
-
-    # Show release type
-    try:
-        media_type = rel["media"][0]["format"]
-    except KeyError:
-        print("KeyError, media type not found.")
-    finally:
-        media_type = ""
-    tracks = rel["track-count"]
-    print(f'TYPE:   {media_type}')
-    # Print track count
-    print(f'TRACKS: {tracks}')
-
-    # Print URL
-    url = "https://musicbrainz.org/release/" + rel['id']
-    print(f"URL:    {url}")
-
-
-def pick_release():
-    release = input("Release title: ")
-    artist = input("Release artist: ")
+def pick_release(release, artist):
     url = "https://musicbrainz.org/ws/2/release/"
     params = {
         "query": f'artist:"{artist}" AND release:"{release}"',
-        "limit": 5,
+        "limit": 10,
         "fmt": "json",
     }
 
     response = requests.get(url, params=params, headers=header)
     result = response.json()
 
-    # iterate through release results to find the correct one
+    print(json.dumps(result, indent=2))
+
+    result_data = []
     for (i, release) in enumerate(result['releases']):
-        print(f'MATCH #{i + 1}:')
-        show_release_details(release)
-        check = ' '
-        print()
-        while check.lower() not in "yn":
-            check = input("Is this the correct release? (y/n): ")
-            if check.lower() not in "yn":
-                print(f"{check} is not a valid choice. Please enter Y or N.")
-        if check.lower() == 'y':
-            release_id = release['id']
-            artist_name = release["artist-credit"][0]["name"]
-            artist_id = release["artist-credit"][0]["artist"]["id"]
-            artist = {"mbid": artist_id, "name": artist_name}
-            try:
-                label = {
-                    "mbid": release['label-info'][0]['label']['id'],
-                    "name": release['label-info'][0]['label']['name']
-                }
-            except KeyError:
-                label = None
-            return release_id, artist, label
-    # TODO: edge cases where match is not found; or more than 5 results exist
+        try:
+            label = {
+                "mbid": release['label-info'][0]['label']['id'],
+                "name": release['label-info'][0]['label']['name']
+            }
+        except KeyError:
+            label = {"name": ""}
+
+        try:
+            date = release["date"]
+        except KeyError:
+            date = "?"
+
+        rel = {
+            "release": {
+                "name": release["title"],
+                "id": release['id']
+            },
+            "artist": {
+                "name": release["artist-credit"][0]["name"],
+                "id": release["artist-credit"][0]["artist"]["id"],
+            },
+            "label": label,
+            "date": date,
+            "format": release["media"][0]["format"],
+            "track-count": release["track-count"]
+        }
+        result_data.append(rel)
+
+    return result_data
 
 
 def get_release_data(mbid, artist_id, label_id):
@@ -84,6 +60,13 @@ def get_release_data(mbid, artist_id, label_id):
 
     # pretty = json.dumps(result, indent=4)
     # print(pretty)
+    try:
+        # Try to grab cover art
+        response = requests.get(f'https://coverartarchive.org/release/{mbid}', headers=header)
+        response = response.json()
+        art = response['images'][0]['image']
+    except requests.exceptions.JSONDecodeError:
+        art = 'https://static.vecteezy.com/system/resources/thumbnails/005/720/408/small_2x/crossed-image-icon-picture-not-available-delete-picture-symbol-free-vector.jpg'
 
     title = result['title']
     release_date = None
@@ -129,7 +112,8 @@ def get_release_data(mbid, artist_id, label_id):
         "listen_date": listen_date,
         "track_count": track_count,
         "country": area,
-        "genre": genre
+        "genre": genre,
+        "art": art
     }
     return data
 

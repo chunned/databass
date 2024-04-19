@@ -1,0 +1,66 @@
+html {
+    font-family: JetBrains Mono;
+}
+
+body {
+    padding: 5px;
+}
+
+.main-album-table {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+#navbar {
+    display: flex;
+    align-items: center;
+}
+
+.new-release {
+    margin: 15px;
+    align-items: center;
+
+}
+
+.new-release label,input {
+    padding: 5px;
+    margin: auto;
+}
+
+#new-release-link {
+    padding-left: 25px;
+}
+
+#search-results {
+/*    border: 1px solid black; */
+}
+#search-results table {
+    width: 100%;
+    text-align: center;
+    border-collapse: collapse;
+}
+#search-results th,td {
+    width: 25%;
+
+    padding: 10px;
+    margin: 10px;
+}
+#search-results tr {
+    border: 1px solid black;
+}
+#search-results img {
+    height: 250px;
+    width: 250px;
+}
+
+.radio-col {
+    width: 5%;
+}
+
+.search-btn {
+    background: none;
+    border: 3px solid black;
+    font-family: inherit;
+    font-size: inherit;
+}
