@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 
 def create_connection(db_file):
@@ -35,6 +36,7 @@ def create_tables(cur):
     track_count INTEGER,
     country TEXT,
     genre TEXT,
+    art TEXT,
     FOREIGN KEY (artist_id) REFERENCES artist(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
@@ -65,8 +67,8 @@ def create_tables(cur):
 
 def insert_release(cur, con, release):
     query = ("INSERT INTO release (mbid, artist_id, label_id, title, release_date, runtime, rating, listen_date, "
-             "track_count, country, genre) VALUES (:mbid, :artist_id, :label_id, :title, :release_date, :runtime, "
-             ":rating, :listen_date, :track_count, :country, :genre)")
+             "track_count, country, genre, art) VALUES (:mbid, :artist_id, :label_id, :title, :release_date, :runtime, "
+             ":rating, :listen_date, :track_count, :country, :genre, :art)")
     try:
         cur.execute(query, release)
         con.commit()
@@ -113,3 +115,34 @@ def insert_label(cur, con, label):
         return cur.fetchone()[0]
 
 
+def get_stats(cur, con):
+    stats = {}
+
+    cur.execute("SELECT COUNT(*) FROM release")
+    stats["total_listens"] = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM artist")
+    stats["total_artists"] = cur.fetchone()[0]
+
+    cur.execute("SELECT AVG(rating) FROM release")
+    stats["average_rating"] = cur.fetchone()[0]
+
+    cur.execute("SELECT AVG(runtime) FROM release")
+    stats["average_runtime"] = cur.fetchone()[0]
+
+    cur.execute("SELECT SUM(runtime) FROM release")
+    runtime = cur.fetchone()[0]
+    stats["total_runtime"] = runtime / 60000
+
+    year = str(datetime.datetime.now().year)
+    cur.execute("SELECT COUNT(*) FROM release WHERE SUBSTR(listen_date, 1, 4) = ?",
+                (year,))
+    stats["this_year"] = cur.fetchone()[0]
+
+    days_this_year = datetime.date.today().timetuple().tm_yday
+    try:
+        stats["per_day"] = stats["this_year"] / days_this_year
+    except ZeroDivisionError:
+        stats["per_day"] = 0
+
+    return stats

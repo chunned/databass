@@ -1,20 +1,55 @@
 {% include 'header.html' %}
 <body>
     {% include 'navbar.html' %}
-
-    <table class="main-album-table">
-        <tr>
-            <th>TITLE</th>
-            <th>ARTIST</th>
-            <th>RATING</th>
-        </tr>
-        {% for item in data %}
-        <tr>
-            <td>{{ item[0] }}</td>
-            <td>{{ item[1] }}</td>
-            <td>{{ item[2] }}</td>
-        </tr>
-    {% endfor %}
-    </table>
+<div class="home0">
+    <div class="home1">
+        <table class="main-album-table">
+            <tr>
+                <th>TITLE</th>
+                <th>ARTIST</th>
+                <th>RATING</th>
+            </tr>
+            {% for item in data %}
+            <tr>
+                <td>{{ item[0] }}</td>
+                <td>{{ item[1] }}</td>
+                <td>{{ item[2] }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    <div class="home2">
+        <table class="home-stats">
+            <tr>
+                <td>listens</td>
+                <td>{{ stats["total_listens"] }}</td>
+            </tr>
+            <tr>
+                <td>artists</td>
+                <td>{{ stats["total_artists"] }}</td>
+            </tr>
+            <tr>
+                <td>avg. rating</td>
+                <td>{{ stats["average_rating"] }}</td>
+            </tr>
+            <tr>
+                <td>avg. runtime</td>
+                <td>{{ stats["average_runtime"] }}</td>
+            </tr>
+            <tr>
+                <td>total runtime</td>
+                <td>{{ stats["total_runtime"] }}</td>
+            </tr>
+            <tr>
+                <td>listens this year</td>
+                <td>{{ stats["this_year"] }}</td>
+            </tr>
+            <tr>
+                <td>listens per day (this year)</td>
+                <td>{{ stats["per_day"] }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
 </body>
 </html>

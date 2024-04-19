@@ -1,5 +1,4 @@
 import flask
-
 import api
 import db
 
@@ -20,8 +19,8 @@ ORDER BY release.listen_date DESC;
     """
     cur.execute(query)
     data = cur.fetchall()
-
-    return flask.render_template("index.html", data=data)
+    stats = db.get_stats(cur, con)
+    return flask.render_template("index.html", data=data, stats=stats)
 
 
 @app.route("/new")
@@ -34,17 +33,37 @@ def new():
 def search():
     release = flask.request.form["release"]
     artist = flask.request.form["artist"]
+    rating = flask.request.form["rating"]
+    year = flask.request.form["year"]
+    genre = flask.request.form["genre"]
 
-    data = api.pick_release(release, artist)
+    data = api.pick_release(release, artist, rating, year, genre)
 
-    for i in data:
-        print(i)
     return flask.render_template("search.html", data=data)
 
-
-@app.route("/submit")
+@app.route("/submit", methods=["POST"])
 def submit():
-    data = None
+    con = db.create_connection(db_file)
+    cur = db.create_cursor(con)
+
+    data = eval(flask.request.form.get('selected_item'))
+    release = data["release"]
+    artist = data["artist"]
+    label = data["label"]
+    year = data["release_date"]
+    genre = data["genre"]
+    rating = data["rating"]
+
+    release_data = api.get_release_data(release["id"], year, genre, rating)
+    if label["mbid"]:
+        label_id = db.insert_label(cur, con, label)
+        release_data["label_id"] = label_id
+
+    artist_id = db.insert_artist(cur, con, artist)
+    release_data["artist_id"] = artist_id
+
+    db.insert_release(cur, con, release_data)
+
     return flask.redirect("/", code=302)
 
 

@@ -1,6 +1,8 @@
+<form action="/submit" method="post">
+
 <table id="data-table">
     <tr>
-        <th style="width: 3%;"></th>
+        <th style="width: 3%;"><button type="submit">submit</button></th>
         <th style="width: 25%;">release</th>
         <th style="width: 25%;">artist</th>
         <th style="width: 20%;">label</th>
@@ -11,7 +13,7 @@
     {% for item in data %}
     <tr>
         <td style="width: 3%;">
-            <input value="{{ item['release']['id'] }}" type="radio">
+            <input value="{{ item }}" type="radio" name="selected_item">
         </td>
         <td style="width: 25%;">{{ item['release']['name'] }}</td>
         <td style="width: 25%;">{{ item['artist']['name'] }}</td>
@@ -19,6 +21,10 @@
         <td style="width: 6%;">{{ item['date'] }}</td>
         <td style="width: 6%;">{{ item['track-count'] }}</td>
         <td style="width: 15%;">{{ item['format'] }}</td>
+        <td style="display: none;">{{ item['release_date'] }}</td>
+        <td style="display: none;">{{ item['rating'] }}</td>
+        <td style="display: none;">{{ item['genre'] }}</td>
     </tr>
     {% endfor %}
 </table>
+</form>

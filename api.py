@@ -5,7 +5,7 @@ from datetime import datetime
 header = {"Accept": "application/json", "User-Agent": "databass/0.2 (https://github.com/chunned/databass)"}
 
 
-def pick_release(release, artist):
+def pick_release(release, artist, rating, year, genre):
     url = "https://musicbrainz.org/ws/2/release/"
     params = {
         "query": f'artist:"{artist}" AND release:"{release}"',
@@ -16,7 +16,7 @@ def pick_release(release, artist):
     response = requests.get(url, params=params, headers=header)
     result = response.json()
 
-    print(json.dumps(result, indent=2))
+    #print(json.dumps(result, indent=2))
 
     result_data = []
     for (i, release) in enumerate(result['releases']):
@@ -26,7 +26,7 @@ def pick_release(release, artist):
                 "name": release['label-info'][0]['label']['name']
             }
         except KeyError:
-            label = {"name": ""}
+            label = {"name": "", "mbid": ""}
 
         try:
             date = release["date"]
@@ -40,19 +40,22 @@ def pick_release(release, artist):
             },
             "artist": {
                 "name": release["artist-credit"][0]["name"],
-                "id": release["artist-credit"][0]["artist"]["id"],
+                "mbid": release["artist-credit"][0]["artist"]["id"],
             },
             "label": label,
             "date": date,
             "format": release["media"][0]["format"],
-            "track-count": release["track-count"]
+            "track-count": release["track-count"],
+            "rating": rating,
+            "release_date": year,
+            "genre": genre
         }
         result_data.append(rel)
 
     return result_data
 
 
-def get_release_data(mbid, artist_id, label_id):
+def get_release_data(mbid, year, genre, rating):
     # mid = musicbrainz ID
     url = f"https://musicbrainz.org/ws/2/release/{mbid}?inc=recordings+tags"
     response = requests.get(url, headers=header)
@@ -69,15 +72,7 @@ def get_release_data(mbid, artist_id, label_id):
         art = 'https://static.vecteezy.com/system/resources/thumbnails/005/720/408/small_2x/crossed-image-icon-picture-not-available-delete-picture-symbol-free-vector.jpg'
 
     title = result['title']
-    release_date = None
-    while not release_date:
-        try:
-            release_date = input('Enter the release year: ')
-            if len(release_date) != 4:
-                raise ValueError
-        except ValueError:
-            print('Please enter a 4 digit year.')
-            release_date = None
+
     track_count = result['media'][0]['track-count']
     try:
         area = result['release-events'][0]['area']['name']
@@ -85,7 +80,6 @@ def get_release_data(mbid, artist_id, label_id):
         area = None
     except KeyError:
         area = None
-    genre = input("Release genre: ")
     # Get release length (in ms)
     length = 0
     tracks = result['media'][0]['tracks']
@@ -95,18 +89,11 @@ def get_release_data(mbid, artist_id, label_id):
     except TypeError:
         length = 0
     listen_date = datetime.now().strftime("%Y-%m-%d")
-    rating = 0
-    try:
-        rating = int(input("Rating (0-100): "))
-        if rating < 0 or rating > 100:
-            raise ValueError
-    except ValueError as e:
-        print("Invalid rating")
 
     data = {
         "mbid": mbid,
         "title": title,
-        "release_date": release_date,
+        "release_date": year,
         "runtime": length,
         "rating": rating,
         "listen_date": listen_date,
