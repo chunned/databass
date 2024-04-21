@@ -1,6 +1,6 @@
 # Overview
 
-This is a simple Python application intended to track music releases you listen to. Think of it like Last.fm-lite, with all tracking being manual. Databass is more like a music diary than a tracker like Last.fm. 
+This is a simple Python application intended to track music releases you listen to. Think of it like Last.fm-lite, with all tracking being manual. Databass is more like a music diary than a tracker like Last.fm. A more apt comparison would be Letterboxd for music.
 
 A few years ago, I decided I wanted to start exploring more music I'd never heard before. I started going through the book "1001 Albums to Listen to Before You Die" and wanted to keep some record of where I was in the list, and how I felt about each release. 
 
