@@ -1,0 +1,12 @@
+---
+services:
+  databass:
+    container_name: databass
+    image: ghcr.io/chunned/databass:latest
+    ports:
+      - 10111:8080
+    environment:
+      - DISCOGS_KEY=
+      - DISCOGS_SECRET=
+    volumes:
+      - ./music.db:/databass/music.db
