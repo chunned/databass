@@ -1,0 +1,21 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - docker
+  workflow_dispatch:
+
+jobs:
+  build-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'docker'
+      - name: Login to GitHub Container Registry
+        run: echo ${{ secrets.PAT }} | docker login ghcr.io -u chunned --password-stdin
+      - name: Build and push image
+        run: |
+          docker build . -t ghcr.io/chunned/databass:latest 
+          docker push ghcr.io/chunned/databass:latest
