@@ -7,6 +7,6 @@ WORKDIR /databass
 
 RUN pip3 install -r requirements.txt
 
-EXPOSE PORT 80
+EXPOSE 8080
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
