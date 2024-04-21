@@ -133,7 +133,7 @@ def get_stats(cur, con):
 
     cur.execute("SELECT SUM(runtime) FROM release")
     runtime = cur.fetchone()[0]
-    if runtime > 0:
+    if runtime is not None:
         stats["total_runtime"] = runtime / 60000
     else:
         stats["total_runtime"] = 0
