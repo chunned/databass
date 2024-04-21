@@ -180,6 +180,8 @@ def label(label_id):
     return flask.render_template('label.html', data=data)
 
 
-
 if __name__ == '__main__':
+    con = db.create_connection(db_file)
+    cur = db.create_cursor(con)
+    db.create_tables(cur)
     app.run(host='0.0.0.0', debug=True, port=8080)
