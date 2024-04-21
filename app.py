@@ -5,6 +5,10 @@ import db
 app = flask.Flask(__name__)
 db_file = 'music.db'
 
+con = db.create_connection(db_file)
+cur = db.create_cursor(con)
+db.create_tables(cur)
+
 
 @app.route("/")
 def home():
@@ -181,7 +185,4 @@ def label(label_id):
 
 
 if __name__ == '__main__':
-    con = db.create_connection(db_file)
-    cur = db.create_cursor(con)
-    db.create_tables(cur)
     app.run(host='0.0.0.0', debug=True, port=8080)
