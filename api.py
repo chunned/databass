@@ -1,4 +1,3 @@
-import json
 import requests
 from datetime import datetime
 
@@ -16,8 +15,6 @@ def pick_release(release, artist, rating, year, genre):
     response = requests.get(url, params=params, headers=header)
     result = response.json()
 
-    #print(json.dumps(result, indent=2))
-
     result_data = []
     for (i, release) in enumerate(result['releases']):
         try:
@@ -34,9 +31,9 @@ def pick_release(release, artist, rating, year, genre):
             date = "?"
 
         try:
-            format =  release["media"][0]["format"]
+            release_format = release["media"][0]["format"]
         except KeyError:
-            format = "unknown"
+            release_format = "unknown"
 
         rel = {
             "release": {
@@ -49,7 +46,7 @@ def pick_release(release, artist, rating, year, genre):
             },
             "label": label,
             "date": date,
-            "format": format,
+            "format": release_format,
             "track-count": release["track-count"],
             "rating": rating,
             "release_date": year,
@@ -66,10 +63,7 @@ def get_release_data(mbid, year, genre, rating):
     response = requests.get(url, headers=header)
     result = response.json()
 
-    # pretty = json.dumps(result, indent=4)
-    # print(pretty)
-
-    art = get_cover_art(mbid)
+    art = get_art(mbid, 'release')
 
     title = result['title']
 
@@ -131,10 +125,10 @@ def get_label_mbid(label_name):
     return mbid
 
 
-def get_cover_art(mbid):
+def get_art(mbid, item_type):
     try:
         # Try to grab cover art
-        response = requests.get(f'https://coverartarchive.org/release/{mbid}', headers=header)
+        response = requests.get(f'https://coverartarchive.org/{item_type}/{mbid}', headers=header)
         response = response.json()
         art = response['images'][0]['image']
     except requests.exceptions.JSONDecodeError:
@@ -142,3 +136,48 @@ def get_cover_art(mbid):
 
     return art
 
+
+def get_artist_data(mbid):
+    url = f"https://musicbrainz.org/ws/2/artist/{mbid}"
+    response = requests.get(url, headers=header)
+    result = response.json()
+
+    artist = {
+        "mbid": mbid,
+        "name": result["name"],
+        "country": result["country"],
+        "begin_date": result["life-span"]["begin"],
+        "end_date": result["life-span"]["end"]
+    }
+
+    if result["type"] == "Person":
+        artist["type"] = "person"
+    elif result["type"] == "Group":
+        artist["type"] = "group"
+    else:
+        artist["type"] = None
+
+    # GET PICTURE
+    try:
+        artist["image"] = get_art(mbid, 'artist')
+    except:
+        artist["image"] = None
+    return artist
+
+
+def get_label_data(mbid):
+    url = f"https://musicbrainz.org/ws/2/label/{mbid}"
+    response = requests.get(url, headers=header)
+    result = response.json()
+
+    image = get_art(mbid, 'label')
+
+    label = {
+        "mbid": mbid,
+        "name": result["name"],
+        "country": result["country"],
+        "type": result["type"],
+        "begin_date": result["life-span"]["begin"],
+        "end_date": result["life-span"]["end"],
+    }
+    return label

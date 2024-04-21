@@ -181,3 +181,45 @@ def get_missing_covers(cur, con):
                         "country": release[10], "genre": release[11], "art": release[12]}
 
         update_existing_release(cur, con, release_dict)
+
+
+def get_missing_artist_data(cur, con):
+    cur.execute("SELECT * FROM artist")
+    data = cur.fetchall()
+
+    for artist_entry in data:
+        for i, val in enumerate(artist_entry):
+            if not val:
+                new_data = api.get_artist_data(artist_entry[1])
+                query = ("UPDATE artist SET mbid = ?, name = ?, country = ?, type = ?, begin_date = ?, end_date = ?, image = ?"
+                         "WHERE artist.mbid = ?")
+                cur.execute(query, (
+                    new_data["mbid"], new_data["name"], new_data["country"], new_data["type"], new_data["begin_date"],
+                    new_data["end_date"], new_data["image"], new_data["mbid"]
+                    ))
+                con.commit()
+                print(f"UPDATED {new_data['name']}")
+                break
+    return 1
+
+
+def get_missing_label_data(cur, con):
+    cur.execute("SELECT * FROM  label")
+    data = cur.fetchall()
+
+    for label_entry in data:
+        if label_entry[1] is None:
+            pass
+        else:
+            for i, val in enumerate(label_entry):
+                if not val:
+                    new_data = api.get_label_data(label_entry[1])
+                    query = ("UPDATE LABEL SET mbid = ?, name = ?, country = ?, type = ?, begin_date = ?, end_date = ?"
+                             "WHERE mbid = ?")
+                    cur.execute(query, (new_data["mbid"], new_data["name"], new_data["country"], new_data["type"],
+                                        new_data["begin_date"], new_data["end_date"],
+                                        new_data["mbid"]))
+                    con.commit()
+                    print(f"UPDATED {new_data['name']}")
+                    break
+    return 1
