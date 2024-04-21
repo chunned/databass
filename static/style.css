@@ -7,6 +7,15 @@ body {
     padding: 5px;
 }
 
+.link {
+    text-decoration: underline;
+    color: black;
+}
+
+.page-content {
+    display: grid;
+    grid-template-columns: 40% 60%;
+}
 /* NAVBAR */
 #navbar {
     display: flex;

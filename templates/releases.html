@@ -6,10 +6,10 @@
 <div class="data-grid">
     {% for release in data %}
     <div class="grid-cell">
+        <a href="/release/{{ release[1] }}" class="link">
         <img src="{{ release[12] }}" style="height:82%; width:100%;">
         <p>{{ release[4] }} ({{ release[7] }}%)</p>
-
-
+        </a>
     </div>
     {% endfor %}
 </div>

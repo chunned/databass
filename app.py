@@ -13,10 +13,12 @@ def home():
     cur = db.create_cursor(con)
 
     query = """
-    SELECT artist.name, release.title, release.rating, release.listen_date, release.genre, release.art FROM release
-JOIN artist on artist.id = release.artist_id
-ORDER BY release.listen_date DESC
-LIMIT 10;
+    SELECT artist.name, release.title, release.rating, release.listen_date, release.genre, release.art, 
+    release.mbid, artist.mbid 
+    FROM release
+    JOIN artist on artist.id = release.artist_id
+    ORDER BY release.listen_date DESC
+    LIMIT 10;
     """
     cur.execute(query)
     data = cur.fetchall()
@@ -110,10 +112,74 @@ def artists():
 def labels():
     con = db.create_connection(db_file)
     cur = db.create_cursor(con)
-    cur.execute("SELECT * FROM label LIMIT 25")
+    cur.execute("SELECT * FROM label ORDER BY id DESC LIMIT 25")
     data = cur.fetchall()
 
     return flask.render_template('labels.html', data=data, active_page='labels')
+
+
+@app.route('/release/<string:release_id>', methods=['GET'])
+def release(release_id):
+    # displays all info related to a particular release
+    con = db.create_connection(db_file)
+    cur = db.create_cursor(con)
+
+    query = "SELECT * FROM release WHERE release.mbid = ?"
+    cur.execute(query, (release_id,))
+    release_data = cur.fetchall()
+
+    query = "SELECT * FROM artist WHERE artist.id = ?"
+    cur.execute(query, (release_data[0][2],))
+    artist_data = cur.fetchall()
+
+    query = "SELECT * FROM label WHERE label.id = ?"
+    cur.execute(query, (release_data[0][3],))
+    label_data = cur.fetchall()
+
+    data = [release_data[0], artist_data[0], label_data[0]]
+    return flask.render_template('release.html', data=data)
+
+
+@app.route('/artist/<string:artist_id>', methods=['GET'])
+def artist(artist_id):
+    con = db.create_connection('music.db')
+    cur = db.create_cursor(con)
+
+    query = "SELECT * FROM artist WHERE artist.mbid = ?"
+    cur.execute(query, (artist_id,))
+
+    artist_data = cur.fetchall()
+    print(artist_data)
+    query = """
+    SELECT * FROM label
+    JOIN release ON label.id = release.label_id
+    JOIN artist ON artist.id = release.artist_id
+    WHERE artist.id = ?
+    """
+    cur.execute(query, (artist_data[0][0],))
+    release_data = cur.fetchall()
+
+    data = [artist_data[0], release_data]
+    return flask.render_template('artist.html', data=data)
+
+
+@app.route('/label/<string:label_id>', methods=['GET'])
+def label(label_id):
+    con = db.create_connection('music.db')
+    cur = db.create_cursor(con)
+
+    query = "SELECT * FROM label WHERE label.mbid = ?"
+    cur.execute(query, (label_id,))
+    label_data = cur.fetchall()
+
+    query = "SELECT * FROM release JOIN artist on artist.id = release.artist_id WHERE release.label_id = ?"
+    cur.execute(query, (label_data[0][0],))
+    release_data = cur.fetchall()
+
+    data = [label_data[0], release_data]
+
+    return flask.render_template('label.html', data=data)
+
 
 
 if __name__ == '__main__':

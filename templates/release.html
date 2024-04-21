@@ -1,0 +1,50 @@
+{% include 'header.html' %}
+<body>
+{% include 'navbar.html' %}
+
+<div class="page-content">
+    <div>
+        <div style="display:flex; align-items: center;">
+            <h1><a href="/artist/{{ data[1][1] }}" class="link">{{data[1][2]}}</a> - {{ data[0][4] }}</h1>
+            <p>&nbsp <a href="/label/{{ data[2][1] }}" class="link">{{ data[2][2] }}</a></p>
+        </div>
+        <img src="{{ data[0][12] }}" style="max-height: 75vh; max-width: 100%;">
+    </div>
+    <div>
+        <div class="release-table">
+            <table>
+                <tr>
+                    <td>
+                        released: {{ data[0][5] }}
+                    </td>
+                    <td>
+                        genre: {{ data[0][11] }}
+                    </td>
+                    <td>
+                        rating: {{ data[0][7] }}
+                    </td>
+                    <td>
+                        runtime: {{ data[0][6] // 60000 }} min
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        listened: {{data[0][8] }}
+                    </td>
+                    <td></td>
+                    <td>
+                        <a href="/artist/{{ data[1][1] }}" class="link">go to artist</a>
+                    </td>
+                    <td>
+                        <a href="/artist/{{ data[2][1] }}" class="link">go to label</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <p>{{data[0]}}</p>
+    <p>{{data[1]}}</p>
+    <p>{{data[2]}}</p>
+
+</div>
+</body>
