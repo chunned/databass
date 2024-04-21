@@ -85,8 +85,8 @@ def insert_release(cur, con, release):
 
 
 def insert_artist(cur, con, artist):
-    query = ("INSERT INTO artist (mbid, name) VALUES"
-             "(:mbid, :name)")
+    query = ("INSERT INTO artist (mbid, name, country, type, begin_date, end_date, image) VALUES"
+             "(:mbid, :name, :country, :type, :begin_date, :end_date, :image)")
     try:
         cur.execute(query, artist)
         con.commit()
@@ -101,8 +101,8 @@ def insert_artist(cur, con, artist):
 
 
 def insert_label(cur, con, label):
-    query = ("INSERT INTO label (mbid, name) VALUES"
-             "(:mbid, :name)")
+    query = ("INSERT INTO label (mbid, name, country, type, begin_date, end_date, image) VALUES"
+             "(:mbid, :name, :country, :type, :begin_date, :end_date, :image)")
     try:
         cur.execute(query, label)
         con.commit()

@@ -88,10 +88,11 @@ td:not(:has(> img)) {
     height: 100%;
 }
 
-/* ARTISTS.HTML */
+/* ARTISTS, RELEASES, LABELS */
 .data-grid {
     display: grid;
     grid-template-columns: repeat(5, 20%);
+    grid-auto-rows: 460px;
 }
 .grid-cell {
     border: 1px solid black;

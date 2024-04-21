@@ -58,11 +58,27 @@ def submit():
 
     release_data = api.get_release_data(release["id"], year, genre, rating)
     if label["mbid"]:
-        label_id = db.insert_label(cur, con, label)
-        release_data["label_id"] = label_id
+        # check if label exists in database already, avoid some API calls
+        cur.execute("SELECT * FROM label WHERE mbid = ?", (label["mbid"],))
+        res = cur.fetchone()
+        if not res:
+            # not in db already, get data and insert it
+            label_data = api.get_label_data(label["mbid"])
+            label_id = db.insert_label(cur, con, label_data)
+            release_data["label_id"] = label_id
+        else:
+            release_data["label_id"] = res[0]
 
-    artist_id = db.insert_artist(cur, con, artist)
-    release_data["artist_id"] = artist_id
+    # check if artist exists in db already
+    cur.execute("SELECT * FROM artist WHERE mbid = ?", (artist["mbid"],))
+    res = cur.fetchone()
+    if not res:
+        # not in db
+        artist_data = api.get_artist_data(artist["mbid"])
+        artist_id = db.insert_artist(cur, con, artist_data)
+        release_data["artist_id"] = artist_id
+    else:
+        release_data["artist_id"] = res[0]
 
     db.insert_release(cur, con, release_data)
 
@@ -73,10 +89,10 @@ def submit():
 def releases():
     con = db.create_connection(db_file)
     cur = db.create_cursor(con)
-    cur.execute("SELECT * FROM release")
+    cur.execute("SELECT * FROM release LIMIT 25")
     data = cur.fetchall()
 
-    return flask.render_template('releases.html', data=data)
+    return flask.render_template('releases.html', data=data, active_page='releases')
 
 
 @app.route('/artists', methods=["GET"])
@@ -84,20 +100,20 @@ def artists():
     con = db.create_connection(db_file)
     cur = db.create_cursor(con)
 
-    cur.execute("SELECT * FROM artist")
+    cur.execute("SELECT * FROM artist LIMIT 25")
     data = cur.fetchall()
 
-    return flask.render_template('artists.html', data=data)
+    return flask.render_template('artists.html', data=data, active_page='artists')
 
 
 @app.route('/labels', methods=["GET"])
 def labels():
     con = db.create_connection(db_file)
     cur = db.create_cursor(con)
-    cur.execute("SELECT * FROM label")
+    cur.execute("SELECT * FROM label LIMIT 25")
     data = cur.fetchall()
 
-    return flask.render_template('labels.html', data=data)
+    return flask.render_template('labels.html', data=data, active_page='labels')
 
 
 if __name__ == '__main__':

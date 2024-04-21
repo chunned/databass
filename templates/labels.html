@@ -6,7 +6,8 @@
 <div class="data-grid">
     {% for artist in data %}
     <div class="grid-cell">
-        <p>{{ artist }}</p>
+        <img src="{{ artist[7] }}" style="height:82%;width:100%;">
+        <p>{{ artist[2] }} ({{ artist[3] }})</p>
     </div>
     {% endfor %}
 </div>

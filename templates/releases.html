@@ -4,9 +4,12 @@
 {% include 'navbar.html' %}
 
 <div class="data-grid">
-    {% for artist in data %}
+    {% for release in data %}
     <div class="grid-cell">
-        <p>{{ artist }}</p>
+        <img src="{{ release[12] }}" style="height:82%; width:100%;">
+        <p>{{ release[4] }} ({{ release[7] }}%)</p>
+
+
     </div>
     {% endfor %}
 </div>
