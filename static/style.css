@@ -1,3 +1,4 @@
+/* GENERIC */
 html {
     font-family: JetBrains Mono;
 }
@@ -6,9 +7,65 @@ body {
     padding: 5px;
 }
 
-.main-album-table {
+/* NAVBAR */
+#navbar {
     display: flex;
-    justify-content: center;
+    align-items: center;
+}
+#navbar>a {
+    text-decoration: none;
+    color: black;
+
+}
+.active {
+    text-decoration: underline!important;
+}
+
+/* NEW */
+.new-release {
+    margin: 15px;
+    align-items: center;
+
+}
+.new-release > label,input {
+    padding: 5px;
+    margin: auto;
+}
+#search-results {
+/*    border: 1px solid black; */
+}
+#data-table {
+    width: 100%;
+    text-align: center;
+    border-collapse: collapse;
+}
+#search-results > th,td {
+    width: 25%;
+/*    padding: 10px; */
+    margin: 10px;
+}
+#search-results > tr {
+    border: 1px solid black;
+}
+#search-results > img {
+    height: 250px;
+    width: 250px;
+}
+.radio-col {
+    width: 5%;
+}
+.search-btn {
+    background: none;
+    border: 3px solid black;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+
+/* HOME */
+.main-album-table {
+/*   display: flex; */
+/*    justify-content: center; */
     text-align: center;
 }
 
@@ -20,67 +77,22 @@ td:not(:has(> img)) {
     padding: 25px;
 }
 
-#navbar {
-    display: flex;
-    align-items: center;
-}
-
-.new-release {
-    margin: 15px;
-    align-items: center;
-
-}
-
-.new-release label,input {
-    padding: 5px;
-    margin: auto;
-}
-
-#new-release-link {
-    padding-left: 25px;
-}
-
-#search-results {
-/*    border: 1px solid black; */
-}
-#search-results table {
-    width: 100%;
-    text-align: center;
-    border-collapse: collapse;
-}
-#search-results th,td {
-    width: 25%;
-/*    padding: 10px; */
-    margin: 10px;
-}
-#search-results tr {
-    border: 1px solid black;
-}
-#search-results img {
-    height: 250px;
-    width: 250px;
-}
-
-.radio-col {
-    width: 5%;
-}
-
-.search-btn {
-    background: none;
-    border: 3px solid black;
-    font-family: inherit;
-    font-size: inherit;
-}
-
 .home0 {
     display: flex;
     height: 85vh;
-    overflow: hidden;
     padding: 10px;
 }
 
 .home1 {
     width: 75%;
     height: 100%;
+}
+
+/* ARTISTS.HTML */
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 20%);
+}
+.grid-cell {
     border: 1px solid black;
 }

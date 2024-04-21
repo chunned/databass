@@ -21,13 +21,13 @@ LIMIT 10;
     cur.execute(query)
     data = cur.fetchall()
     stats = db.get_stats(cur, con)
-    return flask.render_template("index.html", data=data, stats=stats)
+    return flask.render_template("index.html", data=data, stats=stats, active_page='home')
 
 
 @app.route("/new")
 def new():
     actions = ["search"]
-    return flask.render_template("new.html", actions=actions)
+    return flask.render_template("new.html", actions=actions, active_page='new')
 
 
 @app.route("/search", methods=["POST"])
@@ -67,6 +67,37 @@ def submit():
     db.insert_release(cur, con, release_data)
 
     return flask.redirect("/", code=302)
+
+
+@app.route('/releases', methods=["GET"])
+def releases():
+    con = db.create_connection(db_file)
+    cur = db.create_cursor(con)
+    cur.execute("SELECT * FROM release")
+    data = cur.fetchall()
+
+    return flask.render_template('releases.html', data=data)
+
+
+@app.route('/artists', methods=["GET"])
+def artists():
+    con = db.create_connection(db_file)
+    cur = db.create_cursor(con)
+
+    cur.execute("SELECT * FROM artist")
+    data = cur.fetchall()
+
+    return flask.render_template('artists.html', data=data)
+
+
+@app.route('/labels', methods=["GET"])
+def labels():
+    con = db.create_connection(db_file)
+    cur = db.create_cursor(con)
+    cur.execute("SELECT * FROM label")
+    data = cur.fetchall()
+
+    return flask.render_template('labels.html', data=data)
 
 
 if __name__ == '__main__':
