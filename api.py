@@ -2,12 +2,12 @@ import json
 
 import requests
 from datetime import datetime
-import dotenv  # later change to os
+import os
 
 header = {"Accept": "application/json", "User-Agent": "databass/0.2 (https://github.com/chunned/databass)"}
-secrets = dotenv.dotenv_values('.env')
-DISCOGS_KEY = secrets["DISCOGS_KEY"]
-DISCOGS_SECRET = secrets["DISCOGS_SECRET"]
+
+DISCOGS_KEY = os.getenv("DISCOGS_KEY")
+DISCOGS_SECRET = os.getenv("DISCOGS_SECRET")
 
 
 def pick_release(release, artist, rating, year, genre):
