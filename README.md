@@ -1,15 +1,22 @@
 # Overview
 
-This is a simple Python application intended to track music releases you listen to. 
+This is a simple Python application intended to track music releases you listen to. Think of it like Last.fm-lite, with all tracking being manual. Databass is more like a music diary than a tracker like Last.fm. 
 
-Usage:
-```python
-git clone https://github.com/chunned/databass
-cd databass
-pip install -r requirements.txt
-python3 main.py
-```
+A few years ago, I decided I wanted to start exploring more music I'd never heard before. I started going through the book "1001 Albums to Listen to Before You Die" and wanted to keep some record of where I was in the list, and how I felt about each release. 
 
-![image](https://github.com/chunned/databass/assets/72193737/591cde30-54b4-4734-9d3d-15ff55db6514)
+For a while, I did this through Obsidian, and used a handful of plugins to set up a workflow where I could quickly add a new release and have some basic querying of the stored data. However, everything was manual. I thought about integrating an API into an Obsidian plugin, but instead I decided I wanted to create a standalone webapp that I can update easily from anywhere. Thus, Databass was born. 
 
+# Usage
+Download the `docker-compose.yml` file: `wget https://raw.githubusercontent.com/chunned/databass/main/docker-compose.yml`
 
+Add your Discogs API key and secret. Obtain them [here](https://www.discogs.com/settings/developers).
+
+Choose a port to use on line 7.
+
+Choose a location to store the database on line 12.
+
+Then, run `docker compose up -d` and visit the application at `localhost:<port>`
+
+---
+
+![](/static/screen.png)
