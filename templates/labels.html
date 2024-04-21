@@ -1,0 +1,16 @@
+{% include 'header.html' %}
+
+<body>
+{% include 'navbar.html' %}
+
+<div class="data-grid">
+    {% for label in data %}
+    <div class="grid-cell">
+        <a href="/label/{{ label[1] }}" class="link">
+        <img src="{{ label[7] }}" style="height:82%;width:100%;">
+        <p>{{ label[2] }} ({{ label[3] }})</p>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+</body>

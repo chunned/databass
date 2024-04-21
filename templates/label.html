@@ -1,0 +1,25 @@
+{% include 'header.html' %}
+<body>
+{% include 'navbar.html' %}
+<div class="page-content">
+    <div>
+    <h1>{{ data[0][2] }}</h1>
+    <img src="{{ data[0][7] }}" style="max-height: 75vh; max-width: 100%;">
+    </div>
+    <div>
+        <table class="label-releases-table">
+        {% for release in data[1] %}
+        <tr>
+            <td>
+                <a href="/release/{{ release[1] }}">{{ release[4] }}</a> - {{ release[15] }} ({{ release[5] }})
+            </td>
+            <td>
+                {{ release[5] }}
+            </td>
+        </tr>
+        {% endfor %}
+        </table>
+    </div>
+</div>
+<p>{{data[1][0]}}</p>
+</body>

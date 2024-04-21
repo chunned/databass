@@ -1,2 +1,2 @@
 requests~=2.31.0
-art~=6.1
+flask
