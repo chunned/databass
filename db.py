@@ -133,7 +133,10 @@ def get_stats(cur, con):
 
     cur.execute("SELECT SUM(runtime) FROM release")
     runtime = cur.fetchone()[0]
-    stats["total_runtime"] = runtime / 60000
+    if runtime > 0:
+        stats["total_runtime"] = runtime / 60000
+    else:
+        stats["total_runtime"] = 0
 
     year = str(datetime.datetime.now().year)
     cur.execute("SELECT COUNT(*) FROM release WHERE SUBSTR(listen_date, 1, 4) = ?",
