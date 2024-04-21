@@ -1,10 +1,10 @@
 import flask
 import api
 import db
-
+import os
 
 app = flask.Flask(__name__)
-db_file = "music.db"
+db_file = os.getenv("DB_FILE")
 
 
 @app.route("/")
