@@ -184,5 +184,18 @@ def label(label_id):
     return flask.render_template('label.html', data=data)
 
 
+@app.route('/charts', methods=['GET'])
+def charts():
+    con = db.create_connection('music.db')
+    cur = db.create_cursor(con)
+
+    query = "SELECT rating FROM release"
+    cur.execute(query)
+    data = cur.fetchall()
+
+    data = [n[0] for n in data]
+    return flask.render_template('charts.html', data=data)
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=8080)
