@@ -1,16 +1,18 @@
 import json
-
 import requests
 from datetime import datetime
 import os
 
 header = {"Accept": "application/json", "User-Agent": "databass/0.2 (https://github.com/chunned/databass)"}
 
+# Load environment variables
 DISCOGS_KEY = os.getenv("DISCOGS_KEY")
 DISCOGS_SECRET = os.getenv("DISCOGS_SECRET")
 
 
 def pick_release(release, artist, rating, year, genre):
+    # Accepts search parameters and returns a list of matching releases, which the user must select from
+
     url = "https://musicbrainz.org/ws/2/release/"
     params = {
         "query": f'artist:"{artist}" AND release:"{release}"',
@@ -64,7 +66,7 @@ def pick_release(release, artist, rating, year, genre):
 
 
 def get_release_data(mbid, year, genre, rating):
-    # mid = musicbrainz ID
+    # Grabs data for a specific release by its MusicBrainz ID
     url = f"https://musicbrainz.org/ws/2/release/{mbid}?inc=recordings+tags+artist-credits"
     response = requests.get(url, headers=header)
     result = response.json()
@@ -106,6 +108,9 @@ def get_release_data(mbid, year, genre, rating):
 
 
 def get_artist_mbid(artist_name):
+    # TODO: merge with get_label_mbid
+    # Grab the MusicBrainz ID for a given artist name.
+    # Note that this is best-effort and no checking on the name is performed
     url = f"https://musicbrainz.org/ws/2/artist/?query=artist:{artist_name}"
     response = requests.get(url, headers=header)
     result = response.json()
@@ -119,6 +124,9 @@ def get_artist_mbid(artist_name):
 
 
 def get_label_mbid(label_name):
+    # TODO: merge with get_artist_mbid
+    # Grab the MusicBrainz ID for a given label name.
+    # Note that this is best-effort and no checking on the name is performed
     url = f"https://musicbrainz.org/ws/2/label/?query={label_name}"
     response = requests.get(url, headers=header)
     result = response.json()
@@ -132,20 +140,24 @@ def get_label_mbid(label_name):
 
 
 def get_art(mbid, item_type, discog_release):
+    # Grab cover art for a given release by MusicBrainzID
     try:
-        # Try to grab cover art
+        # Try to grab cover art from CoverArtArchive
         response = requests.get(f'https://coverartarchive.org/{item_type}/{mbid}', headers=header)
         response = response.json()
         art = response['images'][0]['image']
     except requests.exceptions.JSONDecodeError:
-        # fallback to Discogs
-        art =  discogs_get_image(discog_release, item_type)
+        # Fallback to Discogs
+        art = discogs_get_image(discog_release, item_type)
         if art is None:
+            # If not found on Discogs, use a static 'not-found' template image
+            # TODO: store this locally
             art = 'https://static.vecteezy.com/system/resources/thumbnails/005/720/408/small_2x/crossed-image-icon-picture-not-available-delete-picture-symbol-free-vector.jpg'
     return art
 
 
 def get_artist_data(mbid):
+    # Query basic metadata about an artist by its MusicBrainz ID
     url = f"https://musicbrainz.org/ws/2/artist/{mbid}"
     response = requests.get(url, headers=header)
     result = response.json()
@@ -163,6 +175,7 @@ def get_artist_data(mbid):
 
 
 def get_label_data(mbid):
+    # Query basic metadata about a label by its MusicBrainz ID
     url = f"https://musicbrainz.org/ws/2/label/{mbid}"
     response = requests.get(url, headers=header)
     result = response.json()
@@ -183,6 +196,7 @@ def get_label_data(mbid):
 
 # Discogs API functions
 def discogs_get_image(name, item_type):
+    # Used by get_art to query Discogs API for cover art images
     header["Authorization"] = f"Discogs key={DISCOGS_KEY}, secret={DISCOGS_SECRET}"
     url = 'https://api.discogs.com/'
 
