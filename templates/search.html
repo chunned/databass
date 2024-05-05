@@ -1,18 +1,20 @@
-<form action="/submit" method="post">
+<form id="data-form" action="/submit" method="post">
 
 <table id="data-table">
+    <thead>
     <tr>
-        <th style="width: 3%;"><button type="submit">submit</button></th>
-        <th style="width: 25%;">release</th>
-        <th style="width: 25%;">artist</th>
-        <th style="width: 20%;">label</th>
-        <th style="width: 9%;">date</th>
-        <th style="width: 8%;">tracks</th>
-        <th style="width: 10%;">format</th>
+        <th style="width: 25%;">RELEASE</th>
+        <th style="width: 25%;">ARTIST</th>
+        <th style="width: 20%;">LABEL</th>
+        <th style="width: 9%;">DATE</th>
+        <th style="width: 8%;">TRACKS</th>
+        <th style="width: 10%;">FORMAT</th>
     </tr>
+    </thead>
+    <tbody>
     {% for item in data %}
-    <tr>
-        <td style="width: 3%;">
+    <tr data-item="{{ item }}">
+        <td style="display: none;">
             <input value="{{ item }}" type="radio" name="selected_item">
         </td>
         <td style="width: 25%;">{{ item['release']['name'] }}</td>
@@ -26,5 +28,20 @@
         <td style="display: none;">{{ item['genre'] }}</td>
     </tr>
     {% endfor %}
+    </tbody>
 </table>
+    <input type="hidden" id="selected_item" name="selected_item">
 </form>
+
+<script>
+    console.log("ok")
+    const tableRows = document.querySelectorAll("table tbody tr");
+    for (const tableRow of tableRows) {
+        tableRow.addEventListener("click", function() {
+            const radioBtn = tableRow.querySelector("input[type='radio']");
+            radioBtn.checked = true;
+            const data = tableRow.dataset.item;
+            document.getElementById("data-form").submit();
+        });
+    }
+</script>
