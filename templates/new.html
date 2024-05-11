@@ -18,6 +18,8 @@
 
             <label for="genre">genre*</label>
             <input type="text" id="genre" name="genre">
+            <label for="tags">tags*</label>
+            <input type="text" id="tags" name="tags">
             {% for action in actions %}
             <button class="search-btn" type="button" data-action="{{ action }}">{{ action }}</button>
             {% endfor %}
@@ -36,10 +38,11 @@
                 var year = $('#year').val();
                 var genre = $('#genre').val();
                 var rating = $('#rating').val();
+                var tags = $('#tags').val();
                 $.ajax({
                     url: '/search',
                     type: 'POST',
-                    data: { release: release, artist: artist, year: year, rating: rating, genre: genre },
+                    data: { release: release, artist: artist, year: year, rating: rating, genre: genre, tags: tags },
                     success: function(response) {
                         // Update the search results section with the new HTML content returned from the server
                         $('#search-results').html(response);

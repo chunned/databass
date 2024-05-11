@@ -42,8 +42,10 @@ def search():
     rating = flask.request.form["rating"]
     year = flask.request.form["year"]
     genre = flask.request.form["genre"]
+    tags = flask.request.form["tags"]
 
-    data = api.pick_release(release, artist, rating, year, genre)
+    data = api.pick_release(release, artist, rating,
+                            year, genre, tags)
 
     return flask.render_template("search.html", data=data)
 
@@ -60,8 +62,10 @@ def submit():
     year = data["release_date"]
     genre = data["genre"]
     rating = data["rating"]
+    tags = data["tags"]
 
     release_data = api.get_release_data(release["id"], year, genre, rating)
+    release_data["tags"] = tags
     if label["mbid"]:
         # check if label exists in database already, avoid some API calls
         cur.execute("SELECT * FROM label WHERE mbid = ?", (label["mbid"],))

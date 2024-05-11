@@ -10,7 +10,7 @@ DISCOGS_KEY = os.getenv("DISCOGS_KEY")
 DISCOGS_SECRET = os.getenv("DISCOGS_SECRET")
 
 
-def pick_release(release, artist, rating, year, genre):
+def pick_release(release, artist, rating, year, genre, tags):
     # Accepts search parameters and returns a list of matching releases, which the user must select from
 
     url = "https://musicbrainz.org/ws/2/release/"
@@ -58,7 +58,8 @@ def pick_release(release, artist, rating, year, genre):
             "track-count": release["track-count"],
             "rating": rating,
             "release_date": year,
-            "genre": genre
+            "genre": genre,
+            "tags": tags
         }
         result_data.append(rel)
 

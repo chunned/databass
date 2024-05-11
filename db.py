@@ -37,6 +37,7 @@ def create_tables(cur):
     track_count INTEGER,
     country TEXT,
     genre TEXT,
+    tags TEXT,
     art TEXT,
     FOREIGN KEY (artist_id) REFERENCES artist(id)
         ON UPDATE CASCADE
@@ -67,6 +68,10 @@ def create_tables(cur):
 
 
 def insert_release(cur, con, release):
+    # If we weren't given a label ID, set label ID to 0
+    if "label_id" not in release:
+        release["label_id"] = 0
+
     query = ("INSERT INTO release (mbid, artist_id, label_id, title, release_date, runtime, rating, listen_date, "
              "track_count, country, genre, art) VALUES (:mbid, :artist_id, :label_id, :title, :release_date, :runtime, "
              ":rating, :listen_date, :track_count, :country, :genre, :art)")
