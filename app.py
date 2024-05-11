@@ -197,5 +197,39 @@ def charts():
     return flask.render_template('charts.html', data=data)
 
 
+@app.route('/edit/<string:release_id>', methods=['GET'])
+def edit(release_id):
+    con = db.create_connection('music.db')
+    cur = db.create_cursor(con)
+
+    query = "SELECT * FROM release WHERE id = ?"
+    cur.execute(query, (release_id,))
+
+    data = cur.fetchone()
+    return flask.render_template('edit.html', data=data)
+
+
+@app.route('/edit-release', methods=['POST'])
+def edit_release():
+    data = flask.request.form.to_dict()
+
+    con = db.create_connection('music.db')
+    cur = db.create_cursor(con)
+
+    cur.execute(
+        """
+        UPDATE release
+        SET title = :title,
+            release_date = :year,
+            rating = :rating,
+            genre = :genre
+        WHERE id = :id
+        """,
+        data
+    )
+    con.commit()
+    return flask.redirect("/", code=302)
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=8080)

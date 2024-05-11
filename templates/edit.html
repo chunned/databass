@@ -1,0 +1,26 @@
+{% include 'header.html' %}
+<body>
+{% include 'navbar.html' %}
+
+<div class="edit-form">
+    <form action="/edit-release" method="POST">
+        <label for="title">title</label>
+        <input type="text" id="title" name="title" value="{{ data[4] }}">
+
+        <label for="year">year</label>
+        <input type="text" id="year" name="year" value="{{ data[5] }}">
+
+        <label for="rating">rating</label>
+        <input type="text" id="rating" name="rating" value="{{ data[7] }}">
+
+        <label for="genre">genre</label>
+        <input type="text" id="genre" name="genre" value="{{ data[11] }}">
+
+        <input type="hidden" id="id" name="id" value="{{ data[0] }}">
+        <input type="hidden" id="mbid" name="mbid" value="{{ data[1] }}">
+        <button type="submit">submit</button>
+    </form>
+</div>
+
+
+</body>
