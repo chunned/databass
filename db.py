@@ -126,15 +126,16 @@ def get_stats(cur, con):
     stats["total_artists"] = cur.fetchone()[0]
 
     cur.execute("SELECT AVG(rating) FROM release")
-    stats["average_rating"] = cur.fetchone()[0]
+    stats["average_rating"] = round(cur.fetchone()[0], 2)
 
     cur.execute("SELECT AVG(runtime) FROM release")
-    stats["average_runtime"] = cur.fetchone()[0]
+    runtime_ms = cur.fetchone()[0]
+    stats["average_runtime"] = round((runtime_ms / 60000), 2)
 
     cur.execute("SELECT SUM(runtime) FROM release")
     runtime = cur.fetchone()[0]
     if runtime is not None:
-        stats["total_runtime"] = runtime / 60000
+        stats["total_runtime"] = round((runtime / 60000), 2)
     else:
         stats["total_runtime"] = 0
 
@@ -145,7 +146,7 @@ def get_stats(cur, con):
 
     days_this_year = datetime.date.today().timetuple().tm_yday
     try:
-        stats["per_day"] = stats["this_year"] / days_this_year
+        stats["per_day"] = round((stats["this_year"] / days_this_year), 2)
     except ZeroDivisionError:
         stats["per_day"] = 0
 
