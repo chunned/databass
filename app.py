@@ -235,5 +235,14 @@ def edit_release():
     return flask.redirect("/", code=302)
 
 
+@app.route('/stats', methods=['GET'])
+def stats():
+    con = db.create_connection('music.db')
+    cur = db.create_cursor(con)
+
+    stats = db.get_stats(cur, con)
+    return flask.render_template('stats.html', data=stats, active_page='stats')
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=8080)

@@ -155,6 +155,60 @@ def get_stats(cur, con):
     except ZeroDivisionError:
         stats["per_day"] = 0
 
+    # most frequent labels
+    most_frequent_labels_query = """
+    SELECT label.name, COUNT(*) as Count 
+    FROM label 
+    JOIN release ON release.label_id = label.id 
+    GROUP BY label.name 
+    ORDER BY Count DESC
+    LIMIT 5;
+    """
+    cur.execute(most_frequent_labels_query)
+    most_frequent_labels = cur.fetchall()
+    stats["most_frequent_labels"] = most_frequent_labels
+
+    # highest rated labels
+    top_label_query = """
+    SELECT label.name, ROUND(AVG(release.rating), 2) AS Average_Rating, COUNT(release.label_id) as Release_Count 
+    FROM label  
+    JOIN release ON release.label_id = label.id
+    WHERE label.name IS NOT "none" AND label.name IS NOT "[no label]"
+    GROUP BY label.name
+    HAVING Release_Count != 1    
+    ORDER BY Average_Rating DESC
+    LIMIT 5;"""
+    cur.execute(top_label_query)
+    top_labels = cur.fetchall()
+    stats["top_labels"] = top_labels
+
+    # highest rated artists
+    top_artist_query = """
+    SELECT artist.name, ROUND(AVG(release.rating), 2) AS Average_Rating, COUNT(release.artist_id) as Release_Count 
+    FROM artist
+    JOIN release ON release.artist_id = artist.id
+    GROUP BY artist.name
+    HAVING Release_Count != 1    
+    ORDER BY Average_Rating DESC
+    LIMIT 5;"""
+    cur.execute(top_artist_query)
+    top_artists = cur.fetchall()
+    stats["top_artists"] = top_artists
+
+    # most frequent artists
+    frequent_artists_query = """
+    SELECT artist.name, COUNT(release.artist_id) as Count
+    FROM artist
+    JOIN release ON release.artist_id = artist.id
+    WHERE artist.name != "Various Artists"
+    GROUP BY artist.id
+    ORDER BY Count DESC
+    LIMIT 5;
+    """
+    cur.execute(frequent_artists_query)
+    frequent_artists = cur.fetchall()
+    stats["frequent_artists"] = frequent_artists
+
     return stats
 
 

@@ -38,7 +38,7 @@ body {
     align-items: center;
 
 }
-.new-release > label,input {
+.new-release label, .new-release input {
     padding: 5px;
     margin: auto;
 }
@@ -50,15 +50,15 @@ body {
     text-align: center;
     border-collapse: collapse;
 }
-#search-results > th,td {
+#search-results th, #search-results td {
     width: 25%;
 /*    padding: 10px; */
     margin: 10px;
 }
-#search-results > tr {
+#search-results tr {
     border: 1px solid white;
 }
-#search-results > img {
+#search-results img {
     height: 250px;
     width: 250px;
 }
@@ -81,7 +81,7 @@ body {
     text-align: center;
 }
 
-.main-album-table > th,td {
+.main-album-table th, .main-album-table td {
     border: 1px solid white;
 }
 
