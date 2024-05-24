@@ -209,6 +209,8 @@ def discogs_get_image(name, item_type):
     response = requests.get(url+search_endpoint, headers=header)
     result = response.json()
     image = None
+    if not result:
+        return image
     for item in result["results"]:
         if item_type == 'release':
             image = item["cover_image"]
