@@ -131,11 +131,17 @@ def get_stats(cur, con):
     stats["total_artists"] = cur.fetchone()[0]
 
     cur.execute("SELECT AVG(rating) FROM release")
-    stats["average_rating"] = round(cur.fetchone()[0], 2)
+    try:
+        stats["average_rating"] = round(cur.fetchone()[0], 2)
+    except TypeError:
+        stats["average_rating"] = 0
 
     cur.execute("SELECT AVG(runtime) FROM release")
     runtime_ms = cur.fetchone()[0]
-    stats["average_runtime"] = round((runtime_ms / 60000), 2)
+    try:
+        stats["average_runtime"] = round((runtime_ms / 60000), 2)
+    except TypeError:
+        stats["average_runtime"] = 0
 
     cur.execute("SELECT SUM(runtime) FROM release")
     runtime = cur.fetchone()[0]
