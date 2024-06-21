@@ -6,6 +6,7 @@ COPY . /databass
 WORKDIR /databass
 
 RUN pip3 install -r requirements.txt
+RUN touch /databass/music.db
 
 EXPOSE 8080
 
