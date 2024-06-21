@@ -13,7 +13,7 @@ Add your Discogs API key and secret. Obtain them [here](https://www.discogs.com/
 
 Choose a port to use on line 7.
 
-Choose a location to store the database on line 12. If you get an error when running the Docker compose, you may need to do `touch music.db` to create the database file first. 
+Choose a location to store the database on line 12. If you get the error `not a directory: unknown: Are you trying to mount a directory onto a file (or vice-versa)? Check if the specified host path exists and is the expected type ` when running the Docker compose file, you need to do `touch music.db` to create the database file first (otherwise, Docker tries to mount it as a directory, rather than a file). 
 
 Then, run `docker compose up -d` and visit the application at `localhost:<port>`
 
