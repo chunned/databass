@@ -2,12 +2,18 @@ import json
 import requests
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
 header = {"Accept": "application/json", "User-Agent": "databass/0.2 (https://github.com/chunned/databass)"}
 
 # Load environment variables
+load_dotenv()
 DISCOGS_KEY = os.getenv("DISCOGS_KEY")
 DISCOGS_SECRET = os.getenv("DISCOGS_SECRET")
+
+if not DISCOGS_KEY or not DISCOGS_SECRET:
+    print("Error: Discogs API keys not found. Please set DISCOGS_KEY and DISCOGS_SECRET in your environment.")
+    exit(1)
 
 
 def pick_release(release, artist, rating, year, genre, tags):

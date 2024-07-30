@@ -53,7 +53,12 @@ def create_tables(cur):
     CREATE TABLE IF NOT EXISTS artist(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         mbid TEXT UNIQUE,
-        name TEXT
+        name TEXT,
+        country TEXT,
+        type TEXT,
+        begin_date TEXT,
+        end_date TEXT,
+        image TEXT
     )    
     """)
 
@@ -62,7 +67,12 @@ def create_tables(cur):
     CREATE TABLE IF NOT EXISTS label(
         id INTEGER PRIMARY KEY,
         mbid TEXT UNIQUE,
-        name TEXT
+        name TEXT,
+        country TEXT,
+        type TEXT,
+        begin_date TEXT,
+        end_date TEXT,
+        image TEXT
     )    
     """)
 
