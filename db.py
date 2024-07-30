@@ -83,8 +83,8 @@ def insert_release(cur, con, release):
         release["label_id"] = 0
 
     query = ("INSERT INTO release (mbid, artist_id, label_id, title, release_date, runtime, rating, listen_date, "
-             "track_count, country, genre, art) VALUES (:mbid, :artist_id, :label_id, :title, :release_date, :runtime, "
-             ":rating, :listen_date, :track_count, :country, :genre, :art)")
+             "track_count, country, genre, art, tags) VALUES (:mbid, :artist_id, :label_id, :title, :release_date, :runtime, "
+             ":rating, :listen_date, :track_count, :country, :genre, :art, :tags)")
     try:
         cur.execute(query, release)
         con.commit()

@@ -17,7 +17,7 @@ def home():
 
     query = """
     SELECT artist.name, release.title, release.rating, release.listen_date, release.genre, release.art, 
-    release.mbid, artist.mbid 
+    release.mbid, artist.mbid, release.tags 
     FROM release
     JOIN artist on artist.id = release.artist_id
     ORDER BY release.listen_date DESC

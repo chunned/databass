@@ -4,23 +4,24 @@
 <div class="home0">
     <div class="home1">
         <table class="main-album-table">
-            <tr>
+            <tr id="header_row">
+                <th>ART</th>
                 <th>ARTIST</th>
                 <th>TITLE</th>
                 <th>RATING (%)</th>
                 <th>LISTEN DATE</th>
                 <th>GENRE</th>
-                <th>ART</th>
+                <th>TAGS</th>
             </tr>
             {% for item in data %}
             <tr>
+                <td class="art_holder"><img src="{{ item[5] }}" class="homepage_covers"></td>
                 <td><a href="/artist/{{ item[7] }}" class="link">{{ item[0] }}</a></td>
                 <td><a href="/release/{{ item[6] }}" class="link">{{ item[1] }}</a></td>
                 <td>{{ item[2] }}</td>
                 <td>{{ item[3] }}</td>
                 <td>{{ item[4] }}</td>
-
-                <td><img src="{{ item[5] }}" style="height: 100px; width: 100px;"></td>
+                <td>{{ item[8] }}</td>
             </tr>
         {% endfor %}
         </table>
