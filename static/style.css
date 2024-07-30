@@ -73,6 +73,10 @@ body {
     font-size: inherit;
 }
 
+.search-data {
+    height: 7vh;
+}
+
 
 /* HOME */
 .main-album-table {
