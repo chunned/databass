@@ -35,8 +35,8 @@
 </form>
 
 <script>
-    console.log("ok")
-    const tableRows = document.querySelectorAll("table tbody tr");
+    (function() {
+    let tableRows = document.querySelectorAll("table tbody tr");
     for (const tableRow of tableRows) {
         tableRow.addEventListener("click", function() {
             const radioBtn = tableRow.querySelector("input[type='radio']");
@@ -45,4 +45,5 @@
             document.getElementById("data-form").submit();
         });
     }
+    })();
 </script>
