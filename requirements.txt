@@ -3,3 +3,5 @@ flask
 pychart.js
 python-dotenv
 Flask-WTF
+Flask-SQLAlchemy
+sqlalchemy

@@ -1,11 +1,14 @@
 import flask
 import api
 import db
-import uuid
+from uuid import uuid4
+from flask_sqlalchemy import SLQAlchemy
 
 
 app = flask.Flask(__name__)
-app.secret_key = uuid.uuid4().hex
+app.secret_key = uuid4().hex
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///music.db'
+
 db_file = 'music.db'
 
 con = db.create_connection(db_file)
