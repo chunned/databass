@@ -39,14 +39,10 @@ def new():
 def search():
     release = flask.request.form["release"]
     artist = flask.request.form["artist"]
-    rating = flask.request.form["rating"]
-    year = flask.request.form["year"]
-    genre = flask.request.form["genre"]
-    tags = flask.request.form["tags"]
 
-    data = api.pick_release(release, artist, rating,
-                            year, genre, tags)
+    data = api.pick_release(release, artist)
 
+    print(data)
     return flask.render_template("search.html", data=data)
 
 
@@ -55,35 +51,39 @@ def submit():
     con = db.create_connection(db_file)
     cur = db.create_cursor(con)
 
-    data = eval(flask.request.form.get('selected_item'))
+    # data = eval(flask.request.form.get('selected_item'))
+    data = flask.request.form.to_dict()
     release = data["release"]
+    release_id = data["release_id"]
     artist = data["artist"]
+    artist_id = data["artist_id"]
     label = data["label"]
+    label_id = data["label_id"]
     year = data["release_date"]
     genre = data["genre"]
     rating = data["rating"]
     tags = data["tags"]
 
-    release_data = api.get_release_data(release["id"], year, genre, rating)
+    release_data = api.get_release_data(release_id, year, genre, rating)
     release_data["tags"] = tags
-    if label["mbid"]:
+    if label_id:
         # check if label exists in database already, avoid some API calls
-        cur.execute("SELECT * FROM label WHERE mbid = ?", (label["mbid"],))
+        cur.execute("SELECT * FROM label WHERE mbid = ?", (label_id,))
         res = cur.fetchone()
         if not res:
             # not in db already, get data and insert it
-            label_data = api.get_label_data(label["mbid"])
+            label_data = api.get_label_data(label_id)
             label_id = db.insert_label(cur, con, label_data)
             release_data["label_id"] = label_id
         else:
             release_data["label_id"] = res[0]
 
     # check if artist exists in db already
-    cur.execute("SELECT * FROM artist WHERE mbid = ?", (artist["mbid"],))
+    cur.execute("SELECT * FROM artist WHERE mbid = ?", (artist_id,))
     res = cur.fetchone()
     if not res:
         # not in db
-        artist_data = api.get_artist_data(artist["mbid"])
+        artist_data = api.get_artist_data(artist_id)
         artist_id = db.insert_artist(cur, con, artist_data)
         release_data["artist_id"] = artist_id
     else:

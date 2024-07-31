@@ -10,16 +10,6 @@
             <label for="artist">artist</label>
             <input type="text" id="artist" name="artist">
 
-            <label for="rating">rating</label>
-            <input type="text" id="rating" name="rating">
-
-            <label for="year">year*</label>
-            <input type="text" id="year" name="year">
-
-            <label for="genre">genre*</label>
-            <input type="text" id="genre" name="genre">
-            <label for="tags">tags*</label>
-            <input type="text" id="tags" name="tags">
             {% for action in actions %}
             <button class="search-btn" type="button" data-action="{{ action }}">{{ action }}</button>
             {% endfor %}

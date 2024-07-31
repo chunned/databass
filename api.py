@@ -16,7 +16,7 @@ if not DISCOGS_KEY or not DISCOGS_SECRET:
     exit(1)
 
 
-def pick_release(release, artist, rating, year, genre, tags):
+def pick_release(release, artist):
     # Accepts search parameters and returns a list of matching releases, which the user must select from
 
     url = "https://musicbrainz.org/ws/2/release/"
@@ -52,7 +52,7 @@ def pick_release(release, artist, rating, year, genre, tags):
         rel = {
             "release": {
                 "name": release["title"],
-                "id": release['id']
+                "mbid": release['id']
             },
             "artist": {
                 "name": release["artist-credit"][0]["name"],
@@ -62,10 +62,6 @@ def pick_release(release, artist, rating, year, genre, tags):
             "date": date,
             "format": release_format,
             "track-count": release["track-count"],
-            "rating": rating,
-            "release_date": year,
-            "genre": genre,
-            "tags": tags
         }
         result_data.append(rel)
 
@@ -186,7 +182,6 @@ def get_label_data(mbid):
     url = f"https://musicbrainz.org/ws/2/label/{mbid}"
     response = requests.get(url, headers=header)
     result = response.json()
-
     image = get_art(mbid, 'label', result["name"])
 
     label = {

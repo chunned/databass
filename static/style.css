@@ -77,6 +77,48 @@ body {
     height: 7vh;
 }
 
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: black;
+    border: 1px solid #ccc;
+/*   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000; */
+    width: 80%;
+    max-width: 50vw;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.popup-content {
+    position: relative;
+}
+
+#popup-form {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#popup-table {
+    width: 50%;
+    margin: 0 auto;
+}
+
+#popup-table td {
+    text-align: center;
+}
+
+#submit-btn {
+    color: white;
+    background-color: black;
+    max-height: 10vh;
+}
+
+.close-btn {
+    cursor: pointer;
+}
 
 /* HOME */
 .main-album-table {
