@@ -1,8 +1,11 @@
 import flask
 import api
 import db
+import uuid
+
 
 app = flask.Flask(__name__)
+app.secret_key = uuid.uuid4().hex
 db_file = 'music.db'
 
 con = db.create_connection(db_file)
@@ -42,7 +45,6 @@ def search():
 
     data = api.pick_release(release, artist)
 
-    print(data)
     return flask.render_template("search.html", data=data)
 
 
