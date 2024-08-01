@@ -1,3 +1,17 @@
+# Project Rewrite
+This branch is for the project rewrite which is integrating various Flask extensions to produce better structured code. The rewrite will bring the application to v0.3. 
+
+To-do, in order of importance:
+- [ ] Database - SQLAlchemy
+    - Base functionality for defining models and inserting data is complete
+- [ ] Frontend - Bootstrap
+    - May not end up sticking with this; will see.
+- [ ] Frontend - Paginate
+- [ ] Debugging - DebugToolbar
+- [ ] Frontend - WTForms
+  - [ ] Backend - Caching 
+- [ ] Database - SQLAlchemy-Searchable (probably not needed)
+
 # Overview
 
 This is a simple Python application intended to track music releases you listen to. Think of it like Last.fm-lite, with all tracking being manual. Databass is more like a music diary than a tracker like Last.fm. A more apt comparison would be Letterboxd for music.
