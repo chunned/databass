@@ -113,3 +113,27 @@ def insert_label(label):
     db.session.add(new_label)
     db.session.commit()
     return 'success'
+
+
+def get_stats():
+    return 0
+
+def update_release():
+    return 0
+
+def update_artist():
+    return 0
+
+def update_label():
+    return 0
+
+
+# below should maybe be moved elsewhere
+def get_missing_covers():
+    return 0
+
+def get_missing_artist_data():
+    return 0
+
+def get_missing_label_data():
+    return 0
