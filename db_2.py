@@ -1,10 +1,10 @@
 # Rewrite of db.py to use SQLAlchemy
 import sqlalchemy
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String
+from sqlalchemy import Integer, String, func, extract
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Optional
-
+import datetime
 
 class Base(DeclarativeBase):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -63,6 +63,19 @@ class Artist(ArtistOrLabel):
 
 
 # --- Database operation functions ---
+def insert_item(item):
+    try:
+        db.session.add(item)
+        db.session.commit()
+        print('success')
+    except sqlalchemy.exc.IntegrityError as err:
+        db.session.rollback()
+        print(f'SQLite Integrity Error: \n{err}\n')
+    except Exception as err:
+        db.session.rollback()
+        print(f'Unexpected error: {err}')
+
+
 def insert_release(release):
     new_release = Release(
         mbid=release.get("mbid"),
@@ -79,9 +92,7 @@ def insert_release(release):
         genre=release.get("genre"),
         tags=release.get("tags", '')
     )
-    db.session.add(new_release)
-    db.session.commit()
-    return 'success'
+    insert_item(new_release)
 
 
 def insert_artist(artist):
@@ -94,10 +105,7 @@ def insert_artist(artist):
         end_date=artist.get("end_date", ""),
         image=artist.get("image")
     )
-
-    db.session.add(new_artist)
-    db.session.commit()
-    return 'success'
+    insert_item(new_artist)
 
 
 def insert_label(label):
@@ -110,19 +118,110 @@ def insert_label(label):
         end_date=label.get("end_date", ""),
         image=label.get("image")
     )
-    db.session.add(new_label)
-    db.session.commit()
-    return 'success'
+    insert_item(new_label)
 
 
 def get_stats():
-    return 0
+    current_year = str(datetime.datetime.now().year)
+    days_this_year = datetime.date.today().timetuple().tm_yday
+    stats = {"total_listens": db.session.query(Release.id).count(),
+             "total_artists": db.session.query(Artist).count(),
+             "total_labels": db.session.query(Label).count(),
+             "average_rating": db.session.query(func.avg(Release.rating)).scalar(),
+             "average_runtime": db.session.query(func.avg(Release.runtime)).scalar(),
+             "total_runtime": db.session.query(func.sum(Release.runtime)).scalar(),
+             "listens_this_year": db.session.query(func.count(Release.id)).filter(func.substr(Release.listen_date, 1, 4) == current_year).scalar(),
+             }
+    listens_per_day = stats["listens_this_year"] / days_this_year
+    stats["listens_per_day"] = listens_per_day
+
+    # Top rated labels
+    query = (
+        db.session.query(
+            Label.name,
+            func.round(func.avg(Release.rating), 2).label('average_rating'),
+            func.count(Release.label_id).label('release_count')
+        )
+        .join(Release, Release.label_id == Label.id)
+        .filter(Label.name.notin_(['none', '[no label]']))  # Don't count the entries corresponding to no label for release
+        .group_by(Label.name)
+        .having(func.count(Release.label_id) != 1)          # Don't count labels with only 1 release
+        .order_by(func.round(func.avg(Release.rating), 2).desc())
+        .limit(5)
+        .all()
+    )
+    results = [{'label': row.name,
+                'average_rating': row.average_rating,
+                'release_count': row.release_count}
+               for row in query]
+    stats["favourite_labels"] = results
+
+    # Highest rated artists
+    query = (
+        db.session.query(
+            Artist.name,
+            func.round(func.avg(Release.rating), 2).label('average_rating'),
+            func.count(Release.artist_id).label('release_count')
+        )
+        .join(Release, Release.artist_id == Artist.id)
+        .group_by(Artist.name)
+        .having(func.count(Release.artist_id) != 1)
+        .order_by(func.round(func.avg(Release.rating), 2).desc())
+        .limit(5)
+        .all()
+    )
+    results = [{'artist': row.name,
+                'average_rating': row.average_rating,
+                'release_count': row.release_count}
+               for row in query]
+    stats["favourite_artists"] = results
+
+    # Most frequent labels
+    query = (
+        db.session.query(
+            Label.name,
+            func.count(Release.label_id).label('count')
+        )
+        .join(Release, Release.label_id == Label.id)
+        .group_by(Label.name)
+        .order_by(func.count(Release.label_id).desc())
+        .limit(5)
+        .all()
+    )
+    results = [{'label': row.name,
+                'count': row.count}
+               for row in query]
+    stats["frequent_labels"] = results
+    print(results)
+
+    # Most frequent artists
+    query = (
+        db.session.query(
+            Artist.name,
+            func.count(Release.artist_id).label('count')
+        )
+        .join(Release, Release.artist_id == Artist.id)
+        .group_by(Artist.name)
+        .order_by(func.count(Release.artist_id).desc())
+        .limit(5)
+        .all()
+    )
+    results = [{'label': row.name,
+                'count': row.count}
+               for row in query]
+    stats["frequent_artists"] = results
+#    print(stats)
+
+    return stats
+
 
 def update_release():
     return 0
 
+
 def update_artist():
     return 0
+
 
 def update_label():
     return 0
@@ -132,8 +231,10 @@ def update_label():
 def get_missing_covers():
     return 0
 
+
 def get_missing_artist_data():
     return 0
+
 
 def get_missing_label_data():
     return 0
