@@ -11,33 +11,33 @@
                 <td>total artists: {{ data["total_artists"] }}</td>
                 <td>average rating (%): {{ data["average_rating"] }}</td>
                 <td>total runtime (h): {{ data["total_runtime"] }}</td>
-                <td>listens this year: {{ data["this_year"] }}</td>
-                <td>listens per day: {{ data["per_day"] }}</td>
+                <td>listens this year: {{ data["listens_this_year"] }}</td>
+                <td>listens per day: {{ data["listens_per_day"] }}</td>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>most frequent labels: </td>
-                {% for label in data["most_frequent_labels"] %}
-                <td>{{ label[0] }} ({{label[1]}})</td>
+                {% for label in data["frequent_labels"] %}
+                <td>{{ label["name"] }} ({{label["count"]}})</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td>highest rated labels: </td>
-                {% for label in data["top_labels"] %}
-                <td>{{ label[0] }} ({{ label[1] }})</td>
+                {% for label in data["favourite_labels"] %}
+                <td>{{ label["name"] }} ({{ label["average_rating"] }})</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td>most frequent artists: </td>
                 {% for artist in data["frequent_artists"] %}
-                <td>{{ artist[0] }} ({{ artist[1] }})</td>
+                <td>{{ artist["name"] }} ({{ artist["count"] }})</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td>top rated artists: </td>
-                {% for artist in data["top_artists"] %}
-                <td>{{ artist[0] }} ({{ artist[1] }})</td>
+                {% for artist in data["favourite_artists"] %}
+                <td>{{ artist["name"] }} ({{ artist["average_rating"] }})</td>
                 {% endfor %}
             </tr>
         </tbody>

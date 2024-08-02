@@ -6,9 +6,9 @@
 <div class="data-grid">
     {% for label in data %}
     <div class="grid-cell">
-        <a href="/label/{{ label[1] }}" class="link">
-        <img src="{{ label[7] }}" style="height:82%;width:100%;">
-        <p>{{ label[2] }} ({{ label[3] }})</p>
+        <a href="/label/{{ label.id }}" class="link">
+        <img src="{{ label.image }}" style="height:82%;width:100%;" alt="Label icon">
+        <p>{{ label.name }} ({{ label.country }})</p>
         </a>
     </div>
     {% endfor %}

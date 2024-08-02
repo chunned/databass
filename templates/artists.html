@@ -6,9 +6,9 @@
 <div class="data-grid">
     {% for artist in data %}
     <div class="grid-cell">
-        <a href="/artist/{{ artist[1] }}" class="link">
-        <img src="{{ artist[7] }}" style="height:78%;width:100%;">
-        <p>{{ artist[2] }}</p>
+        <a href="/artist/{{ artist.id }}" class="link">
+        <img src="{{ artist.image }}" style="height:78%;width:100%;" alt="Artist">
+        <p>{{ artist.name }}</p>
         </a>
     </div>
     {% endfor %}

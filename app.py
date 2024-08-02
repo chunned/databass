@@ -1,35 +1,30 @@
 import flask
 import api
 import db
-import uuid
+from uuid import uuid4
+import os
+from dotenv import load_dotenv
 
-
+# Application initialization
+load_dotenv()
+DB_FILENAME = os.getenv("DB_FILENAME")
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), DB_FILENAME)
 app = flask.Flask(__name__)
-app.secret_key = uuid.uuid4().hex
-db_file = 'music.db'
+app.secret_key = uuid4().hex
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+db.db.init_app(app)
 
-con = db.create_connection(db_file)
-cur = db.create_cursor(con)
-db.create_tables(cur)
+
+@app.before_request
+def create_tables():
+    db.db.create_all()
 
 
 @app.route("/")
 def home():
-    con = db.create_connection(db_file)
-    cur = db.create_cursor(con)
-
-    query = """
-    SELECT artist.name, release.title, release.rating, release.listen_date, release.genre, release.art, 
-    release.mbid, artist.mbid, release.tags 
-    FROM release
-    JOIN artist on artist.id = release.artist_id
-    ORDER BY release.listen_date DESC
-    LIMIT 10;
-    """
-    cur.execute(query)
-    data = cur.fetchall()
-    stats = db.get_stats(cur, con)
-    return flask.render_template("index.html", data=data, stats=stats, active_page='home')
+    data = db.get_homepage_data()
+    home_stats = db.get_stats()
+    return flask.render_template("index.html", data=data, stats=home_stats, active_page='home')
 
 
 @app.route("/new")
@@ -50,18 +45,11 @@ def search():
 
 @app.route("/submit", methods=["POST"])
 def submit():
-    con = db.create_connection(db_file)
-    cur = db.create_cursor(con)
-
-    # data = eval(flask.request.form.get('selected_item'))
     data = flask.request.form.to_dict()
-    release = data["release"]
     release_id = data["release_id"]
-    artist = data["artist"]
     artist_id = data["artist_id"]
-    label = data["label"]
     label_id = data["label_id"]
-    year = data["release_date"]
+    year = data["release_year"]
     genre = data["genre"]
     rating = data["rating"]
     tags = data["tags"]
@@ -70,181 +58,134 @@ def submit():
     release_data["tags"] = tags
     if label_id:
         # check if label exists in database already, avoid some API calls
-        cur.execute("SELECT * FROM label WHERE mbid = ?", (label_id,))
-        res = cur.fetchone()
-        if not res:
+        # db.exists() returns an array; 1st element is True/False, 2nd is the entity ID
+        label_exists = db.exists(mbid=label_id, item_type='label')
+        if not label_exists[0]:
             # not in db already, get data and insert it
             label_data = api.get_label_data(label_id)
-            label_id = db.insert_label(cur, con, label_data)
+            label_id = db.insert_label(label_data)
             release_data["label_id"] = label_id
         else:
-            release_data["label_id"] = res[0]
+            print('INFO: Label already exists in database.')
+            release_data["label_id"] = label_exists[1]
 
     # check if artist exists in db already
-    cur.execute("SELECT * FROM artist WHERE mbid = ?", (artist_id,))
-    res = cur.fetchone()
-    if not res:
+    # db.exists() returns an array; 1st element is True/False, 2nd is the entity ID
+    artist_exists = db.exists(mbid=artist_id, item_type='artist')
+    if not artist_exists[0]:
         # not in db
         artist_data = api.get_artist_data(artist_id)
-        artist_id = db.insert_artist(cur, con, artist_data)
+        artist_id = db.insert_artist(artist_data)
         release_data["artist_id"] = artist_id
     else:
-        release_data["artist_id"] = res[0]
+        print('INFO: Artist already exists in database.')
+        release_data["artist_id"] = artist_exists[1]
 
-    db.insert_release(cur, con, release_data)
+    db.insert_release(release_data)
 
     return flask.redirect("/", code=302)
 
 
 @app.route('/releases', methods=["GET"])
 def releases():
-    con = db.create_connection(db_file)
-    cur = db.create_cursor(con)
-    cur.execute("SELECT * FROM release LIMIT 25")
-    data = cur.fetchall()
-
-    return flask.render_template('releases.html', data=data, active_page='releases')
+    release_data = db.get_items('releases')
+    return flask.render_template('releases.html', data=release_data, active_page='releases')
 
 
 @app.route('/artists', methods=["GET"])
 def artists():
-    con = db.create_connection(db_file)
-    cur = db.create_cursor(con)
-
-    cur.execute("SELECT * FROM artist LIMIT 25")
-    data = cur.fetchall()
-
-    return flask.render_template('artists.html', data=data, active_page='artists')
+    artist_data = db.get_items('artists')
+    return flask.render_template('artists.html', data=artist_data, active_page='artists')
 
 
 @app.route('/labels', methods=["GET"])
 def labels():
-    con = db.create_connection(db_file)
-    cur = db.create_cursor(con)
-    cur.execute("SELECT * FROM label ORDER BY id DESC LIMIT 25")
-    data = cur.fetchall()
-
-    return flask.render_template('labels.html', data=data, active_page='labels')
+    label_data = db.get_items('labels')
+    return flask.render_template('labels.html', data=label_data, active_page='labels')
 
 
 @app.route('/release/<string:release_id>', methods=['GET'])
 def release(release_id):
-    # displays all info related to a particular release
-    con = db.create_connection(db_file)
-    cur = db.create_cursor(con)
-
-    query = "SELECT * FROM release WHERE release.mbid = ?"
-    cur.execute(query, (release_id,))
-    release_data = cur.fetchall()
-
-    query = "SELECT * FROM artist WHERE artist.id = ?"
-    cur.execute(query, (release_data[0][2],))
-    artist_data = cur.fetchall()
-
-    query = "SELECT * FROM label WHERE label.id = ?"
-    cur.execute(query, (release_data[0][3],))
-    label_data = cur.fetchall()
-
-    data = [release_data[0], artist_data[0], label_data[0]]
-    return flask.render_template('release.html', data=data)
+    # Displays all info related to a particular release
+    release_data = db.get_item(item_type='release', item_id=release_id)
+    return flask.render_template('release.html', data=release_data)
 
 
 @app.route('/artist/<string:artist_id>', methods=['GET'])
 def artist(artist_id):
-    con = db.create_connection('music.db')
-    cur = db.create_cursor(con)
-
-    query = "SELECT * FROM artist WHERE artist.mbid = ?"
-    cur.execute(query, (artist_id,))
-
-    artist_data = cur.fetchall()
-    print(artist_data)
-    query = """
-    SELECT * FROM label
-    JOIN release ON label.id = release.label_id
-    JOIN artist ON artist.id = release.artist_id
-    WHERE artist.id = ?
-    """
-    cur.execute(query, (artist_data[0][0],))
-    release_data = cur.fetchall()
-
-    data = [artist_data[0], release_data]
-    return flask.render_template('artist.html', data=data)
+    # Displays all info related to a particular artist
+    artist_data = db.get_item(item_type='artist', item_id=artist_id)
+    return flask.render_template('artist.html', data=artist_data)
 
 
 @app.route('/label/<string:label_id>', methods=['GET'])
 def label(label_id):
-    con = db.create_connection('music.db')
-    cur = db.create_cursor(con)
-
-    query = "SELECT * FROM label WHERE label.mbid = ?"
-    cur.execute(query, (label_id,))
-    label_data = cur.fetchall()
-
-    query = "SELECT * FROM release JOIN artist on artist.id = release.artist_id WHERE release.label_id = ?"
-    cur.execute(query, (label_data[0][0],))
-    release_data = cur.fetchall()
-
-    data = [label_data[0], release_data]
-
-    return flask.render_template('label.html', data=data)
+    label_data = db.get_item(item_type='label', item_id=label_id)
+    return flask.render_template('label.html', data=label_data)
 
 
 @app.route('/charts', methods=['GET'])
 def charts():
-    con = db.create_connection('music.db')
-    cur = db.create_cursor(con)
-
-    query = "SELECT rating FROM release"
-    cur.execute(query)
-    data = cur.fetchall()
-
-    data = [n[0] for n in data]
-    return flask.render_template('charts.html', data=data)
+    # Not implemented
+    # con = db.create_connection('music.db')
+    # cur = db.create_cursor(con)
+    #
+    # query = "SELECT rating FROM release"
+    # cur.execute(query)
+    # data = cur.fetchall()
+    #
+    # data = [n[0] for n in data]
+    # return flask.render_template('charts.html', data=data)
+    return flask.redirect('/', 302)
 
 
 @app.route('/edit/<string:release_id>', methods=['GET'])
 def edit(release_id):
-    con = db.create_connection('music.db')
-    cur = db.create_cursor(con)
-
-    query = "SELECT * FROM release WHERE id = ?"
-    cur.execute(query, (release_id,))
-
-    data = cur.fetchone()
-    return flask.render_template('edit.html', data=data)
+    # Not implemented
+    # con = db.create_connection('music.db')
+    # cur = db.create_cursor(con)
+    #
+    # query = "SELECT * FROM release WHERE id = ?"
+    # cur.execute(query, (release_id,))
+    #
+    # data = cur.fetchone()
+    # return flask.render_template('edit.html', data=data)
+    return flask.redirect('/', 302)
 
 
 @app.route('/edit-release', methods=['POST'])
 def edit_release():
-    data = flask.request.form.to_dict()
-
-    con = db.create_connection('music.db')
-    cur = db.create_cursor(con)
-
-    cur.execute(
-        """
-        UPDATE release
-        SET title = :title,
-            release_date = :year,
-            rating = :rating,
-            genre = :genre
-        WHERE id = :id
-        """,
-        data
-    )
-    con.commit()
-    return flask.redirect("/", code=302)
+    # Not implemented
+    # data = flask.request.form.to_dict()
+    #
+    # con = db.create_connection('music.db')
+    # cur = db.create_cursor(con)
+    #
+    # cur.execute(
+    #     """
+    #     UPDATE release
+    #     SET title = :title,
+    #         release_date = :year,
+    #         rating = :rating,
+    #         genre = :genre
+    #     WHERE id = :id
+    #     """,
+    #     data
+    # )
+    # con.commit()
+    # return flask.redirect("/", code=302)
+    return flask.redirect('/', 302)
 
 
 @app.route('/stats', methods=['GET'])
 def stats():
-    con = db.create_connection('music.db')
-    cur = db.create_cursor(con)
+    statistics = db.get_stats()
+    return flask.render_template('stats.html', data=statistics, active_page='stats')
 
-    stats = db.get_stats(cur, con)
-    return flask.render_template('stats.html', data=stats, active_page='stats')
+
+def main():
+    app.run(host='0.0.0.0', debug=True, port=8080)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=8080)
+    main()
