@@ -4,38 +4,37 @@
 
 <div class="page-content">
     <div>
-        <h1>{{ data[0][2] }}</h1>
-        <img src="{{ data[0][7] }}" style="max-height: 75vh; max-width: 100%;">
+        <h1>{{ data.artist.name }}</h1>
+        <img src="{{ data.artist.image }}" style="max-height: 75vh; max-width: 100%;" alt="Artist icon">
     </div>
     <div>
         <div class="artist-table">
             <table>
                 <tr>
                     <td>
-                        {% if data[0][4] == 'person' %}born:
-                        {{ data[0][5] }}
-                        {% elif data[0][4] == 'group' %}founded:
-                        {{ data[0][5] }}
+                        {% if data.artist.type == 'person' %}born:
+                        {% elif data.artist.type == 'group' %}founded:
                         {% endif %}
+                        {{ data.artist.begin_date }}
                     </td>
                     <td>
-                        {% if data[0][4] == 'person' %}died:
-                        {% elif data[0][4] == 'group' %}ended:
+                        {% if data.artist.type == 'person' %}died:
+                        {% elif data.artist.type == 'group' %}ended:
                         {% endif %}
-                        {{ data[0][6] }}
+                        {{ data.artist.end_date }}
                     </td>
                     <td>
-                        country: {{ data[0][3] }}
+                        country: {{ data.artist.country }}
                     </td>
                 </tr>
             </table>
         </div>
         <div class="data-grid" style="grid-template-columns: repeat(4, 25%); grid-auto-rows: 350px;">
-            {% for release in data[1] %}
+            {% for release in data.releases %}
             <div class="grid-cell" style="height: 350px; width: 250px; overflow: hidden; border: collapse;">
-                <img src="{{ release[20] }}" style="height:250px; width:250px;">
-                <p style="padding: 7px;"><a href="/release/{{ release[9] }}" class="link">{{ release[12]}}</a> ({{ release[13] }}) - {{ release[15] }}%
-                <br><a href="/label/{{ release[1] }}" class="link">{{ release[2] }}</a></p>
+                <img src="{{ release[0].art }}" style="height:250px; width:250px;" alt="Album art">
+                <p style="padding: 7px;"><a href="/release/{{ release[0].id }}" class="link">{{ release[0].title}}</a> ({{ release[0].release_year }}) - {{ release[0].rating }}%
+                <br><a href="/label/{{ release.label_id }}" class="link">{{ release[1] }}</a></p>
             </div>
             {% endfor %}
         </div>

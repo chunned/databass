@@ -5,47 +5,47 @@
 <div class="page-content">
     <div>
         <div style="display:flex; align-items: center;">
-            <h1><a href="/artist/{{ data[1][1] }}" class="link">{{data[1][2]}}</a> - {{ data[0][4] }}</h1>
-            <p>&nbsp <a href="/label/{{ data[2][1] }}" class="link">{{ data[2][2] }}</a></p>
-            <p>&nbsp &nbsp &nbsp &nbsp <a href="/edit/{{ data[0][0] }}" class="link">edit</a></p>
+            <h1><a href="/artist/{{ data.artist.id }}" class="link">{{data.artist.name}}</a> - {{ data.release.title }}</h1>
+            <p>&nbsp <a href="/label/{{ data.label.id }}" class="link">{{ data.label.name }}</a></p>
+            <p>&nbsp &nbsp &nbsp &nbsp <a href="/edit/{{ data.release.id }}" class="link">edit</a></p>
         </div>
-        <img src="{{ data[0][12] }}" style="max-height: 75vh; max-width: 100%;">
+        <img src="{{ data.release.art }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
     </div>
     <div>
         <div class="release-table">
             <table>
                 <tr>
                     <td>
-                        released: {{ data[0][5] }}
+                        released: {{ data.release.release_year }}
                     </td>
                     <td>
-                        genre: {{ data[0][11] }}
+                        genre: {{ data.release.genre }}
                     </td>
                     <td>
-                        rating: {{ data[0][7] }}
+                        rating: {{ data.release.rating }}
                     </td>
                     <td>
-                        runtime: {{ data[0][6] // 60000 }} min
+                        runtime: {{ data.release.runtime // 60000 }} min
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        listened: {{data[0][8] }}
+                        listened: {{data.release.listen_date }}
                     </td>
                     <td></td>
                     <td>
-                        <a href="/artist/{{ data[1][1] }}" class="link">go to artist</a>
+                        <a href="/artist/{{ data.artist.id }}" class="link">go to artist</a>
                     </td>
                     <td>
-                        <a href="/artist/{{ data[2][1] }}" class="link">go to label</a>
+                        <a href="/label/{{ data.label.id }}" class="link">go to label</a>
                     </td>
                 </tr>
             </table>
         </div>
     </div>
-    <p>{{data[0]}}</p>
-    <p>{{data[1]}}</p>
-    <p>{{data[2]}}</p>
+    <p>{{data.release}}</p>
+    <p>{{data.artist}}</p>
+    <p>{{data.label}}</p>
 
 </div>
 </body>
