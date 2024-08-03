@@ -180,3 +180,16 @@ body {
 .grid-cell {
     border: 1px solid white;
 }
+
+
+/* FORMS */
+.form-group {
+    display: flex;
+    align-items: center;
+}
+
+.form-field {
+    margin-right: 10px; /* Adjust space between fields as needed */
+}
+
+

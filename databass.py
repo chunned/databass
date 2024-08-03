@@ -4,6 +4,7 @@ import db
 from uuid import uuid4
 import os
 from dotenv import load_dotenv
+import forms
 
 # Application initialization
 load_dotenv()
@@ -29,17 +30,15 @@ def home():
 
 @app.route("/new")
 def new():
-    actions = ["search"]
-    return flask.render_template("new.html", actions=actions, active_page='new')
+    form = forms.NewReleaseForm()
+    return flask.render_template("new.html", form=form, active_page='new')
 
 
 @app.route("/search", methods=["POST"])
 def search():
     release = flask.request.form["release"]
     artist = flask.request.form["artist"]
-
     data = api.pick_release(release, artist)
-
     return flask.render_template("search.html", data=data)
 
 
@@ -181,6 +180,9 @@ def edit_release():
 def stats():
     statistics = db.get_stats()
     return flask.render_template('stats.html', data=statistics, active_page='stats')
+
+
+
 
 
 def main():

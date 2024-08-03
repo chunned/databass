@@ -2,18 +2,36 @@
 
 <body>
     {% include 'navbar.html' %}
-    <div class="new-release">
-        <form action="/search" method="POST">
-            <label for="release">release</label>
-            <input type="text" id="release" name="release">
-
-            <label for="artist">artist</label>
-            <input type="text" id="artist" name="artist">
-
-            {% for action in actions %}
-            <button class="search-btn" type="button" data-action="{{ action }}">{{ action }}</button>
-            {% endfor %}
-            <p>*optional</p>
+    <div>
+        <form method="POST" action="/test" class="new-release">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <div class="form-field">
+                    {{ form.release.label }}
+                    {{ form.release() }}
+                    {% if form.release.errors %}
+                    <ul class="errors">
+                        {% for error in form.release.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                <div class="form-field">
+                    {{ form.artist.label }}
+                    {{ form.artist() }}
+                    {% if form.artist.errors %}
+                    <ul class="errors">
+                        {% for error in form.artist.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                <div class="form-field">
+                    <input type="button" value="submit" class="search-btn">
+                </div>
+            </div>
         </form>
     </div>
 
@@ -25,14 +43,10 @@
             $('.search-btn').click(function() {
                 var release = $('#release').val();
                 var artist = $('#artist').val();
-                var year = $('#year').val();
-                var genre = $('#genre').val();
-                var rating = $('#rating').val();
-                var tags = $('#tags').val();
                 $.ajax({
                     url: '/search',
                     type: 'POST',
-                    data: { release: release, artist: artist, year: year, rating: rating, genre: genre, tags: tags },
+                    data: { release: release, artist: artist},
                     success: function(response) {
                         // Update the search results section with the new HTML content returned from the server
                         $('#search-results').html(response);
