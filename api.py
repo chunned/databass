@@ -5,7 +5,7 @@ import pytz
 import os
 from dotenv import load_dotenv
 
-header = {"Accept": "application/json", "User-Agent": "databass/0.2 (https://github.com/chunned/databass)"}
+header = {"Accept": "application/json", "User-Agent": "databass/0.3 (https://github.com/chunned/databass)"}
 
 # Load environment variables
 load_dotenv()
