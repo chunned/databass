@@ -5,6 +5,8 @@ from sqlalchemy import Integer, String, func, extract
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Optional
 import datetime
+import pytz
+import os
 
 
 class Base(DeclarativeBase):
@@ -126,7 +128,8 @@ def insert_label(label):
 
 
 def get_stats():
-    current_year = str(datetime.datetime.now().year)
+    local_timezone = pytz.timezone(os.getenv('TIMEZONE'))
+    current_year = str(datetime.datetime.now(local_timezone).year)
     days_this_year = datetime.date.today().timetuple().tm_yday
     # Check if any releases are in the database. If not, skip stats
     db_length = db.session.query(func.count(Release.id)).scalar()
