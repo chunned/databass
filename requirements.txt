@@ -3,6 +3,7 @@ flask
 pychart.js
 python-dotenv
 Flask-WTF
+wtforms
 Flask-SQLAlchemy
 sqlalchemy
 pytz
