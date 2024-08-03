@@ -8,5 +8,6 @@ services:
     environment:
       - DISCOGS_KEY=
       - DISCOGS_SECRET=
+      - DB_FILENAME=
     volumes:
       - ./music.db:/databass/music.db
