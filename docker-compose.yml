@@ -9,5 +9,6 @@ services:
       - DISCOGS_KEY=
       - DISCOGS_SECRET=
       - DB_FILENAME=
+      - TIMEZONE=           # e.g. America/New York
     volumes:
       - ./music.db:/databass/music.db

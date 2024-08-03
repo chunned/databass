@@ -1,6 +1,7 @@
 import json
 import requests
 from datetime import datetime
+import pytz
 import os
 from dotenv import load_dotenv
 
@@ -93,7 +94,8 @@ def get_release_data(mbid, year, genre, rating):
             length += track['length']
     except TypeError:
         length = 0
-    listen_date = datetime.now().strftime("%Y-%m-%d")
+    local_timezone = pytz.timezone(os.getenv('TIMEZONE'))
+    listen_date = datetime.now(local_timezone).strftime("%Y-%m-%d")
 
     data = {
         "mbid": mbid,
