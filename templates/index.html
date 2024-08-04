@@ -15,13 +15,13 @@
             </tr>
             {% for item in data %}
             <tr>
-                <td class="art_holder"><img src="{{ item[5] }}" class="homepage_covers"></td>
-                <td><a href="/artist/{{ item[7] }}" class="link">{{ item[0] }}</a></td>
-                <td><a href="/release/{{ item[6] }}" class="link">{{ item[1] }}</a></td>
-                <td>{{ item[2] }}</td>
-                <td>{{ item[3] }}</td>
+                <td class="art_holder"><img src="{{ item[7] }}" class="homepage_covers" alt="Album art"></td>
+                <td><a href="/artist/{{ item[0] }}" class="link">{{ item[1] }}</a></td>
+                <td><a href="/release/{{ item[2] }}" class="link">{{ item[3] }}</a></td>
                 <td>{{ item[4] }}</td>
-                <td>{{ item[8] }}</td>
+                <td>{{ item[5] }}</td>
+                <td>{{ item[6] }}</td>
+                <td>{{ item[9] }}</td>
             </tr>
         {% endfor %}
         </table>

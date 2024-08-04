@@ -250,7 +250,9 @@ def get_stats():
 def get_homepage_data():
     home_data = (
         db.session.query(
+            Artist.id,
             Artist.name,
+            Release.id,
             Release.title,
             Release.rating,
             Release.listen_date,
@@ -262,6 +264,7 @@ def get_homepage_data():
         .join(Artist, Artist.id == Release.artist_id)
         .order_by(Release.listen_date.desc())
         .limit(10)  # when pagination is implemented this can be raised
+        .all()
     )
     return home_data
 
