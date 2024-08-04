@@ -169,6 +169,9 @@ body {
     height: 100%;
 }
 
+.art_holder {
+    width: 9vw;
+}
 
 .homepage_covers {
     max-width: 100%;
