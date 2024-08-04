@@ -39,8 +39,15 @@
         // Function to create and show the pop-up element
         function showPopup(data) {
             try {
-                const replaced_quotes = data.replace(/\'/g, '"');
-                const parsed_data = JSON.parse(replaced_quotes);
+                // Perform string substitutions in steps so as to not accidentally alter release information
+                const data2 = data.replace(/{'/g, '{"');
+                const data3 = data2.replace(/'}/g, '"}');
+                const data4 = data3.replace(/':/g, '":');
+                const data5 = data4.replace(/ '/g, ' "');
+                const data6 = data5.replace(/',/g, '",');
+                let jsonStr = data6;
+
+                const parsed_data = JSON.parse(jsonStr);
                 // Create the pop-up container
                 const popup = document.createElement('div');
                 popup.className = 'popup';
