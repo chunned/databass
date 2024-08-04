@@ -147,25 +147,6 @@ def edit(release_id):
 
 @app.route('/edit-release', methods=['POST'])
 def edit_release():
-    # Not implemented
-    # data = flask.request.form.to_dict()
-    #
-    # con = db.create_connection('music.db')
-    # cur = db.create_cursor(con)
-    #
-    # cur.execute(
-    #     """
-    #     UPDATE release
-    #     SET title = :title,
-    #         release_date = :year,
-    #         rating = :rating,
-    #         genre = :genre
-    #     WHERE id = :id
-    #     """,
-    #     data
-    # )
-    # con.commit()
-    # return flask.redirect("/", code=302)
     edit_data = flask.request.form.to_dict()
     db.update_release(edit_data)
 
