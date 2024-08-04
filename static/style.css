@@ -191,6 +191,7 @@ body {
 }
 
 .release-table th, .release-table td {
+    width: 75vw;
     text-align: center;
     height: 15vh;
 }
