@@ -25,14 +25,10 @@
             $('.search-btn').click(function() {
                 var release = $('#release').val();
                 var artist = $('#artist').val();
-                var year = $('#year').val();
-                var genre = $('#genre').val();
-                var rating = $('#rating').val();
-                var tags = $('#tags').val();
                 $.ajax({
                     url: '/search',
                     type: 'POST',
-                    data: { release: release, artist: artist, year: year, rating: rating, genre: genre, tags: tags },
+                    data: { release: release, artist: artist },
                     success: function(response) {
                         // Update the search results section with the new HTML content returned from the server
                         $('#search-results').html(response);
