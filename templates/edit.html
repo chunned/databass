@@ -1,27 +1,70 @@
 {% include 'header.html' %}
 <body>
 {% include 'navbar.html' %}
-
-<div class="edit-form">
+<div>
     <form action="/edit-release" method="POST">
-        <label for="title">title</label>
-        <input type="text" id="title" name="title" value="{{ data[4] }}">
-
-        <label for="year">year</label>
-        <input type="text" id="year" name="year" value="{{ data[5] }}">
-
-        <label for="rating">rating</label>
-        <input type="text" id="rating" name="rating" value="{{ data[7] }}">
-
-        <label for="genre">genre</label>
-        <input type="text" id="genre" name="genre" value="{{ data[11] }}">
-
-        <input type="hidden" id="id" name="id" value="{{ data[0] }}">
-        <input type="hidden" id="mbid" name="mbid" value="{{ data[1] }}">
-        <button type="submit">submit</button>
+        <input type="hidden" id="release_id" name="release_id" value="{{ data.release.id }}">
+    <table class="release-table">
+        <thead>
+        <tr>
+            <th>
+                <img src="{{ data.release.art }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
+            </th>
+            <th>
+                <h1><a href="/artist/{{ data.artist.id }}" class="link">{{data.artist.name}}</a></h1>
+            </th>
+            <th>
+                <h2>{{ data.release.title }}</h2>
+            </th>
+            <th>
+                <a href="/label/{{ data.label.id }}" class="link">{{ data.label.name }}</a>
+            </th>
+            <th>
+                <a href="/edit/{{ data.release.id }}" class="link">edit</a>
+            </th>
+            <th>
+                <p class="link" id="delete" data-id="{{ data.release.id }}">delete</p>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                <label for="listen_date">listen date</label>
+                <input type="text" id="listen_date" name="listen_date" value="{{ data.release.listen_date }}">
+            </td>
+            <td>
+                <label for="rating_edit">rating</label>
+                <input type="number" min="0" max="100" id="rating_edit" name="rating_edit" value="{{ data.release.rating }}">
+            </td>
+            <td>
+                <label for="release_year">released</label>
+                <input type="number" min="0" id="release_year" name="release_year" value="{{ data.release.release_year }}">
+            </td>
+             <td>
+                <label for="genre">genre</label>
+                <input type="text" id="genre" name="genre" value="{{ data.release.genre }}">
+            </td>
+            <td>
+                <label for="tags">tags</label>
+                <input type="text" id="tags" name="tags" value="{{ data.release.tags }}">
+            </td>
+            <td>
+                <label for="country">country</label>
+                <input type="text" id="country" name="country" value="{{ data.release.country }}">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="art">album art</label>
+                <input type="text" id="art" name="art" value="{{ data.release.art }}">
+            </td>
+            <td>
+                <button type="submit" class="search-btn">submit</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
     </form>
 </div>
-
-<!-- TODO: allow user to change cover art -->
-
 </body>

@@ -2,52 +2,53 @@
 <body>
 {% include 'navbar.html' %}
 
-<div class="page-content">
-    <div>
-        <div style="display:flex; align-items: center;">
-            <h1><a href="/artist/{{ data.artist.id }}" class="link">{{data.artist.name}}</a> - {{ data.release.title }}</h1>
-            <p>&nbsp &nbsp <a href="/label/{{ data.label.id }}" class="link">{{ data.label.name }}</a></p>
-            <p>&nbsp &nbsp &nbsp &nbsp <a href="/edit/{{ data.release.id }}" class="link">edit</a>&nbsp &nbsp &nbsp &nbsp </p>
-            <p class="link" id="delete" data-id="{{ data.release.id }}">delete</p>
-        </div>
-        <img src="{{ data.release.art }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
-    </div>
-    <div>
-        <div class="release-table">
-            <table>
-                <tr>
-                    <td>
-                        released: {{ data.release.release_year }}
-                    </td>
-                    <td>
-                        genre: {{ data.release.genre }}
-                    </td>
-                    <td>
-                        rating: {{ data.release.rating }}
-                    </td>
-                    <td>
-                        runtime: {{ data.release.runtime // 60000 }} min
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        listened: {{data.release.listen_date }}
-                    </td>
-                    <td></td>
-                    <td>
-                        <a href="/artist/{{ data.artist.id }}" class="link">go to artist</a>
-                    </td>
-                    <td>
-                        <a href="/label/{{ data.label.id }}" class="link">go to label</a>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <p>{{data.release}}</p>
-    <p>{{data.artist}}</p>
-    <p>{{data.label}}</p>
-
+<div>
+    <table class="release-table">
+        <thead>
+            <tr>
+                <th>
+                    <img src="{{ data.release.art }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
+                </th>
+                <th>
+                    <h1><a href="/artist/{{ data.artist.id }}" class="link">{{data.artist.name}}</a></h1>
+                </th>
+                <th>
+                    <h2>{{ data.release.title }}</h2>
+                </th>
+                <th>
+                    <a href="/label/{{ data.label.id }}" class="link">{{ data.label.name }}</a>
+                </th>
+                <th>
+                    <a href="/edit/{{ data.release.id }}" class="link">edit</a>
+                </th>
+                <th>
+                   <p class="link" id="delete" data-id="{{ data.release.id }}">delete</p>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <p>listened: {{ data.release.listen_date }}</p>
+                </td>
+                <td>
+                    <p>rating: {{ data.release.rating }}%</p>
+                </td>
+                <td>
+                    <p>released: {{ data.release.release_year }}</p>
+                </td>
+                <td>
+                    <p>genre: {{ data.release.genre }}</p>
+                </td>
+                <td>
+                    <p>tags: {{ data.release.tags }}</p>
+                </td>
+                <td>
+                    <p>country: {{ data.release.country }}</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 <script>

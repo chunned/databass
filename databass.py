@@ -35,10 +35,10 @@ def new():
 
 @app.route("/search", methods=["POST"])
 def search():
-    release = flask.request.form["release"]
-    artist = flask.request.form["artist"]
+    search_release = flask.request.form["release"]
+    search_artist = flask.request.form["artist"]
 
-    data = api.pick_release(release, artist)
+    data = api.pick_release(search_release, search_artist)
 
     return flask.render_template("search.html", data=data)
 
@@ -141,16 +141,8 @@ def charts():
 
 @app.route('/edit/<string:release_id>', methods=['GET'])
 def edit(release_id):
-    # Not implemented
-    # con = db.create_connection('music.db')
-    # cur = db.create_cursor(con)
-    #
-    # query = "SELECT * FROM release WHERE id = ?"
-    # cur.execute(query, (release_id,))
-    #
-    # data = cur.fetchone()
-    # return flask.render_template('edit.html', data=data)
-    return flask.redirect('/', 302)
+    data = db.get_item('release', release_id)
+    return flask.render_template('edit.html', data=data)
 
 
 @app.route('/edit-release', methods=['POST'])
@@ -174,6 +166,9 @@ def edit_release():
     # )
     # con.commit()
     # return flask.redirect("/", code=302)
+    edit_data = flask.request.form.to_dict()
+    db.update_release(edit_data)
+
     return flask.redirect('/', 302)
 
 
@@ -182,7 +177,6 @@ def delete():
     deletion_id = flask.request.get_json()['id']
     db.delete_item('release', deletion_id)
     return flask.redirect('/', 302)
-
 
 
 @app.route('/stats', methods=['GET'])

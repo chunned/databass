@@ -364,11 +364,22 @@ def delete_item(item_type, item_id):
     return 0
 
 
-# ---- INCOMPLETE -----
-def update_release():
+def update_release(edit_data):
+    # edit_data is a dictionary POSTed from /edit/<release>
+    release_id = edit_data['release_id']
+    release_entry = get_item(item_type='release', item_id=release_id)['release']
+    release_entry.listen_date = edit_data['listen_date']
+    release_entry.rating = edit_data['rating_edit']
+    release_entry.release_year = edit_data['release_year']
+    release_entry.genre = edit_data['genre']
+    release_entry.tags = edit_data['tags']
+    release_entry.country = edit_data['country']
+    release_entry.art = edit_data['art']
+    db.session.commit()
     return 0
 
 
+# ---- INCOMPLETE -----
 def update_artist():
     return 0
 
