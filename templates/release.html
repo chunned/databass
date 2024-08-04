@@ -6,8 +6,9 @@
     <div>
         <div style="display:flex; align-items: center;">
             <h1><a href="/artist/{{ data.artist.id }}" class="link">{{data.artist.name}}</a> - {{ data.release.title }}</h1>
-            <p>&nbsp <a href="/label/{{ data.label.id }}" class="link">{{ data.label.name }}</a></p>
-            <p>&nbsp &nbsp &nbsp &nbsp <a href="/edit/{{ data.release.id }}" class="link">edit</a></p>
+            <p>&nbsp &nbsp <a href="/label/{{ data.label.id }}" class="link">{{ data.label.name }}</a></p>
+            <p>&nbsp &nbsp &nbsp &nbsp <a href="/edit/{{ data.release.id }}" class="link">edit</a>&nbsp &nbsp &nbsp &nbsp </p>
+            <p class="link" id="delete" data-id="{{ data.release.id }}">delete</p>
         </div>
         <img src="{{ data.release.art }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
     </div>
@@ -48,4 +49,38 @@
     <p>{{data.label}}</p>
 
 </div>
+
+<script>
+    function showPopup() {
+        let releaseId = deleteButton.getAttribute('data-id');
+        const popup = document.createElement('div');
+        popup.className = 'popup';
+        popup.innerHTML = `
+        <p>Are you sure? This cannot be undone.</p>
+        <button id="confirm" class="search-btn">yes</button>
+        <button id="cancel" class="search-btn">no</button>
+        `;
+        document.body.appendChild(popup);
+        // If 'yes' button is pressed, delete the release
+        popup.querySelector('#confirm').addEventListener('click', function() {
+            fetch('/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id: releaseId })
+            })
+            .then(response => {
+                window.location.href = response.url;
+            })
+        });
+        popup.querySelector('#cancel').addEventListener('click', function() {
+            document.body.removeChild(popup);
+        });
+
+    }
+    let deleteButton = document.querySelector("#delete");
+    deleteButton.addEventListener("click", function() {
+        showPopup();
+    });
+</script>
+
 </body>

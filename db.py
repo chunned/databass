@@ -340,6 +340,30 @@ def exists(mbid, item_type):
         return [False, q]
 
 
+def delete_item(item_type, item_id):
+    if item_type == 'release':
+        release = db.session.execute(
+            db.select(Release).where(Release.id == item_id)
+        ).scalar_one_or_none()
+        db.session.delete(release)
+        db.session.commit()
+    elif item_type == 'artist':
+        artist = db.session.execute(
+            db.select(Artist).where(Artist.id == item_id)
+        ).scalar_one_or_none()
+        db.session.delete(artist)
+        db.session.commit()
+    elif item_type == 'label':
+        label = db.session.execute(
+            db.select(Label).where(Label.id == item_id)
+        ).scalar_one_or_none()
+        db.session.delete(label)
+        db.session.commit()
+    else:
+        raise ValueError("ERROR: Invalid item_type")
+    return 0
+
+
 # ---- INCOMPLETE -----
 def update_release():
     return 0

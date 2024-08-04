@@ -177,6 +177,14 @@ def edit_release():
     return flask.redirect('/', 302)
 
 
+@app.route('/delete', methods=['POST', 'GET'])
+def delete():
+    deletion_id = flask.request.get_json()['id']
+    db.delete_item('release', deletion_id)
+    return flask.redirect('/', 302)
+
+
+
 @app.route('/stats', methods=['GET'])
 def stats():
     statistics = db.get_stats()
