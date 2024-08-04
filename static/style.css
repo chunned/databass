@@ -23,6 +23,10 @@ body {
     color: #c6c6c5;
 }
 
+input {
+    background: #c6c6c5;
+}
+
 .page-content {
     display: grid;
     grid-template-columns: 40% 60%;
