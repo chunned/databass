@@ -285,13 +285,13 @@ def get_items(item_type):
 def get_item(item_type, item_id):
     # Gets a single item specified by its ID
     if item_type == 'release':
-        release = db.session.query(Release).where(Release.id == item_id)
-        artist = db.session.query(Artist).where(Artist.id == item_id)
-        label = db.session.query(Label).where(Label.id == item_id)
+        release = db.session.query(Release).where(Release.id == item_id).first()
+        artist = db.session.query(Artist).where(Artist.id == release.artist_id).first()
+        label = db.session.query(Label).where(Label.id == release.label_id).first()
         item_data = {
-            "release": release[0],
-            "artist": artist[0],
-            "label": label[0]
+            "release": release,
+            "artist": artist,
+            "label": label
         }
     elif item_type == 'artist':
         artist = db.session.query(Artist).where(Artist.id == item_id).all()
