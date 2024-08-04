@@ -169,9 +169,6 @@ body {
     height: 100%;
 }
 
-.art_holder {
-    width: 9vw;
-}
 
 .homepage_covers {
     max-width: 100%;
@@ -188,4 +185,13 @@ body {
 }
 .grid-cell {
     border: 1px solid white;
+}
+
+.release-table th, .release-table td {
+    text-align: center;
+    height: 15vh;
+}
+
+.release-table tr {
+    padding: 10px;
 }
