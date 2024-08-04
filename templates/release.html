@@ -47,41 +47,21 @@
                     <p>country: {{ data.release.country }}</p>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <h1>Review</h1>
+                </td>
+                <td colspan="5" style="border: 1px solid #c6c6c5; padding: 10px;">
+                    <form>
+                        <textarea name="review" id="review" style="width: 80%; height: 10vh; max-height: 10vh; max-width: 90%; resize: none; background-color: #c6c6c5;">Write your review here</textarea>
+                        <
+                    </form>
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>
 
-<script>
-    function showPopup() {
-        let releaseId = deleteButton.getAttribute('data-id');
-        const popup = document.createElement('div');
-        popup.className = 'popup';
-        popup.innerHTML = `
-        <p>Are you sure? This cannot be undone.</p>
-        <button id="confirm" class="search-btn">yes</button>
-        <button id="cancel" class="search-btn">no</button>
-        `;
-        document.body.appendChild(popup);
-        // If 'yes' button is pressed, delete the release
-        popup.querySelector('#confirm').addEventListener('click', function() {
-            fetch('/delete', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id: releaseId })
-            })
-            .then(response => {
-                window.location.href = response.url;
-            })
-        });
-        popup.querySelector('#cancel').addEventListener('click', function() {
-            document.body.removeChild(popup);
-        });
-
-    }
-    let deleteButton = document.querySelector("#delete");
-    deleteButton.addEventListener("click", function() {
-        showPopup();
-    });
-</script>
+<script src="../static/scripts.js"></script>
 
 </body>
