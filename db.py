@@ -30,6 +30,7 @@ class Release(db.Model):
     genre: Mapped[str] = mapped_column(String())
     tags: Mapped[Optional[str]] = mapped_column(String())
     art: Mapped[Optional[str]] = mapped_column(String())
+    review: Mapped[Optional[str]] = mapped_column(String())
 
     def __init__(self, mbid: Optional[str] = None, artist_id: int = 0, label_id: int = 0, **kwargs):
         self.mbid = mbid
@@ -375,6 +376,16 @@ def update_release(edit_data):
     release_entry.tags = edit_data['tags']
     release_entry.country = edit_data['country']
     release_entry.art = edit_data['art']
+    db.session.commit()
+    return 0
+
+
+def add_review(data):
+    release_id = data['release_id']
+    review = data['review']
+
+    release = db.session.query(Release).where(Release.id == release_id).one_or_none()
+    release.review = review
     db.session.commit()
     return 0
 

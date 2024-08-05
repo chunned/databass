@@ -160,6 +160,13 @@ def delete():
     return flask.redirect('/', 302)
 
 
+@app.route('/add-review', methods=['POST'])
+def add_review():
+    review_data = flask.request.form.to_dict()
+    db.add_review(review_data)
+    return flask.redirect('/', 302)
+
+
 @app.route('/stats', methods=['GET'])
 def stats():
     statistics = db.get_stats()

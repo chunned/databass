@@ -52,9 +52,10 @@
                     <h1>Review</h1>
                 </td>
                 <td colspan="5" style="border: 1px solid #c6c6c5; padding: 10px;">
-                    <form>
-                        <textarea name="review" id="review" style="width: 80%; height: 10vh; max-height: 10vh; max-width: 90%; resize: none; background-color: #c6c6c5;">Write your review here</textarea>
-                        <
+                    <form method="POST" action="/add-review">
+                        <input type="hidden" id="release_id" name="release_id" value="{{ data.release.id }}">
+                        <textarea name="review" id="review" style="width: 80%; height: 10vh; max-height: 10vh; max-width: 90%; resize: none; background-color: #c6c6c5;">{{ data.release.review }}</textarea>
+                        <button type="submit" class="search-btn">submit</button>
                     </form>
                 </td>
             </tr>
