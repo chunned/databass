@@ -4,6 +4,7 @@ import db
 from uuid import uuid4
 import os
 from dotenv import load_dotenv
+from flask_paginate import Pagination, get_page_parameter
 
 # Application initialization
 load_dotenv()
@@ -89,7 +90,23 @@ def submit():
 @app.route('/releases', methods=["GET"])
 def releases():
     release_data = db.get_items('releases')
-    return flask.render_template('releases.html', data=release_data, active_page='releases')
+    page = flask.request.args.get(get_page_parameter(),
+                                  type=int,
+                                  default=1)
+    pagination = release_data.paginate(page=page,
+                                       per_page=10,
+                                       error_out=False,
+                                       )
+    releases_paged = pagination.items
+    flask_pagination = Pagination(page=page,
+                                  total=pagination.total,
+                                  search=False,
+                                  record_name='releases')
+    return flask.render_template('releases.html',
+                                 data=release_data.all(),
+                                 releases=releases_paged,
+                                 pagination=flask_pagination,
+                                 active_page='releases')
 
 
 @app.route('/artists', methods=["GET"])

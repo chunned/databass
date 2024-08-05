@@ -273,11 +273,11 @@ def get_homepage_data():
 def get_items(item_type):
     # Gets all items of a specified type
     if item_type == 'releases':
-        items = db.session.query(Release).all()
+        items = db.session.query(Release)
     elif item_type == 'artists':
-        items = db.session.query(Artist).all()
+        items = db.session.query(Artist)
     elif item_type == 'labels':
-        items = db.session.query(Label).all()
+        items = db.session.query(Label)
     else:
         raise ValueError('ERROR: Invalid item_type: ', item_type)
     return items
