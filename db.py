@@ -390,6 +390,18 @@ def add_review(data):
     return 0
 
 
+def distinct_entries(table, column):
+    # Column should correspond to a column in the database table (one of the model class attributes)
+    if not hasattr(table, '__table__'):
+        raise ValueError('Invalid table')
+    if not hasattr(table, column):
+        raise ValueError('Invalid column for this table')
+
+    col = getattr(table, column)
+    distinct = db.session.query(sqlalchemy.distinct(col)).order_by(col).all()
+    # distinct comes out as a list of tuples so below unpacks into just a list
+    return [genre[0] for genre in distinct]
+
 # ---- INCOMPLETE -----
 def update_artist():
     return 0

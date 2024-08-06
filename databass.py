@@ -190,6 +190,23 @@ def stats():
     return flask.render_template('stats.html', data=statistics, active_page='stats')
 
 
+@app.route('/test2', methods=['GET'])
+def test2():
+    genres = db.distinct_entries(table=db.Release, column='genre')
+    countries = db.distinct_entries(table=db.Release, column='country')
+    all_labels = db.distinct_entries(table=db.Label, column='name')
+    all_artists = db.distinct_entries(table=db.Artist, column='name')
+    all_releases = db.distinct_entries(table=db.Release, column='title')
+    print(all_releases)
+    data = {
+        "genres": genres,
+        "countries": countries,
+        "labels": all_labels,
+        "releases": all_releases,
+        "artists": all_artists
+    }
+    return flask.render_template('test2.html', data=data)
+
 def main():
     app.run(host='0.0.0.0', debug=True, port=8080)
 

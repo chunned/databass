@@ -216,7 +216,15 @@ input {
 .pagination-page-info b {
     color: black;
     background: #6aa6ed;
-    padding-left: 2px;
     padding: .1em .25em;
+    /* padding-left: 2px; */
     font-size: 150%;
+}
+
+.filter-table {
+    width: 100%;
+}
+
+.form-cell {
+    text-align: center;
 }
