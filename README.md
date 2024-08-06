@@ -1,5 +1,9 @@
 # Overview
 
+![](/static/screen.png)
+
+---
+
 This is a simple Flask app to manually track music releases you listen to. It's similar to RateYourMusic but has no community aspect.
 
 There are a few things to note before you use it:
@@ -24,6 +28,3 @@ In the `volumes` section:
 
 Then, run `docker compose up -d` and visit the application at `localhost:<port>`
 
----
-
-![](/static/screen.png)
