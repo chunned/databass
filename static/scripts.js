@@ -32,6 +32,8 @@ function showPopup(deleteButton) {
     });
 }
 
+
+// Used in search.html to show popup before release is inserted
 (function() {
     // Function to create and show the pop-up element
     function showPopup(data) {
@@ -42,7 +44,9 @@ function showPopup(deleteButton) {
             const data4 = data3.replace(/':/g, '":');
             const data5 = data4.replace(/ '/g, ' "');
             const data6 = data5.replace(/',/g, '",');
-            let jsonStr = data6;
+            const data7 = data6.replace(/(12|10|7)" Vinyl/g, '$1\\" Vinyl');
+
+            let jsonStr = data7;
 
             const parsed_data = JSON.parse(jsonStr);
             // Create the pop-up container
