@@ -48,7 +48,12 @@ function showPopup(deleteButton) {
 
             let jsonStr = data7;
 
-            const parsed_data = JSON.parse(jsonStr);
+            try {
+                const parsed_data = JSON.parse(jsonStr);
+            } catch (error) {
+                console.error(error);
+                console.log(jsonStr);
+            }
             // Create the pop-up container
             const popup = document.createElement('div');
             popup.className = 'popup';
@@ -132,6 +137,7 @@ function showPopup(deleteButton) {
             });
         } catch (error) {
             console.error('Failed to parse data-item:', error);
+            console.log(data-item)
         }
     }
 
