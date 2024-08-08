@@ -56,7 +56,6 @@ input {
     margin: auto;
 }
 #search-results {
-/*    border: 1px solid black; */
 }
 #data-table {
     width: 100%;
@@ -64,8 +63,6 @@ input {
     border-collapse: collapse;
 }
 #search-results th, #search-results td {
-    width: 25%;
-/*    padding: 10px; */
     margin: 10px;
 }
 #search-results tr {
@@ -202,6 +199,15 @@ input {
 
 .release-table tr {
     padding: 10px;
+}
+
+.manual-release-table {
+    width: 80vw;
+}
+
+.manual-release-table th, .manual-release-table td {
+    text-align: center;
+    height: 5vh;
 }
 
 /* PAGINATION */

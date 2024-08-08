@@ -5,6 +5,12 @@ from sqlalchemy import Integer, String, func, extract
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Optional
 import datetime
+import pytz
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+TIMEZONE = os.getenv('TIMEZONE')
 
 
 class Base(DeclarativeBase):
@@ -66,6 +72,7 @@ class Artist(ArtistOrLabel):
 
 # --- Database operation functions ---
 def insert_item(item):
+    # Insert an instance of one of the table classes
     try:
         db.session.add(item)
         db.session.commit()
@@ -79,6 +86,7 @@ def insert_item(item):
 
 
 def insert_release(release):
+    # Construct an instance of the Release class, then insert it
     new_release = Release(
         mbid=release.get("mbid"),
         artist_id=release.get("artist_id", 0),
@@ -99,6 +107,7 @@ def insert_release(release):
 
 
 def insert_artist(artist):
+    # Construct an instance of the Artist class, then insert it
     new_artist = Artist(
         mbid=artist.get("mbid", "0"),
         name=artist.get("name"),
@@ -113,6 +122,7 @@ def insert_artist(artist):
 
 
 def insert_label(label):
+    # Construct an instance of the Label class, then insert it
     new_label = Label(
         mbid=label.get("mbid", "0"),
         name=label.get("name"),
@@ -259,7 +269,6 @@ def get_homepage_data():
             Release.listen_date,
             Release.genre,
             Release.art,
-            Release.mbid,
             Release.tags
         )
         .join(Artist, Artist.id == Release.artist_id)
@@ -401,6 +410,54 @@ def distinct_entries(table, column):
     distinct = db.session.query(sqlalchemy.distinct(col)).order_by(col).all()
     # distinct comes out as a list of tuples so below unpacks into just a list
     return [genre[0] for genre in distinct]
+
+
+def submit_manual(data):
+    print(data)
+    label_name = data["label"]
+    existing_label = check_item_by_name('label', label_name)
+    if existing_label is not None:
+        label_id = existing_label[0]
+    else:
+        label = Label()
+        label.name = label_name
+        label_id = insert_item(label)
+
+    artist_name = data["artist"]
+    existing_artist = check_item_by_name('artist', artist_name)
+    if existing_artist is not None:
+        artist_id = existing_artist[0]
+    else:
+        artist = Artist()
+        artist.name = artist_name
+        artist_id = insert_item(artist)
+
+    local_timezone = pytz.timezone(TIMEZONE)
+
+    release = Release()
+    release.title = data["title"]
+    release.artist_id = artist_id
+    release.label_id = label_id
+    release.release_year = data["release_year"]
+    release.rating = data["rating"]
+    release.genre = data["genre"]
+    release.tags = data["tags"]
+    release.art = data["art"]
+    release.listen_date = datetime.datetime.now(local_timezone).strftime("%Y-%m-%d")
+    insert_item(release)
+
+
+def check_item_by_name(item_type, name):
+    if item_type == 'artist':
+        result = db.session.query(Artist.id).where(func.lower(Artist.name) == func.lower(name)).one_or_none()
+    elif item_type == 'label':
+        result = db.session.query(Label.id).where(func.lower(Label.name) == func.lower(name)).one_or_none()
+    elif item_type == 'release':
+        result = db.session.query(Label.id).where(func.lower(Label.name) == func.lower(name)).one_or_none()
+    else:
+        raise ValueError('Invalid item_type')
+    return result
+
 
 # ---- INCOMPLETE -----
 def update_artist():

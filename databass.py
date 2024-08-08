@@ -207,6 +207,14 @@ def test2():
     }
     return flask.render_template('test2.html', data=data)
 
+
+@app.route('/submit-manual', methods=['POST'])
+def submit_manual():
+    data = flask.request.form.to_dict()
+    db.submit_manual(data)
+    return flask.redirect('/', 302)
+
+
 def main():
     app.run(host='0.0.0.0', debug=True, port=8080)
 
