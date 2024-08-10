@@ -1,8 +1,9 @@
 requests~=2.31.0
-flask
+flask~=3.0.3
 pychart.js
-python-dotenv
+python-dotenv~=1.0.1
 Flask-SQLAlchemy
-sqlalchemy
-pytz
+sqlalchemy~=2.0.32
+pytz~=2024.1
 flask-paginate
+python-dateutil~=2.9.0.post0
