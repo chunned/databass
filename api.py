@@ -223,9 +223,13 @@ def discogs_get_image(name, item_type):
     image = None
     if not result:
         return image
-    if result['message'] == "Discogs is unavailable right now.":
-        print("Discogs API currently unavailable")
-        return image
+    try:
+        # Check for Discogs API error
+        if result['message'] == "Discogs is unavailable right now.":
+            print("Discogs API currently unavailable")
+            return image
+    except KeyError:
+        pass
     for item in result["results"]:
         if item_type == 'release':
             image = item["cover_image"]
