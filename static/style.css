@@ -45,18 +45,16 @@ input {
     text-decoration: underline!important;
 }
 
-/* NEW */
-.new-release {
+/* SEARCH */
+.search-bar {
     margin: 15px;
-    align-items: center;
-
 }
-.new-release label, .new-release input {
+
+.search-bar label, .search-bar input {
     padding: 5px;
     margin: auto;
 }
-#search-results {
-}
+
 #data-table {
     width: 100%;
     text-align: center;
@@ -75,7 +73,8 @@ input {
 .radio-col {
     width: 5%;
 }
-.search-btn {
+
+.box {
     color: inherit;
     background: none;
     border: 3px solid #c6c6c5;
@@ -132,8 +131,6 @@ input {
 
 /* HOME */
 .main-album-table {
-/*   display: flex; */
-/*    justify-content: center; */
     text-align: center;
 }
 

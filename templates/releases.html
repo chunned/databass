@@ -3,72 +3,73 @@
 <body>
 {% include 'navbar.html' %}
 
+<div class="search-bar">
 <form action="/dynamic_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
 <table class="filter-table">
     <thead>
         <tr>
             <td class="form-cell">
-                <label for="title" class="form-label">title</label><br>
-                <input type="text" id="title" name="title" class="search-btn">
+                <label for="title">title</label><br>
+                <input type="text" id="title" name="title" class="box">
             </td>
             <td class="form-cell">
-                <label for="artist" class="form-label">artist</label><br>
-                <input type="text" id="artist" name="artist" class="search-btn">
+                <label for="artist">artist</label><br>
+                <input type="text" id="artist" name="artist" class="box">
             </td>
             <td class="form-cell">
-                <label for="label" class="form-label">label</label><br>
-                <select id="label" name="label" class="search-btn">
+                <label for="label">label</label><br>
+                <select id="label" name="label" class="box">
                     {% for label in data.labels %}
                     <option value="{{ label }}">{{ label }}</option>
                     {% endfor %}
                 </select>
             </td>
             <td class="form-cell">
-                <label for="country" class="form-label">country</label><br>
-                <select id="country" name="country" class="search-btn">
+                <label for="country">country</label><br>
+                <select id="country" name="country" class="box">
                     {% for country in data.countries %}
                     <option value="{{ country }}">{{ country }}</option>
                     {% endfor %}
                 </select>
             </td>
             <td class="form-cell">
-                <label for="rating" class="form-label">rating</label><br>
-                <select id="rating-filter" name="rating_comparison" class="search-btn">
+                <label for="rating">rating</label><br>
+                <select id="rating-filter" name="rating_comparison" class="box">
                     <option value="-1"><</option>
                     <option value="0">=</option>
                     <option value="1">></option>
                 </select>
-                <input type="number" min=0 max=100 id="rating" name="rating" class="search-btn">
+                <input type="number" min=0 max=100 id="rating" name="rating" class="box">
             </td>
             <td class="form-cell">
-                <label for="year" class="form-label">year</label><br>
-                <select id="year-filter" name="year_comparison" class="search-btn">
+                <label for="year">year</label><br>
+                <select id="year-filter" name="year_comparison" class="box">
                     <option value="-1"><</option>
                     <option value="0">=</option>
                     <option value="1">></option>
                 </select>
-                <input type="number" min=0 max="2100" id="year" name="year" class="search-btn">
+                <input type="number" min=0 max="2100" id="year" name="year" class="box">
             </td>
             <td class="form-cell">
-                <label for="genre" class="form-label">genre</label><br>
-                <select id="genre" name="genre" class="search-btn">
+                <label for="genre">genre</label><br>
+                <select id="genre" name="genre" class="box">
                     {% for genre in data.genres %}
                     <option value="{{ genre }}">{{ genre }}</option>
                     {% endfor %}
                 </select>
             </td>
             <td class="form-cell">
-                <label for="tags" class="form-label">tags</label><br>
-                <input type="text" id="tags" name="tags" class="search-btn">
+                <label for="tags">tags</label><br>
+                <input type="text" id="tags" name="tags" class="box">
             </td>
             <td class="form-cell"><br>
-                <button type="button" class="search-btn" value="submit" id="releases_search">submit</button>
+                <button type="button" class="box" value="submit" id="releases_search">submit</button>
             </td>
         </tr>
     </thead>
 </table>
 </form>
-
+</div>
 <div id="search-results"></div>
 
 <script>

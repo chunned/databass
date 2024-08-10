@@ -5,13 +5,13 @@
     <div class="new-release">
         <form action="/search" method="POST">
             <label for="release">release</label>
-            <input type="text" id="release" name="release" class="search-btn">
+            <input type="text" id="release" name="release" class="box">
 
             <label for="artist">artist</label>
-            <input type="text" id="artist" name="artist" class="search-btn">
+            <input type="text" id="artist" name="artist" class="box">
 
             {% for action in actions %}
-            <button class="search-btn" type="button" data-action="{{ action }}" id="search">{{ action }}</button>
+            <button class="box" type="button" data-action="{{ action }}" id="search">{{ action }}</button>
             {% endfor %}
         </form>
     </div>

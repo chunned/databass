@@ -3,55 +3,57 @@
 <body>
 {% include 'navbar.html' %}
 
+<div class="search-bar">
 <form action="/dynamic_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
     <table class="filter-table">
         <thead>
         <tr>
             <td class="form-cell">
-                <label for="label" class="form-label">name</label><br>
-                <input type="text" id="label" name="label" class="search-btn">
+                <label for="label">name</label><br>
+                <input type="text" id="label" name="label" class="box">
             </td>
             <td class="form-cell">
-                <label for="country" class="form-label">country</label><br>
-                <select id="country" name="country" class="search-btn">
+                <label for="country">country</label><br>
+                <select id="country" name="country" class="box">
                     {% for country in data.countries %}
                     <option value="{{ country }}">{{ country }}</option>
                     {% endfor %}
                 </select>
             </td>
             <td class="form-cell">
-                <label for="begin_date" class="form-label">begin year</label><br>
-                <select id="begin_filter" name="begin_date" class="search-btn">
+                <label for="begin_date">begin year</label><br>
+                <select id="begin_filter" name="begin_date" class="box">
                     <option value="-1"><</option>
                     <option value="0">=</option>
                     <option value="1">></option>
                 </select>
-                <input type="number" min=0 max="2100" id="begin_date" name="begin_date" class="search-btn">
+                <input type="number" min=0 max="2100" id="begin_date" name="begin_date" class="box">
             </td>
             <td class="form-cell">
-                <label for="end_date" class="form-label">end year</label><br>
-                <select id="end_filter" name="end_comparison" class="search-btn">
+                <label for="end_date">end year</label><br>
+                <select id="end_filter" name="end_comparison" class="box">
                     <option value="-1"><</option>
                     <option value="0">=</option>
                     <option value="1">></option>
                 </select>
-                <input type="number" min=0 max="2100" id="end_date" name="end_date" class="search-btn">
+                <input type="number" min=0 max="2100" id="end_date" name="end_date" class="box">
             </td>
             <td class="form-cell">
-                <label for="type" class="form-label">type</label><br>
-                <select id="type" name="type" class="search-btn">
+                <label for="type">type</label><br>
+                <select id="type" name="type" class="box">
                     {% for type in data.types %}
                     <option value="{{ type }}">{{ type }}</option>
                     {% endfor %}
                 </select>
             </td>
             <td class="form-cell"><br>
-                <button type="button" class="search-btn" value="submit" id="search">submit</button>
+                <button type="button" class="box" value="submit" id="search">submit</button>
             </td>
         </tr>
         </thead>
     </table>
 </form>
+</div>
 
 
 <div id="search-results"></div>
