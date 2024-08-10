@@ -9,15 +9,15 @@
         <tr>
             <td class="form-cell">
                 <label for="title" class="form-label">title</label><br>
-                <input type="text" id="title" name="title">
+                <input type="text" id="title" name="title" class="search-btn">
             </td>
             <td class="form-cell">
                 <label for="artist" class="form-label">artist</label><br>
-                <input type="text" id="artist" name="artist">
+                <input type="text" id="artist" name="artist" class="search-btn">
             </td>
             <td class="form-cell">
                 <label for="label" class="form-label">label</label><br>
-                <select id="label" name="label">
+                <select id="label" name="label" class="search-btn">
                     {% for label in data.labels %}
                     <option value="{{ label }}">{{ label }}</option>
                     {% endfor %}
@@ -25,7 +25,7 @@
             </td>
             <td class="form-cell">
                 <label for="country" class="form-label">country</label><br>
-                <select id="country" name="country">
+                <select id="country" name="country" class="search-btn">
                     {% for country in data.countries %}
                     <option value="{{ country }}">{{ country }}</option>
                     {% endfor %}
@@ -33,25 +33,25 @@
             </td>
             <td class="form-cell">
                 <label for="rating" class="form-label">rating</label><br>
-                <select id="rating-filter" name="rating_comparison">
+                <select id="rating-filter" name="rating_comparison" class="search-btn">
                     <option value="-1"><</option>
                     <option value="0">=</option>
                     <option value="1">></option>
                 </select>
-                <input type="number" min=0 max=100 id="rating" name="rating">
+                <input type="number" min=0 max=100 id="rating" name="rating" class="search-btn">
             </td>
             <td class="form-cell">
                 <label for="year" class="form-label">year</label><br>
-                <select id="year-filter" name="year_comparison">
+                <select id="year-filter" name="year_comparison" class="search-btn">
                     <option value="-1"><</option>
                     <option value="0">=</option>
                     <option value="1">></option>
                 </select>
-                <input type="number" min=0 max="2100" id="year" name="year">
+                <input type="number" min=0 max="2100" id="year" name="year" class="search-btn">
             </td>
             <td class="form-cell">
                 <label for="genre" class="form-label">genre</label><br>
-                <select id="genre" name="genre">
+                <select id="genre" name="genre" class="search-btn">
                     {% for genre in data.genres %}
                     <option value="{{ genre }}">{{ genre }}</option>
                     {% endfor %}
@@ -59,10 +59,10 @@
             </td>
             <td class="form-cell">
                 <label for="tags" class="form-label">tags</label><br>
-                <input type="text" id="tags" name="tags">
+                <input type="text" id="tags" name="tags" class="search-btn">
             </td>
             <td class="form-cell"><br>
-                <button type="button" class="search-btn" value="submit">submit</button>
+                <button type="button" class="search-btn" value="submit" id="releases_search">submit</button>
             </td>
         </tr>
     </thead>
@@ -72,7 +72,7 @@
 <div id="search-results"></div>
 
 <script>
-    const searchBtn = document.querySelector(".search-btn");
+    const searchBtn = document.querySelector("#releases_search");
     searchBtn.addEventListener("click", (event) => {
     const data = {
             qtype: "release",
