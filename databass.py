@@ -36,8 +36,9 @@ def new():
 
 @app.route("/search", methods=["POST"])
 def search():
-    search_release = flask.request.form["release"]
-    search_artist = flask.request.form["artist"]
+    search_data = flask.request.get_json()
+    search_release = search_data["release"]
+    search_artist = search_data["artist"]
 
     data = api.pick_release(search_release, search_artist)
 

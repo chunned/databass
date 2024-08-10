@@ -1,8 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     let deleteButton = document.querySelector("#delete");
-    deleteButton.addEventListener("click", function() {
-        showPopup(deleteButton);
-    });
+    try {
+        deleteButton.addEventListener("click", function() {
+            showPopup(deleteButton);
+        });
+    } catch (error) {
+        console.error(error);
+    }
 });
 
 
@@ -140,12 +144,34 @@ function showPopup(deleteButton) {
         }
     }
 
-    // Attach click event listeners to table rows
-    let tableRows = document.querySelectorAll("table tbody tr");
-    tableRows.forEach((tableRow) => {
-        tableRow.addEventListener("click", function() {
-            const data = tableRow.dataset.item; // Assuming data-item contains JSON
-            showPopup(data);
+
+
+    const searchBtn = document.querySelector("#search");
+    searchBtn.addEventListener("click", (event) => {
+        data = {
+            release: document.querySelector("#release").value,
+            artist: document.querySelector("#artist").value
+        };
+        fetch('/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(function(response) {
+            return response.text();
+        })
+        .then(function(html) {
+            document.querySelector("#search-results").innerHTML = html;
+            // Attach click event listeners to table rows
+            let tableRows = document.querySelectorAll("table tbody tr");
+            tableRows.forEach((tableRow) => {
+                tableRow.addEventListener("click", function() {
+                    const data = tableRow.dataset.item; // Assuming data-item contains JSON
+                    showPopup(data);
+                });
+            });
         });
-    });
+    })
 })();

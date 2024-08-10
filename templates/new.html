@@ -18,23 +18,7 @@
 
     <div id="search-results"></div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.search-btn').click(function() {
-                var release = $('#release').val();
-                var artist = $('#artist').val();
-                $.ajax({
-                    url: '/search',
-                    type: 'POST',
-                    data: { release: release, artist: artist },
-                    success: function(response) {
-                        // Update the search results section with the new HTML content returned from the server
-                        $('#search-results').html(response);
-                    }
-                });
-            });
-        });
-    </script>
+    <script src="static/scripts.js"></script>
+
 </body>
 </html>
