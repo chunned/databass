@@ -89,36 +89,40 @@ def submit():
 
 @app.route('/releases', methods=["GET"])
 def releases():
-    release_data = db.get_items('releases')
-    page = flask.request.args.get(get_page_parameter(),
-                                  type=int,
-                                  default=1)
-    pagination = release_data.paginate(page=page,
-                                       per_page=10,
-                                       error_out=False,
-                                       )
-    releases_paged = pagination.items
-    flask_pagination = Pagination(page=page,
-                                  total=pagination.total,
-                                  search=False,
-                                  record_name='releases')
-    return flask.render_template('releases.html',
-                                 data=release_data.all(),
-                                 releases=releases_paged,
-                                 pagination=flask_pagination,
-                                 active_page='releases')
+    genres = db.distinct_entries(table=db.Release, column='genre')
+    countries = db.distinct_entries(table=db.Release, column='country')
+    all_labels = db.distinct_entries(table=db.Label, column='name')
+    all_artists = db.distinct_entries(table=db.Artist, column='name')
+    all_releases = db.distinct_entries(table=db.Release, column='title')
+    data = {
+        "genres": genres,
+        "countries": countries,
+        "labels": all_labels,
+        "releases": all_releases,
+        "artists": all_artists
+    }
+    return flask.render_template('releases.html', data=data)
+    # return flask.render_template('releases.html',
+    #                              data=release_data.all(),
+    #                              releases=releases_paged,
+    #                              pagination=flask_pagination,
+    #                              active_page='releases')
 
 
 @app.route('/artists', methods=["GET"])
 def artists():
     artist_data = db.get_items('artists')
-    return flask.render_template('artists.html', data=artist_data, active_page='artists')
+    countries = db.distinct_entries(table=db.Artist, column='country')
+    data = {"countries": countries}
+    return flask.render_template('artists.html', data=data, active_page='artists')
 
 
 @app.route('/labels', methods=["GET"])
 def labels():
-    label_data = db.get_items('labels')
-    return flask.render_template('labels.html', data=label_data, active_page='labels')
+    countries = db.distinct_entries(table=db.Label, column='country')
+    types = db.distinct_entries(table=db.Label, column='type')
+    data = {"countries": countries, "types": types}
+    return flask.render_template('labels.html', data=data, active_page='labels')
 
 
 @app.route('/release/<string:release_id>', methods=['GET'])
@@ -190,11 +194,19 @@ def stats():
     return flask.render_template('stats.html', data=statistics, active_page='stats')
 
 
+@app.route('/dynamic_search', methods=['POST'])
+def dynamic_search():
+    form_data = flask.request.get_json()
+    search_results = db.dynamic_search(form_data)
+    return flask.render_template('dynamic_search_results.html', data=search_results)
+
+
 @app.route('/submit-manual', methods=['POST'])
 def submit_manual():
     data = flask.request.form.to_dict()
     db.submit_manual(data)
     return flask.redirect('/', 302)
+
 
 def main():
     app.run(host='0.0.0.0', debug=True, port=8080)

@@ -399,6 +399,19 @@ def add_review(data):
     return 0
 
 
+def distinct_entries(table, column):
+    # Column should correspond to a column in the database table (one of the model class attributes)
+    if not hasattr(table, '__table__'):
+        raise ValueError('Invalid table')
+    if not hasattr(table, column):
+        raise ValueError('Invalid column for this table')
+
+    col = getattr(table, column)
+    distinct = db.session.query(sqlalchemy.distinct(col)).order_by(col).all()
+    # distinct comes out as a list of tuples so below unpacks into just a list
+    return [genre[0] for genre in distinct]
+
+
 def submit_manual(data):
     print(data)
     label_name = data["label"]
@@ -444,6 +457,116 @@ def check_item_by_name(item_type, name):
     else:
         raise ValueError('Invalid item_type')
     return result
+
+
+def dynamic_search(data):
+    # data is a dictionary POSTed from /releases, /artists, or /labels
+    # we don't know which form fields will be populated beforehand
+    print('SEARCH DATA: ')
+    print(data)
+    populated_fields = {}
+    for key, value in data.items():
+        if 'comparison' in key or key == 'qtype':
+            print('Utility field, not meant to be in the query, moving on')
+        else:
+            if value != '':
+                # print(f'CURRENT DATA ITEM: {key}, {value}')
+                if data['qtype'] == 'release':
+                    return_data = ["release"]
+                    if key == 'label':
+                        # print('LABEL IDENTIFIED - QUERYING')
+                        try:
+                            label_id = Label.query.filter(Label.name == value).first().id
+                            populated_fields['label_id'] = label_id
+                            # print(f'LABEL FOUND WITH ID {label_id}')
+                        except AttributeError:
+                            print('Label does not exist')
+                    elif key == 'artist':
+                        # print('ARTIST IDENTIFIED - QUERYING')
+                        try:
+                            artist_id = Artist.query.filter(Artist.name == value).first().id
+                            populated_fields['artist_id'] = artist_id
+                            # print(f'ARTIST FOUND WTIH ID {artist_id}')
+                        except AttributeError:
+                            print('Artist does not exist')
+                    elif key == 'country' and value == 'None':
+                            print('Country empty, moving on')
+                    elif key in ['rating', 'year']:
+                        populated_fields[key] = int(value)
+                    else:
+                        # print('OTHER KEY FOUND; ADDING TO POPULATED FIELDS')
+                        # print(key, value)
+                        populated_fields[key] = value
+    # print('------')
+    # print(f'POPULATED FIELDS: {populated_fields}')
+                    query = Release.query
+                    for k, v in populated_fields.items():
+                        # print(f'ADDING TO QUERY: {key}, {value}')
+                        if k == 'rating':
+                            op = data['rating_comparison']
+                            if op == '-1':
+                                # print('OPERATOR: Less than')
+                                query = query.filter(Release.rating < v)
+                            elif op == '0':
+                                # print('OPERATOR: Equal')
+                                query = query.filter(Release.rating == v)
+                            elif op == '+1':
+                                query = query.filter(Release.rating > v)
+                                # print('OPERATOR: Greater than')
+                        if k == 'year':
+                            op = data['year_comparison']
+                            if op == '-1':
+                                # print('OPERATOR: Less than')
+                                query = query.filter(Release.year < v)
+                            elif op == '0':
+                                # print('OPERATOR: Equal')
+                                query = query.filter(Release.year == v)
+                            elif op == '+1':
+                                # print('OPERATOR: Greater than')
+                                query = query.filter(Release.year > v)
+                        else:
+                            query = query.filter(getattr(Release, k) == v)
+                        # print('RESULTS AFTER THIS QUERY:')
+                        # print(query.all())
+
+                elif data['qtype'] == 'artist':
+                    return_data = ["artist"]
+                    if key == 'country' and value == 'None':
+                        print('Country empty, moving on')
+                    elif key == 'type' and value == 'None':
+                            print('Type empty, moving on')
+                    else:
+                        populated_fields[key] = value
+                    query = Artist.query
+                    for k, v in populated_fields.items():
+                        if k in ['begin_comparison', 'end_comparison']:
+                            print('Not implemented')
+                        else:
+                            query.filter(getattr(Artist, k) == v)
+
+                elif data['qtype'] == 'label':
+                    return_data = ["label"]
+                    if key == 'country' and value == 'None':
+                        print('Country empty, moving on')
+                    elif key == 'type' and value == 'None':
+                        print('Type empty, moving on')
+                    else:
+                        populated_fields[key] = value
+                    query = Label.query
+                    for k, v in populated_fields.items():
+                        if k in ['begin_comparison', 'end_comparison']:
+                            print('Not implemented')
+                        else:
+                            query.filter(getattr(Label, k) == v)
+                else:
+                    raise ValueError('Invalid qtype; must be one of [release, artist, label]')
+
+    return_data.append(query.all())
+    print(return_data)
+
+    # print("FINAL QUERY DATA:")
+    # print(data)
+    return return_data
 
 
 # ---- INCOMPLETE -----

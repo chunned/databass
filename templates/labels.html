@@ -3,14 +3,86 @@
 <body>
 {% include 'navbar.html' %}
 
-<div class="data-grid">
-    {% for label in data %}
-    <div class="grid-cell">
-        <a href="/label/{{ label.id }}" class="link">
-        <img src="{{ label.image }}" style="height:82%;width:100%;" alt="Label icon">
-        <p>{{ label.name }} ({{ label.country }})</p>
-        </a>
-    </div>
-    {% endfor %}
-</div>
+<form action="/dynamic_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
+    <table class="filter-table">
+        <thead>
+        <tr>
+            <td class="form-cell">
+                <label for="label" class="form-label">name</label><br>
+                <input type="text" id="label" name="label" class="search-btn">
+            </td>
+            <td class="form-cell">
+                <label for="country" class="form-label">country</label><br>
+                <select id="country" name="country" class="search-btn">
+                    {% for country in data.countries %}
+                    <option value="{{ country }}">{{ country }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="form-cell">
+                <label for="begin_date" class="form-label">begin year</label><br>
+                <select id="begin_filter" name="begin_date" class="search-btn">
+                    <option value="-1"><</option>
+                    <option value="0">=</option>
+                    <option value="1">></option>
+                </select>
+                <input type="number" min=0 max="2100" id="begin_date" name="begin_date" class="search-btn">
+            </td>
+            <td class="form-cell">
+                <label for="end_date" class="form-label">end year</label><br>
+                <select id="end_filter" name="end_comparison" class="search-btn">
+                    <option value="-1"><</option>
+                    <option value="0">=</option>
+                    <option value="1">></option>
+                </select>
+                <input type="number" min=0 max="2100" id="end_date" name="end_date" class="search-btn">
+            </td>
+            <td class="form-cell">
+                <label for="type" class="form-label">type</label><br>
+                <select id="type" name="type" class="search-btn">
+                    {% for type in data.types %}
+                    <option value="{{ type }}">{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="form-cell"><br>
+                <button type="button" class="search-btn" value="submit" id="search">submit</button>
+            </td>
+        </tr>
+        </thead>
+    </table>
+</form>
+
+
+<div id="search-results"></div>
+
+<script>
+    const searchBtn = document.querySelector("#search");
+    searchBtn.addEventListener("click", (event) => {
+    const data = {
+            qtype: "label",
+            title: document.querySelector("#label").value,
+            country: document.querySelector("#country").value,
+            begin_comparison: document.querySelector("#begin_filter").value,
+            begin_date: document.querySelector("#begin_date").value,
+            end_comparison: document.querySelector("#end_filter").value,
+            end_date: document.querySelector("#end_date").value,
+            type: document.querySelector("#type").value,
+        };
+        fetch('/dynamic_search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(function(response) {
+            return response.text();
+         })
+        .then(function(html) {
+            document.querySelector("#search-results").innerHTML = html;
+         });
+    });
+</script>
+
 </body>

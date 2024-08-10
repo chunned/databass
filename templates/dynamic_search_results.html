@@ -1,0 +1,28 @@
+<table class="dynamic-search-table">
+    {{ search_data }}
+{% for i in range(data[1]|length) %}
+    {% if i % 7 == 0 %}
+        <tr>
+    {% endif %}
+            <td>
+                {% if data[0] == 'release' %}
+                    <a class="link" href="/release/{{ data[1][i].id }}">
+                {% elif data[0] == 'artist' %}
+                    <a class="link" href="/artist/{{ data[1][i].id }}">
+                {% elif data[0] == 'label' %}
+                        <p>label</p>
+                    <a class="link" href="/label/{{ data[1][i].id }}">
+                {% endif %}
+
+                {% if data[1][i].art %}
+                    <img src="{{ data[1][i].art }}">
+                {% elif data[1][i].image %}
+                    <img src="{{ data[1][i].image }}">
+                {% else %}
+                    <p>{{ data[1][i].title }} ({{ data[1][i].rating }}%)</p>
+                {% endif %}
+                </a>
+            </td>
+{% endfor %}
+        </tr>
+</table>
