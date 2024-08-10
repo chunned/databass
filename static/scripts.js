@@ -86,7 +86,7 @@ function showPopup(deleteButton) {
                                         <label for="rating">RATING</label>
                                     </td>
                                     <td>
-                                        <input type="number" min="0" max="100" required id="rating" name="rating">
+                                        <input type="number" min="0" max="100" required id="rating" name="rating" class="search-btn">
                                     </td>
                                 </tr>
                                 <tr>
@@ -94,7 +94,7 @@ function showPopup(deleteButton) {
                                         <label for="release_year">YEAR</label>
                                     </td>
                                     <td>
-                                        <input type="number" min="0" required id="year" name="release_year">
+                                        <input type="number" min="0" required id="year" name="release_year" class="search-btn">
                                     </td>
                                 </tr>
                                 <tr>
@@ -102,7 +102,7 @@ function showPopup(deleteButton) {
                                         <label for="genre">GENRE</label>
                                     </td>
                                     <td>
-                                        <input type="text" required id="genre" name="genre">
+                                        <input type="text" required id="genre" name="genre" class="search-btn">
                                     </td>
                                 </tr>
                                 <tr>
@@ -110,12 +110,12 @@ function showPopup(deleteButton) {
                                         <label for="tags">TAGS</label>
                                     </td>
                                     <td>
-                                        <input type="text" id="tags" name="tags">
+                                        <input type="text" id="tags" name="tags" class="search-btn">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td colspan="2">
-                                        <button type="submit" id="submit-btn">submit</button>
+                                        <button type="submit" id="submit-btn" class="search-btn">submit</button>
                                     </td>
                                 </tr>
                             </table>
