@@ -112,13 +112,17 @@ def releases():
 @app.route('/artists', methods=["GET"])
 def artists():
     artist_data = db.get_items('artists')
-    return flask.render_template('artists.html', data=artist_data, active_page='artists')
+    countries = db.distinct_entries(table=db.Artist, column='country')
+    data = {"countries": countries}
+    return flask.render_template('artists.html', data=data, active_page='artists')
 
 
 @app.route('/labels', methods=["GET"])
 def labels():
-    label_data = db.get_items('labels')
-    return flask.render_template('labels.html', data=label_data, active_page='labels')
+    countries = db.distinct_entries(table=db.Label, column='country')
+    types = db.distinct_entries(table=db.Label, column='type')
+    data = {"countries": countries, "types": types}
+    return flask.render_template('labels.html', data=data, active_page='labels')
 
 
 @app.route('/release/<string:release_id>', methods=['GET'])
@@ -193,9 +197,7 @@ def stats():
 @app.route('/dynamic_search', methods=['POST'])
 def dynamic_search():
     form_data = flask.request.get_json()
-    print(form_data)
     search_results = db.dynamic_search(form_data)
-    print(search_results)
     return flask.render_template('dynamic_search_results.html', data=search_results)
 
 

@@ -61,7 +61,7 @@
                 <label for="tags" class="form-label">tags</label><br>
                 <input type="text" id="tags" name="tags">
             </td>
-            <td class="form-cell">
+            <td class="form-cell"><br>
                 <button type="button" class="search-btn" value="submit">submit</button>
             </td>
         </tr>
@@ -75,6 +75,7 @@
     const searchBtn = document.querySelector(".search-btn");
     searchBtn.addEventListener("click", (event) => {
     const data = {
+            qtype: "release",
             title: document.querySelector("#title").value,
             artist: document.querySelector("#artist").value,
             label: document.querySelector("#label").value,
