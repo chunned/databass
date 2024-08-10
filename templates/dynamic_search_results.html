@@ -1,0 +1,18 @@
+<table class="dynamic-search-table">
+{% for i in range(data|length) %}
+    {% if i % 7 == 0 %}
+        <tr>
+    {% endif %}
+            <td>
+
+                <a class="link" href="/release/{{ data[i].id }}">
+                    {% if data[i].art %}
+                    <img src="{{ data[i].art }}">
+                    {% else %}
+                    <p>{{ data[i].title }} ({{ data[i].rating }}%)</p>
+                    {% endif %}
+                </a>
+            </td>
+{% endfor %}
+        </tr>
+</table>

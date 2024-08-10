@@ -459,6 +459,79 @@ def check_item_by_name(item_type, name):
     return result
 
 
+def dynamic_search(data):
+    # data is a dictionary POSTed from /releases, /artists, or /labels
+    # we don't know which form fields will be populated beforehand
+    # print('RELEASE DATA: ')
+    # print(data)
+    populated_fields = {}
+    for key, value in data.items():
+        if value != '':
+            # print(f'CURRENT DATA ITEM: {key}, {value}')
+            if key == 'label':
+                # print('LABEL IDENTIFIED - QUERYING')
+                try:
+                    label_id = Label.query.filter(Label.name == value).first().id
+                    populated_fields['label_id'] = label_id
+                    # print(f'LABEL FOUND WITH ID {label_id}')
+                except AttributeError:
+                    print('Label does not exist')
+            elif key == 'artist':
+                # print('ARTIST IDENTIFIED - QUERYING')
+                try:
+                    artist_id = Artist.query.filter(Artist.name == value).first().id
+                    populated_fields['artist_id'] = artist_id
+                    # print(f'ARTIST FOUND WTIH ID {artist_id}')
+                except AttributeError:
+                    print('Artist does not exist')
+            elif key == 'country':
+                if value == 'None':
+                    print('Country empty, moving on')
+            elif 'comparison' in key:
+                print('Utility field, not meant to be in the query, moving on')
+            elif key in ['rating', 'year']:
+                populated_fields[key] = int(value)
+            else:
+                # print('OTHER KEY FOUND; ADDING TO POPULATED FIELDS')
+                # print(key, value)
+                populated_fields[key] = value
+    # print('------')
+    # print(f'POPULATED FIELDS: {populated_fields}')
+    query = Release.query
+    for key, value in populated_fields.items():
+        # print(f'ADDING TO QUERY: {key}, {value}')
+        if key == 'rating':
+            op = data['rating_comparison']
+            if op == '-1':
+                # print('OPERATOR: Less than')
+                query = query.filter(Release.rating < value)
+            elif op == '0':
+                # print('OPERATOR: Equal')
+                query = query.filter(Release.rating == value)
+            elif op == '+1':
+                query = query.filter(Release.rating > value)
+                # print('OPERATOR: Greater than')
+        if key == 'year':
+            op = data['year_comparison']
+            if op == '-1':
+                # print('OPERATOR: Less than')
+                query = query.filter(Release.year < value)
+            elif op == '0':
+                # print('OPERATOR: Equal')
+                query = query.filter(Release.year == value)
+            elif op == '+1':
+                # print('OPERATOR: Greater than')
+                query = query.filter(Release.year > value)
+        else:
+            query = query.filter(getattr(Release, key) == value)
+        # print('RESULTS AFTER THIS QUERY:')
+        # print(query.all())
+    data = query.all()
+    # print("FINAL QUERY DATA:")
+    # print(data)
+    return data
+
+
 # ---- INCOMPLETE -----
 def update_artist():
     return 0

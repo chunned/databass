@@ -3,50 +3,103 @@
 <body>
 {% include 'navbar.html' %}
 
-<div class="pagebar">
-    <table>
-        <thead>
-            <tr>
-                {% if pagination.has_prev %}
-                <td>
-                    <a href="{{ url_for('releases',page=pagination.page - 1) }}">back</a>
-                </td>
-                {% else %}
-                <td>
-                    <a style="pointer-events: none">back</a>
-                </td>
-                {% endif %}
-                {% if pagination.has_next %}
-                <td>
-                    <a href="{{ url_for('releases',page=pagination.page + 1) }}">next</a>
-                </td>
-                {% else %}
-                <td>
-                    <a style="pointer-events: none">next</a>
-                </td>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
+<form action="/dynamic_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
+<table class="filter-table">
+    <thead>
+        <tr>
+            <td class="form-cell">
+                <label for="title" class="form-label">title</label><br>
+                <input type="text" id="title" name="title">
+            </td>
+            <td class="form-cell">
+                <label for="artist" class="form-label">artist</label><br>
+                <input type="text" id="artist" name="artist">
+            </td>
+            <td class="form-cell">
+                <label for="label" class="form-label">label</label><br>
+                <select id="label" name="label">
+                    {% for label in data.labels %}
+                    <option value="{{ label }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="form-cell">
+                <label for="country" class="form-label">country</label><br>
+                <select id="country" name="country">
+                    {% for country in data.countries %}
+                    <option value="{{ country }}">{{ country }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="form-cell">
+                <label for="rating" class="form-label">rating</label><br>
+                <select id="rating-filter" name="rating_comparison">
+                    <option value="-1"><</option>
+                    <option value="0">=</option>
+                    <option value="1">></option>
+                </select>
+                <input type="number" min=0 max=100 id="rating" name="rating">
+            </td>
+            <td class="form-cell">
+                <label for="year" class="form-label">year</label><br>
+                <select id="year-filter" name="year_comparison">
+                    <option value="-1"><</option>
+                    <option value="0">=</option>
+                    <option value="1">></option>
+                </select>
+                <input type="number" min=0 max="2100" id="year" name="year">
+            </td>
+            <td class="form-cell">
+                <label for="genre" class="form-label">genre</label><br>
+                <select id="genre" name="genre">
+                    {% for genre in data.genres %}
+                    <option value="{{ genre }}">{{ genre }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="form-cell">
+                <label for="tags" class="form-label">tags</label><br>
+                <input type="text" id="tags" name="tags">
+            </td>
+            <td class="form-cell">
+                <button type="button" class="search-btn" value="submit">submit</button>
+            </td>
+        </tr>
+    </thead>
+</table>
+</form>
 
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<div id="search-results"></div>
 
-</div>
+<script>
+    const searchBtn = document.querySelector(".search-btn");
+    searchBtn.addEventListener("click", (event) => {
+    const data = {
+            title: document.querySelector("#title").value,
+            artist: document.querySelector("#artist").value,
+            label: document.querySelector("#label").value,
+            country: document.querySelector("#country").value,
+            rating_comparison: document.querySelector("#rating-filter").value,
+            rating: document.querySelector("#rating").value,
+            year_comparison: document.querySelector("#year-filter").value,
+            year: document.querySelector("#year").value,
+            genre: document.querySelector("#genre").value,
+            tags: document.querySelector("#tags").value
+        };
+        fetch('/dynamic_search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(function(response) {
+            return response.text();
+         })
+        .then(function(html) {
+            document.querySelector("#search-results").innerHTML = html;
+         });
+    });
+</script>
 
-
-<div class="data-grid">
-    {% for release in releases %}
-    <div class="grid-cell">
-        <a href="/release/{{ release.id }}" class="link">
-        <img src="{{ release.art }}" style="height:82%; width:100%;" alt="Release cover art">
-        <p>{{ release.title }} ({{ release.rating }}%)</p>
-        </a>
-    </div>
-    {% endfor %}
-</div>
 </body>

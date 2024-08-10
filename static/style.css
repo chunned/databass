@@ -234,3 +234,14 @@ input {
 .form-cell {
     text-align: center;
 }
+
+
+.dynamic-search-table {
+    width: 100%;
+    table-layout: fixed;
+}
+.dynamic-search-table td {
+    text-align: center;
+    overflow: hidden;
+    width: 100%;
+}
