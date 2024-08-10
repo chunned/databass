@@ -55,6 +55,7 @@ function showPopup(deleteButton) {
 
             try {
                 const parsed_data = JSON.parse(jsonStr) // Create the pop-up container
+                console.log(parsed_data);
                 const popup = document.createElement('div');
                 popup.className = 'popup';
                 popup.innerHTML = `
@@ -98,7 +99,7 @@ function showPopup(deleteButton) {
                                         <label for="release_year">YEAR</label>
                                     </td>
                                     <td>
-                                        <input type="number" min="0" required id="year" name="release_year" class="search-btn">
+                                        <input type="number" min="0" required id="year" name="release_year" class="search-btn" value="${parsed_data.date}">
                                     </td>
                                 </tr>
                                 <tr>

@@ -4,6 +4,7 @@ from datetime import datetime
 import pytz
 import os
 from dotenv import load_dotenv
+from dateutil import parser as dateparser
 
 header = {"Accept": "application/json", "User-Agent": "databass/0.2 (https://github.com/chunned/databass)"}
 
@@ -23,7 +24,6 @@ def pick_release(release, artist):
     url = "https://musicbrainz.org/ws/2/release/"
     params = {
         "query": f'artist:"{artist}" AND release:"{release}"',
-        "limit": 10,
         "fmt": "json",
     }
 
@@ -41,7 +41,16 @@ def pick_release(release, artist):
             label = {"name": "", "mbid": ""}
 
         try:
-            date = release["date"]
+            # TODO: make an attempt to grab original release date
+            # try using Discogs master release: https://www.discogs.com/developers#page:database,header:database-master-release
+            print(f'Attempting to extract year from search data: {release["date"]}')
+            raw_date = release["date"]
+            try:
+                date = dateparser.parse(raw_date, fuzzy=True).year
+                print(f'Extracted year: {date}')
+            except Exception as e:
+                print(f'ERROR: {e}')
+                date = "?"
         except KeyError:
             date = "?"
 
