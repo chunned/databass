@@ -67,8 +67,7 @@ input {
     border: 1px solid #c6c6c5;
 }
 #search-results img {
-    height: 250px;
-    width: 250px;
+    width: 12.5vw;
 }
 .radio-col {
     width: 5%;
@@ -173,7 +172,7 @@ input {
 
 .homepage_covers {
     max-width: 100%;
-    max-height: 100%;
+    max-height: 20vh;
     width: 100%;
     height: 100%;
 }
@@ -225,7 +224,6 @@ input {
 }
 
 .filter-table {
-    width: 100%;
 }
 
 .form-cell {
@@ -241,4 +239,19 @@ input {
     text-align: center;
     overflow: hidden;
     width: 100%;
+}
+
+/* Make sure search-bar inputs/selects don't get too wide - 11% vw ~= 1/9 of the screen */
+.search-bar select, .search-bar input {
+    max-width: 11vw;
+}
+/* Make sure search-data table fields don't get too wide */
+/* long = field containing a longer string; release title, artist/label name, release format */
+/* short = field containing a shorter string; release year, tracks */
+.long {
+    max-width: 30vw;
+    overflow: hidden;
+}
+.short {
+    max-width: 10vw;
 }
