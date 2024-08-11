@@ -588,6 +588,24 @@ def dynamic_search(data):
     return return_data
 
 
+def get_all_id_and_img():
+    releases = db.session.query(
+        Release.id, Release.image
+    ).all()
+    artists = db.session.query(
+        Artist.id, Artist.image
+    )
+    labels = db.session.query(
+        Label.id, Label.image
+    )
+    data = {
+        "releases": releases,
+        "artists": artists,
+        "labels": labels
+    }
+    return data
+
+
 # ---- INCOMPLETE -----
 def update_artist():
     return 0

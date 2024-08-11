@@ -22,12 +22,63 @@ def create_tables():
     db.db.create_all()
 
 
+@app.route('/fetch_imgs', methods=['GET'])
+def download_all_missing_images():
+    print('INFO: Fetching all missing images')
+    data = db.get_all_id_and_img()
+    for rel in data["releases"]:
+        print(f'INFO: Release ID: {rel[0]}, Image URL: {rel[1]}')
+        if not img_exists(
+            item_id=rel[0],
+            item_type='release',
+            img_url=rel[1]
+        ):
+            print('INFO: Fetching image...')
+            api.download_image(
+                item_type='release',
+                item_id=rel[0],
+                img_url=rel[1]
+            )
+        else:
+            print('INFO: Image already exists')
+    for lab in data["labels"]:
+        print(f'INFO: Label ID: {lab[0]}, Image URL: {lab[1]}')
+        if not img_exists(
+                item_id=lab[0],
+                item_type='label',
+                img_url=lab[1]
+        ):
+            print('INFO: Fetching image...')
+            api.download_image(
+                item_type='label',
+                item_id=lab[0],
+                img_url=lab[1]
+            )
+        else:
+            print('INFO: Image already exists')
+    for art in data["artists"]:
+        print(f'INFO: Artist ID: {art[0]}, Image URL: {art[1]}')
+        if not img_exists(
+                item_id=art[0],
+                item_type='artist',
+                img_url=art[1]
+        ):
+            print('INFO: Fetching image...')
+            api.download_image(
+                item_type='artist',
+                item_id=art[0],
+                img_url=art[1]
+            )
+        else:
+            print('INFO: Image already exists')
+
+
 @app.route("/", methods=['GET'])
 @app.route('/home', methods=['GET'])
 def home():
     data = db.get_homepage_data()
     home_stats = db.get_stats()
-
+    #download_all_missing_images()
     page = flask.request.args.get(
         get_page_parameter(),
         type=int,
