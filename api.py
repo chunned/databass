@@ -5,8 +5,9 @@ import pytz
 import os
 from dotenv import load_dotenv
 from dateutil import parser as dateparser
+from os import makedirs as mkdir
 
-header = {"Accept": "application/json", "User-Agent": "databass/0.2 (https://github.com/chunned/databass)"}
+header = {"Accept": "application/json", "User-Agent": "databass/0.3 (https://github.com/chunned/databass)"}
 
 # Load environment variables
 load_dotenv()
@@ -86,7 +87,7 @@ def get_release_data(mbid, year, genre, rating):
 
     artist = result['artist-credit'][0]['name']
     title = result['title']
-    art = get_art(mbid, 'release', [title, artist])
+    image = get_image(mbid, 'release', [title, artist])
 
     track_count = result['media'][0]['track-count']
     try:
@@ -116,7 +117,7 @@ def get_release_data(mbid, year, genre, rating):
         "track_count": track_count,
         "country": area,
         "genre": genre,
-        "art": art
+        "image": image
     }
     return data
 
@@ -153,21 +154,25 @@ def get_label_mbid(label_name):
     return mbid
 
 
-def get_art(mbid, item_type, discog_release):
-    # Grab cover art for a given release by MusicBrainzID
+def get_image(mbid, item_type, discog_release):
+    # Grab cover image for a given release by MusicBrainzID
     try:
-        # Try to grab cover art from CoverArtArchive
+        # Try to grab cover image from CoverArtArchive
+        print(f'INFO: Attempting to grab cover image from CoverArtArchive: {mbid}')
         response = requests.get(f'https://coverartarchive.org/{item_type}/{mbid}', headers=header)
         response = response.json()
-        art = response['images'][0]['image']
+        print(response)
+        image = response['images'][0]['image']
     except requests.exceptions.JSONDecodeError:
         # Fallback to Discogs
-        art = discogs_get_image(discog_release, item_type)
-        if art is None:
+        print(f'ERROR: No cover image found on CoverArtArchive. Trying Discogs')
+        image = discogs_get_image(discog_release, item_type)
+        print(f'INFO: Discogs returned {image}')
+        if image is None:
             # If not found on Discogs, use a static 'not-found' template image
             # TODO: store this locally
-            art = 'https://static.vecteezy.com/system/resources/thumbnails/005/720/408/small_2x/crossed-image-icon-picture-not-available-delete-picture-symbol-free-vector.jpg'
-    return art
+            image = 'https://static.vecteezy.com/system/resources/thumbnails/005/720/408/small_2x/crossed-image-icon-picture-not-available-delete-picture-symbol-free-vector.jpg'
+    return image
 
 
 def get_artist_data(mbid):
@@ -178,7 +183,7 @@ def get_artist_data(mbid):
 
     artist = {"mbid": mbid, "name": result["name"], "country": result["country"],
               "begin_date": result["life-span"]["begin"], "end_date": result["life-span"]["end"],
-              "image": get_art(mbid, 'artist', result["name"]), "type": None}
+              "image": get_image(mbid, 'artist', result["name"]), "type": None}
 
     if result["type"] == "Person":
         artist["type"] = "person"
@@ -191,9 +196,11 @@ def get_artist_data(mbid):
 def get_label_data(mbid):
     # Query basic metadata about a label by its MusicBrainz ID
     url = f"https://musicbrainz.org/ws/2/label/{mbid}"
+    print(f'INFO: Querying MusicBrainz API: {url}')
     response = requests.get(url, headers=header)
     result = response.json()
-    image = get_art(mbid, 'label', result["name"])
+    print(f'INFO: Response from MusicBrainz API: {response}')
+    image = get_image(mbid, 'label', result["name"])
 
     label = {
         "mbid": mbid,
@@ -204,31 +211,36 @@ def get_label_data(mbid):
         "end_date": result["life-span"]["end"],
         "image": image
     }
+    print(f'INFO: Label data: {label}')
     return label
 
 
 # Discogs API functions
 def discogs_get_image(name, item_type):
-    # Used by get_art to query Discogs API for cover art images
+    # Used by get_image to query Discogs API
     header["Authorization"] = f"Discogs key={DISCOGS_KEY}, secret={DISCOGS_SECRET}"
     url = 'https://api.discogs.com/'
 
+    print(f'INFO: Querying Discogs API: {name}, {item_type}')
     if item_type == 'release':
         search_endpoint = f"/database/search?q={name[1]}&type=release&release_title={name[0]}"
     else:
         search_endpoint = f"/database/search?q={name}&type={item_type}"
+    print(f'INFO: Search endpoint: {search_endpoint}')
 
     response = requests.get(url+search_endpoint, headers=header)
     result = response.json()
+    print(f'INFO: Discogs API returned:\n{result}')
     image = None
     if not result:
         return image
     try:
         # Check for Discogs API error
         if result['message'] == "Discogs is unavailable right now.":
-            print("Discogs API currently unavailable")
+            print("ERROR: Discogs API currently unavailable")
             return image
     except KeyError:
+        # No error message, continue
         pass
     for item in result["results"]:
         if item_type == 'release':
@@ -238,5 +250,56 @@ def discogs_get_image(name, item_type):
             if item["title"].lower() == name.lower():
                 image = result["results"][0]["cover_image"]
                 break
+    print(f'INFO: Image: {image}')
     return image
 
+
+def download_image(item_type, item_id, img_url):
+    print(f'INFO: URL - {img_url}')
+    base_path = "./static/img"
+    item_type_map = {
+        'release': 'release',
+        'artist': 'artist',
+        'label': 'label'
+    }
+    try:
+        # attempt to download the image
+        image_type = get_image_type_from_url(img_url)
+        print(f'INFO: Image type: {image_type}')
+        if image_type:
+            subdir = item_type_map[item_type]
+            filename = str(item_id) + image_type
+            path = base_path + '/' + subdir + '/' + filename
+            print(f'INFO: Image will be saved in {path}')
+            response = requests.get(img_url, headers=header)
+            with open(path, 'wb') as img_file:
+                img_file.write(response.content)
+            return path
+        else:
+            return ''
+    except KeyError:
+        print('ERROR: Invalid item_type: ', item_type)
+    except FileNotFoundError:
+        # directory does not exist, create it
+        print('INFO: Creating directories...')
+        mkdir(f"{base_path}/release", exist_ok=True)
+        mkdir(f"{base_path}/artist", exist_ok=True)
+        mkdir(f"{base_path}/label", exist_ok=True)
+        print('INFO: Directories created. Calling function again.')
+        # call this function again
+        download_image(item_type, item_id, img_url)
+
+
+def get_image_type_from_url(url):
+    # Take a URL (string) and return the image type
+    try:
+        if url.endswith('.jpg'):
+            return '.jpg'
+        elif url.endswith('.jpeg'):
+            return '.jpeg'
+        elif url.endswith('.png'):
+            return '.png'
+        else:
+            raise KeyError('ERROR: Invalid image type')
+    except KeyError as e:
+        print(f'{e}: {url}')

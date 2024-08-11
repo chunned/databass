@@ -35,7 +35,7 @@ class Release(db.Model):
     country: Mapped[str] = mapped_column(String())
     genre: Mapped[str] = mapped_column(String())
     tags: Mapped[Optional[str]] = mapped_column(String())
-    art: Mapped[Optional[str]] = mapped_column(String())
+    image: Mapped[Optional[str]] = mapped_column(String())
     review: Mapped[Optional[str]] = mapped_column(String())
 
     def __init__(self, mbid: Optional[str] = None, artist_id: int = 0, label_id: int = 0, **kwargs):
@@ -98,7 +98,7 @@ def insert_release(release):
         listen_date=release.get("listen_date"),
         track_count=release.get("track_count"),
         country=release.get("country", 0),
-        art=release.get("art", ''),
+        image=release.get("image", ''),
         genre=release.get("genre"),
         tags=release.get("tags", '')
     )
@@ -268,7 +268,7 @@ def get_homepage_data():
             Release.rating,
             Release.listen_date,
             Release.genre,
-            Release.art,
+            Release.image,
             Release.tags
         )
         .join(Artist, Artist.id == Release.artist_id)
@@ -384,7 +384,7 @@ def update_release(edit_data):
     release_entry.genre = edit_data['genre']
     release_entry.tags = edit_data['tags']
     release_entry.country = edit_data['country']
-    release_entry.art = edit_data['art']
+    release_entry.image = edit_data['image']
     db.session.commit()
     return 0
 
@@ -442,7 +442,7 @@ def submit_manual(data):
     release.rating = data["rating"]
     release.genre = data["genre"]
     release.tags = data["tags"]
-    release.art = data["art"]
+    release.image = data["image"]
     release.listen_date = datetime.datetime.now(local_timezone).strftime("%Y-%m-%d")
     insert_item(release)
 
@@ -462,12 +462,11 @@ def check_item_by_name(item_type, name):
 def dynamic_search(data):
     # data is a dictionary POSTed from /releases, /artists, or /labels
     # we don't know which form fields will be populated beforehand
-    print('SEARCH DATA: ')
-    print(data)
+    print(f'INFO: SEARCH DATA: {data}')
     populated_fields = {}
     for key, value in data.items():
         if 'comparison' in key or key == 'qtype':
-            print('Utility field, not meant to be in the query, moving on')
+            print('INFO: Utility field, not meant to be in the query, moving on')
         else:
             if value != '':
                 # print(f'CURRENT DATA ITEM: {key}, {value}')
@@ -490,18 +489,17 @@ def dynamic_search(data):
                         except AttributeError:
                             print('Artist does not exist')
                     elif key == 'country' and value == 'None':
-                            print('Country empty, moving on')
+                            print('INFO: Country empty, moving on')
                     elif key in ['rating', 'year']:
                         populated_fields[key] = int(value)
                     else:
                         # print('OTHER KEY FOUND; ADDING TO POPULATED FIELDS')
                         # print(key, value)
                         populated_fields[key] = value
-    # print('------')
-    # print(f'POPULATED FIELDS: {populated_fields}')
+                    print(f'INFO: Populated Fields: {populated_fields}')
                     query = Release.query
                     for k, v in populated_fields.items():
-                        # print(f'ADDING TO QUERY: {key}, {value}')
+                        print(f'INFO: Adding to query: {key}, {value}')
                         if k == 'rating':
                             op = data['rating_comparison']
                             if op == '-1':
@@ -526,36 +524,35 @@ def dynamic_search(data):
                                 query = query.filter(Release.year > v)
                         else:
                             query = query.filter(getattr(Release, k) == v)
-                        # print('RESULTS AFTER THIS QUERY:')
-                        # print(query.all())
+                        print(f'IFNO: Results after this query: {query.all()}')
 
                 elif data['qtype'] == 'artist':
                     return_data = ["artist"]
                     if key == 'country' and value == 'None':
-                        print('Country empty, moving on')
+                        print('INFO: Country empty, moving on')
                     elif key == 'type' and value == 'None':
-                            print('Type empty, moving on')
+                            print('INFO: Type empty, moving on')
                     else:
                         populated_fields[key] = value
                     query = Artist.query
                     for k, v in populated_fields.items():
                         if k in ['begin_comparison', 'end_comparison']:
-                            print('Not implemented')
+                            print('INFO: Not implemented')
                         else:
                             query.filter(getattr(Artist, k) == v)
 
                 elif data['qtype'] == 'label':
                     return_data = ["label"]
                     if key == 'country' and value == 'None':
-                        print('Country empty, moving on')
+                        print('INFO: Country empty, moving on')
                     elif key == 'type' and value == 'None':
-                        print('Type empty, moving on')
+                        print('INFO: Type empty, moving on')
                     else:
                         populated_fields[key] = value
                     query = Label.query
                     for k, v in populated_fields.items():
                         if k in ['begin_comparison', 'end_comparison']:
-                            print('Not implemented')
+                            print('INFO: Not implemented')
                         else:
                             query.filter(getattr(Label, k) == v)
                 else:

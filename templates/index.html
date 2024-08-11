@@ -15,7 +15,14 @@
             </tr>
             {% for item in data %}
             <tr>
-                <td class="art_holder"><img src="{{ item[7] }}" class="homepage_covers" alt="Album art"></td>
+                <td class="art_holder">
+                {% set local_image = item[2]|string|img_exists("release", item[7]) %}
+                {% if local_image %}
+                    <img src="{{ local_image }}" class="homepage_covers" alt="Album art">
+                {% else %}
+                    <img src="{{ item[7] }}" class="homepage_covers" alt="Album art">
+                {% endif %}
+                </td>
                 <td><a href="/artist/{{ item[0] }}" class="link">{{ item[1] }}</a></td>
                 <td><a href="/release/{{ item[2] }}" class="link">{{ item[3] }}</a></td>
                 <td>{{ item[4] }}</td>

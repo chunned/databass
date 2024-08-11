@@ -1,25 +1,29 @@
 <table class="dynamic-search-table">
-    {{ search_data }}
-{% for i in range(data[1]|length) %}
+{% set type = data[0] %}
+{% set items = data[1] %}
+{% for i in range(items|length) %}
     {% if i % 7 == 0 %}
         <tr>
     {% endif %}
             <td>
-                {% if data[0] == 'release' %}
-                    <a class="link" href="/release/{{ data[1][i].id }}">
-                {% elif data[0] == 'artist' %}
-                    <a class="link" href="/artist/{{ data[1][i].id }}">
-                {% elif data[0] == 'label' %}
-                        <p>label</p>
-                    <a class="link" href="/label/{{ data[1][i].id }}">
+                {% set id = items[i].id %}
+                {% if type == 'release' %}
+                    <a class="link" href="/release/{{ id }}"></a>
+                {% elif type == 'artist' %}
+                    <a class="link" href="/artist/{{ id }}"></a>
+                {% elif type == 'label' %}
+                    <a class="link" href="/label/{{ id }}"></a>
                 {% endif %}
 
-                {% if data[1][i].art %}
-                    <img src="{{ data[1][i].art }}">
-                {% elif data[1][i].image %}
-                    <img src="{{ data[1][i].image }}">
+                {% if items[i].image %}
+                    {% set local_img = id|img_exists(type, items[i].image) %}
+                    {% if local_img %}
+                        <img src="{{ local_img }}" alt="Image for {{ items[i] }}">
+                    {% else %}
+                        <img src="{{ items[i].image }}" alt="Image for {{ items[i] }}">
+                    {% endif %}
                 {% else %}
-                    <p>{{ data[1][i].title }} ({{ data[1][i].rating }}%)</p>
+                    <p>{{ items[i].title }} ({{ items[i].rating }}%)</p>
                 {% endif %}
                 </a>
             </td>

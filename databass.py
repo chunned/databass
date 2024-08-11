@@ -13,6 +13,7 @@ db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), DB_FILENAME)
 app = flask.Flask(__name__)
 app.secret_key = uuid4().hex
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+app.static_folder = 'static'
 db.db.init_app(app)
 
 
@@ -48,6 +49,7 @@ def search():
 @app.route("/submit", methods=["POST"])
 def submit():
     data = flask.request.form.to_dict()
+    print(f'INFO: Request to submit release: {data}')
     release_id = data["release_id"]
     artist_id = data["artist_id"]
     label_id = data["label_id"]
@@ -55,36 +57,74 @@ def submit():
     genre = data["genre"]
     rating = data["rating"]
     tags = data["tags"]
-
+    print(f"INFO: Fetching release info from API")
     release_data = api.get_release_data(release_id, year, genre, rating)
+    print(f"INFO: API Response data: {release_data}")
     release_data["tags"] = tags
     if label_id:
+        print(f"INFO: Checking if label with ID {label_id} exists in database")
         # check if label exists in database already, avoid some API calls
         # db.exists() returns an array; 1st element is True/False, 2nd is the entity ID
         label_exists = db.exists(mbid=label_id, item_type='label')
         if not label_exists[0]:
+            print(f'INFO: No existing label found; inserting a new label')
+            print(f'INFO: Fetching label info from API')
             # not in db already, get data and insert it
             label_data = api.get_label_data(label_id)
+            print(f'INFO: API Response data: {label_data}')
             label_id = db.insert_label(label_data)
+            # download image
+            label_image_url = label_data["image"]
+            print(f'INFO: Downloading label image from {label_image_url}')
+            label_image_path = api.download_image(
+                item_type='label',
+                item_id=label_id,
+                img_url=label_image_url
+            )
+            print(f'INFO: Label image downloaded to {label_image_path}')
             release_data["label_id"] = label_id
         else:
-            print('INFO: Label already exists in database.')
+            print(f'INFO: Label already exists in database with ID {label_exists[1]}')
             release_data["label_id"] = label_exists[1]
 
     # check if artist exists in db already
     # db.exists() returns an array; 1st element is True/False, 2nd is the entity ID
-    artist_exists = db.exists(mbid=artist_id, item_type='artist')
+    print(f"INFO: Checking if artist with ID {artist_id} exists in database")
+    artist_exists = db.exists(
+        mbid=artist_id,
+        item_type='artist'
+    )
     if not artist_exists[0]:
         # not in db
+        print(f"INFO: No existing artist found; inserting a new artist")
+        print(f'INFO: Fetching artist info from API')
         artist_data = api.get_artist_data(artist_id)
+        print(f'INFO: API Response data: {artist_data}')
         artist_id = db.insert_artist(artist_data)
+        # download image
+        artist_image_url = artist_data["image"]
+        print(f'INFO: Downloading artist image from {artist_image_url}')
+        artist_image_path = api.download_image(
+            item_type='artist',
+            item_id=artist_id,
+            img_url=artist_image_url
+        )
+        print(f'INFO: Artist image downloaded to {artist_image_path}')
         release_data["artist_id"] = artist_id
     else:
         print('INFO: Artist already exists in database.')
         release_data["artist_id"] = artist_exists[1]
-
-    db.insert_release(release_data)
-
+    print(f"INFO: Inserting release into database")
+    db_id = db.insert_release(release_data)    # db_id = primary key of release
+    print(f'INFO: Release insertion successful with ID: {db_id}')
+    # Download image after inserting release into db
+    release_image_url = release_data["image"]
+    print(f'INFO: Downloading release image from {release_image_url}')
+    release_image_path = api.download_image(
+        item_type='release',
+        item_id=db_id,
+        img_url=release_image_url)
+    print(f'INFO: Image saved to {release_image_path}')
     return flask.redirect("/", code=302)
 
 
@@ -102,7 +142,11 @@ def releases():
         "releases": all_releases,
         "artists": all_artists
     }
-    return flask.render_template('releases.html', data=data)
+    return flask.render_template(
+        'releases.html',
+        data=data,
+        active_page='releases'
+    )
     # return flask.render_template('releases.html',
     #                              data=release_data.all(),
     #                              releases=releases_paged,
@@ -112,7 +156,6 @@ def releases():
 
 @app.route('/artists', methods=["GET"])
 def artists():
-    artist_data = db.get_items('artists')
     countries = db.distinct_entries(table=db.Artist, column='country')
     data = {"countries": countries}
     return flask.render_template('artists.html', data=data, active_page='artists')
@@ -207,6 +250,22 @@ def submit_manual():
     data = flask.request.form.to_dict()
     db.submit_manual(data)
     return flask.redirect('/', 302)
+
+
+@app.template_filter('img_exists')
+def img_exists(item_id, item_type, img_url):
+    extension = api.get_image_type_from_url(img_url)
+    print(f'INFO: Checking if image exists for {item_type} {item_id}{extension}')
+    path = os.path.join(app.static_folder, 'img', item_type, f'{item_id}{extension}')
+    print(f'INFO: Checking path: {path}')
+    result = os.path.isfile(path)
+    print(f'INFO: {result}')
+    if result:
+        url = flask.url_for('static', filename=f'img/{item_type}/{item_id}{extension}')
+        print(f'INFO: Returning {url}')
+        return url
+    else:
+        return result
 
 
 def main():

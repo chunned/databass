@@ -8,3 +8,4 @@ db.bat
 *.drawio*
 test*
 pyrightconfig.json
+static/img/
