@@ -3,32 +3,60 @@
     {% include 'navbar.html' %}
 <div class="home0">
     <div class="home1">
+        <table>
+            <tr>
+                <td>
+                    {% if pagination.has_prev %}
+                    <a href="/home?page={{ pagination.page - 1 }}" class="link">back</a>
+                    {% else %}
+                    back
+                    {% endif %}
+                </td>
+                <td>
+                    {% if pagination.has_next %}
+                    <a href="/home?page={{ pagination.page + 1 }}" class="link">next</a>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
         <table class="main-album-table">
             <tr id="header_row">
-                <th>ART</th>
-                <th>ARTIST</th>
-                <th>TITLE</th>
-                <th>RATING (%)</th>
-                <th>LISTEN DATE</th>
-                <th>GENRE</th>
-                <th>TAGS</th>
+                <th class="col1">ART</th>
+                <th class="col2">ARTIST</th>
+                <th class="col3">TITLE</th>
+                <th class="col4">RATING</th>
+                <th class="col5">LISTEN DATE</th>
+                <th class="col6">GENRE</th>
+                <th class="col7">TAGS</th>
             </tr>
             {% for item in data %}
             <tr>
-                <td class="art_holder">
+                <td class="col1">
                 {% set local_image = item[2]|string|img_exists("release", item[7]) %}
                 {% if local_image %}
                     <img src="{{ local_image }}" class="homepage_covers" alt="Album art">
                 {% else %}
-                    <img src="{{ item[7] }}" class="homepage_covers" alt="Album art">
+                    <img src="{{ item[7] }}" class="homepage_covers col1" alt="Album art">
                 {% endif %}
                 </td>
-                <td><a href="/artist/{{ item[0] }}" class="link">{{ item[1] }}</a></td>
-                <td><a href="/release/{{ item[2] }}" class="link">{{ item[3] }}</a></td>
-                <td>{{ item[4] }}</td>
-                <td>{{ item[5] }}</td>
-                <td>{{ item[6] }}</td>
-                <td>{{ item[8] }}</td>
+                <td class="col2">
+                    <a href="/artist/{{ item[0] }}" class="link">{{ item[1] }}</a>
+                </td>
+                <td class="col3">
+                    <a href="/release/{{ item[2] }}" class="link">{{ item[3] }}</a>
+                </td>
+                <td class="col4">
+                    {{ item[4] }}%
+                </td>
+                <td class="col5">
+                    {{ item[5] }}
+                </td>
+                <td class="col6">
+                    {{ item[6] }}
+                </td>
+                <td class="col7">
+                    {{ item[8] }}
+                </td>
             </tr>
         {% endfor %}
         </table>
