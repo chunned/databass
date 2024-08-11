@@ -35,7 +35,7 @@ def home():
     )
     pagination = data.paginate(
         page=page,
-        per_page=10,
+        per_page=5,
         error_out=True
     )
 

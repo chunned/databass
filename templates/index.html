@@ -7,14 +7,16 @@
             <tr>
                 <td>
                     {% if pagination.has_prev %}
-                    <a href="/home?page={{ pagination.page - 1 }}" class="link">back</a>
+                        <a href="/home?page={{ pagination.page - 1 }}" class="link">back</a>
                     {% else %}
-                    back
+                        back
                     {% endif %}
                 </td>
                 <td>
                     {% if pagination.has_next %}
-                    <a href="/home?page={{ pagination.page + 1 }}" class="link">next</a>
+                        <a href="/home?page={{ pagination.page + 1 }}" class="link">next</a>
+                    {% else %}
+                        next
                     {% endif %}
                 </td>
             </tr>
