@@ -475,15 +475,27 @@ def dynamic_search(data):
                     if key == 'label':
                         # print('LABEL IDENTIFIED - QUERYING')
                         try:
-                            label_id = Label.query.filter(Label.name == value).first().id
+                            label_id = (
+                                Label.query.filter(
+                                    func.lower(Label.name) == func.lower(value)
+                                )
+                                .first()
+                                .id
+                            )
                             populated_fields['label_id'] = label_id
                             # print(f'LABEL FOUND WITH ID {label_id}')
                         except AttributeError:
-                            print('Label does not exist')
+                            print('ERROR: Label does not exist')
                     elif key == 'artist':
                         # print('ARTIST IDENTIFIED - QUERYING')
                         try:
-                            artist_id = Artist.query.filter(Artist.name == value).first().id
+                            artist_id = (
+                                Artist.query.filter(
+                                    func.lower(Artist.name) == func.lower(value)
+                                )
+                                .first()
+                                .id
+                            )
                             populated_fields['artist_id'] = artist_id
                             # print(f'ARTIST FOUND WTIH ID {artist_id}')
                         except AttributeError:
@@ -522,6 +534,10 @@ def dynamic_search(data):
                             elif op == '+1':
                                 # print('OPERATOR: Greater than')
                                 query = query.filter(Release.year > v)
+                        if k == 'title':
+                            query = query.filter(
+                                func.lower(Release.title) == func.lower(v)
+                            )
                         else:
                             query = query.filter(getattr(Release, k) == v)
                         print(f'IFNO: Results after this query: {query.all()}')
@@ -538,6 +554,10 @@ def dynamic_search(data):
                     for k, v in populated_fields.items():
                         if k in ['begin_comparison', 'end_comparison']:
                             print('INFO: Not implemented')
+                        elif k == 'name':
+                            query = query.filter(
+                                func.lower(Artist.name) == func.lower(v)
+                            )
                         else:
                             query.filter(getattr(Artist, k) == v)
 
@@ -553,6 +573,10 @@ def dynamic_search(data):
                     for k, v in populated_fields.items():
                         if k in ['begin_comparison', 'end_comparison']:
                             print('INFO: Not implemented')
+                        elif k == 'name':
+                            query = query.filter(
+                                func.lower(Label.name) == func.lower(v)
+                            )
                         else:
                             query.filter(getattr(Label, k) == v)
                 else:
