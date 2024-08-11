@@ -22,11 +22,39 @@ def create_tables():
     db.db.create_all()
 
 
-@app.route("/")
+@app.route("/", methods=['GET'])
+@app.route('/home', methods=['GET'])
 def home():
     data = db.get_homepage_data()
     home_stats = db.get_stats()
-    return flask.render_template("index.html", data=data, stats=home_stats, active_page='home')
+
+    page = flask.request.args.get(
+        get_page_parameter(),
+        type=int,
+        default=1
+    )
+    pagination = data.paginate(
+        page=page,
+        per_page=5,
+        error_out=True
+    )
+
+    paged_data = pagination.items
+
+    flask_pagination = Pagination(
+        page=page,
+        total=pagination.total,
+        search=False,
+        record_name='latest_releases'
+    )
+
+    return flask.render_template(
+        'index.html',
+        data=paged_data,
+        stats=home_stats,
+        pagination=flask_pagination,
+        active_page='home'
+    )
 
 
 @app.route("/new")
@@ -148,11 +176,6 @@ def releases():
         data=data,
         active_page='releases'
     )
-    # return flask.render_template('releases.html',
-    #                              data=release_data.all(),
-    #                              releases=releases_paged,
-    #                              pagination=flask_pagination,
-    #                              active_page='releases')
 
 
 @app.route('/artists', methods=["GET"])

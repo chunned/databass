@@ -273,8 +273,6 @@ def get_homepage_data():
         )
         .join(Artist, Artist.id == Release.artist_id)
         .order_by(Release.listen_date.desc())
-        .limit(10)  # when pagination is implemented this can be raised
-        .all()
     )
     return home_data
 
