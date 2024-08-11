@@ -40,8 +40,9 @@ def search():
     search_data = flask.request.get_json()
     search_release = search_data["release"]
     search_artist = search_data["artist"]
+    search_label = search_data["label"]
 
-    data = api.pick_release(search_release, search_artist)
+    data = api.pick_release(search_release, search_artist, search_label)
 
     return flask.render_template("search.html", data=data)
 

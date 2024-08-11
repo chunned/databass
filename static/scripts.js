@@ -151,7 +151,8 @@ function showPopup(deleteButton) {
     searchBtn.addEventListener("click", (event) => {
         data = {
             release: document.querySelector("#release").value,
-            artist: document.querySelector("#artist").value
+            artist: document.querySelector("#artist").value,
+            label: document.querySelector("#label").value
         };
         fetch('/search', {
             method: 'POST',

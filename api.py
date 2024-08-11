@@ -19,12 +19,12 @@ if not DISCOGS_KEY or not DISCOGS_SECRET:
     exit(1)
 
 
-def pick_release(release, artist):
+def pick_release(release, artist, label):
     # Accepts search parameters and returns a list of matching releases, which the user must select from
 
     url = "https://musicbrainz.org/ws/2/release/"
     params = {
-        "query": f'artist:"{artist}" AND release:"{release}"',
+        "query": f'artist:"{artist}" AND release:"{release}" AND label:"{label}"',
         "fmt": "json",
     }
 
