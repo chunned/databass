@@ -272,7 +272,7 @@ def get_homepage_data():
             Release.tags
         )
         .join(Artist, Artist.id == Release.artist_id)
-        .order_by(Release.listen_date.desc())
+        .order_by(Release.id.desc())
     )
     return home_data
 
