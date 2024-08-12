@@ -97,16 +97,8 @@
                 <td>{{ stats["listens_per_day"] }}</td>
             </tr>
         </table>
-        <button id="fetch_img" class="box" style="margin: 15px;">fetch missing images</button>
     </div>
 </div>
 </body>
-<script>
-    var fetch_img = document.getElementById("fetch_img");
-    fetch_img.onclick = function() {
-        fetch('/fetch_imgs', {
-            method: 'GET'
-        });
-    }
-</script>
+
 </html>
