@@ -245,6 +245,7 @@ def get_stats():
             func.count(Release.artist_id).label('count')
         )
         .join(Release, Release.artist_id == Artist.id)
+        .where(Artist.name != "Various Artists")
         .group_by(Artist.name)
         .order_by(func.count(Release.artist_id).desc())
         .limit(5)
