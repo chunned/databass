@@ -8,11 +8,11 @@
             <td>
                 {% set id = items[i].id %}
                 {% if type == 'release' %}
-                    <a class="link" href="/release/{{ id }}"></a>
+                    <a class="link" href="/release/{{ id }}">
                 {% elif type == 'artist' %}
-                    <a class="link" href="/artist/{{ id }}"></a>
+                    <a class="link" href="/artist/{{ id }}">
                 {% elif type == 'label' %}
-                    <a class="link" href="/label/{{ id }}"></a>
+                    <a class="link" href="/label/{{ id }}">
                 {% endif %}
 
                 {% if items[i].image %}
