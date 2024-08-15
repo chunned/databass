@@ -214,7 +214,7 @@ def releases():
     countries = db.distinct_entries(table=db.Release, column='country')
     all_labels = db.distinct_entries(table=db.Label, column='name')
     all_artists = db.distinct_entries(table=db.Artist, column='name')
-    all_releases = db.distinct_entries(table=db.Release, column='title')
+    all_releases = db.distinct_entries(table=db.Release, column='name')
     data = {
         "genres": genres,
         "countries": countries,

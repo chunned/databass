@@ -11,7 +11,7 @@
         {% for release in data.releases %}
         <tr>
             <td>
-                <a href="/release/{{ release[0].id }}">{{ release[0].title }}</a> - {{ release[1].name }} ({{ release[0].release_year }})
+                <a href="/release/{{ release[0].id }}">{{ release[0].name }}</a> - {{ release[1].name }} ({{ release[0].release_year }})
             </td>
         </tr>
         {% endfor %}

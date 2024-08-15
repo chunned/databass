@@ -26,7 +26,7 @@ class Release(db.Model):
     mbid: Mapped[Optional[str]] = mapped_column(String, unique=True)
     artist_id: Mapped[int] = mapped_column(sqlalchemy.ForeignKey("artist.id"))
     label_id: Mapped[int] = mapped_column(sqlalchemy.ForeignKey("label.id"))
-    title: Mapped[str] = mapped_column(String())
+    name: Mapped[str] = mapped_column(String())
     release_year: Mapped[int] = mapped_column(Integer())
     runtime: Mapped[int] = mapped_column(Integer())
     rating: Mapped[int] = mapped_column(Integer())
@@ -91,7 +91,7 @@ def insert_release(release):
         mbid=release.get("mbid"),
         artist_id=release.get("artist_id", 0),
         label_id=release.get("label_id", 0),
-        title=release.get("title"),
+        name=release.get("name"),
         release_year=release.get("release_year", 0),
         runtime=release.get("runtime", 0),
         rating=release.get("rating"),
@@ -265,7 +265,7 @@ def get_homepage_data():
             Artist.id,
             Artist.name,
             Release.id,
-            Release.title,
+            Release.name,
             Release.rating,
             Release.listen_date,
             Release.genre,
@@ -434,7 +434,7 @@ def submit_manual(data):
     local_timezone = pytz.timezone(TIMEZONE)
 
     release = Release()
-    release.title = data["title"]
+    release.name = data["name"]
     release.artist_id = artist_id
     release.label_id = label_id
     release.release_year = data["release_year"]
@@ -533,9 +533,9 @@ def dynamic_search(data):
                             elif op == '+1':
                                 # print('OPERATOR: Greater than')
                                 query = query.filter(Release.year > v)
-                        if k == 'title':
+                        if k == 'name':
                             query = query.filter(
-                                func.lower(Release.title) == func.lower(v)
+                                func.lower(Release.name) == func.lower(v)
                             )
                         else:
                             query = query.filter(getattr(Release, k) == v)

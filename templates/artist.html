@@ -33,7 +33,7 @@
             {% for release in data.releases %}
             <div class="grid-cell" style="height: 350px; width: 250px; overflow: hidden; border: collapse;">
                 <img src="{{ release[0].art }}" style="height:250px; width:250px;" alt="Album art">
-                <p style="padding: 7px;"><a href="/release/{{ release[0].id }}" class="link">{{ release[0].title}}</a> ({{ release[0].release_year }}) - {{ release[0].rating }}%
+                <p style="padding: 7px;"><a href="/release/{{ release[0].id }}" class="link">{{ release[0].name }}</a> ({{ release[0].release_year }}) - {{ release[0].rating }}%
                 <br><a href="/label/{{ release.label_id }}" class="link">{{ release[1] }}</a></p>
             </div>
             {% endfor %}

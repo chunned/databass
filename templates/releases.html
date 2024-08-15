@@ -9,8 +9,8 @@
     <thead>
         <tr>
             <td class="form-cell">
-                <label for="title">title</label><br>
-                <input type="text" id="title" name="title" class="box">
+                <label for="name">name</label><br>
+                <input type="text" id="name" name="name" class="box">
             </td>
             <td class="form-cell">
                 <label for="artist">artist</label><br>
@@ -77,7 +77,7 @@
     searchBtn.addEventListener("click", (event) => {
     const data = {
             qtype: "release",
-            title: document.querySelector("#title").value,
+            name: document.querySelector("#name").value,
             artist: document.querySelector("#artist").value,
             label: document.querySelector("#label").value,
             country: document.querySelector("#country").value,

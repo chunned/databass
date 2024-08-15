@@ -86,8 +86,8 @@ def get_release_data(mbid, year, genre, rating):
     result = response.json()
 
     artist = result['artist-credit'][0]['name']
-    title = result['title']
-    image = get_image(mbid, 'release', [title, artist])
+    name = result['title']
+    image = get_image(mbid, 'release', [name, artist])
 
     track_count = result['media'][0]['track-count']
     try:
@@ -109,7 +109,7 @@ def get_release_data(mbid, year, genre, rating):
 
     data = {
         "mbid": mbid,
-        "title": title,
+        "name": name,
         "release_date": year,
         "runtime": length,
         "rating": rating,
