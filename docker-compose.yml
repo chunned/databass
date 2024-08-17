@@ -8,7 +8,9 @@ services:
     environment:
       - DISCOGS_KEY=
       - DISCOGS_SECRET=
-      - DB_FILENAME=
+      - DB_USER=
+      - DB_PASSWORD=
+      - DB_NAME=
       - TIMEZONE=           # e.g. America/New York
     volumes:
       # - .DB_FILENAME/:/databass/instance/DB_FILENAME.db

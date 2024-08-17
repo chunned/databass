@@ -1,7 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, Integer, ForeignKey, DateTime, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Optional
+from datetime import datetime, date
 
 
 class Base(DeclarativeBase):
@@ -23,7 +24,7 @@ class Release(app_db.Model):
     release_year: Mapped[int] = mapped_column(Integer())
     runtime: Mapped[int] = mapped_column(Integer())
     rating: Mapped[int] = mapped_column(Integer())
-    listen_date: Mapped[str] = mapped_column(String())
+    listen_date: Mapped[datetime] = mapped_column(DateTime())
     track_count: Mapped[int] = mapped_column(Integer())
     country: Mapped[str] = mapped_column(String())
     genre: Mapped[str] = mapped_column(String())
@@ -47,8 +48,8 @@ class ArtistOrLabel(app_db.Model):
     name: Mapped[str] = mapped_column(String())
     country: Mapped[Optional[str]] = mapped_column(String())
     type: Mapped[Optional[str]] = mapped_column(String())
-    begin_date: Mapped[Optional[str]] = mapped_column(String())
-    end_date: Mapped[Optional[str]] = mapped_column(String())
+    begin_date: Mapped[Optional[date]] = mapped_column(Date())
+    end_date: Mapped[Optional[date]] = mapped_column(Date())
     image: Mapped[Optional[str]] = mapped_column(String())
 
     def __init__(self, **kwargs):

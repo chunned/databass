@@ -7,11 +7,15 @@ from dotenv import load_dotenv
 from uuid import uuid4
 
 load_dotenv()
+db_filename = os.environ.get('DB_NAME')
+db_user = os.environ.get('DB_USER')
+db_password = os.environ.get('DB_PASSWORD')
+db_connection_string = f'postgresql://{db_user}:{db_password}@localhost/{db_filename}'
 
 
 class Config:
     SECRET_KEY = uuid4().hex
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.environ.get('DB_FILENAME')
+    SQLALCHEMY_DATABASE_URI = db_connection_string
     DISCOGS_KEY = os.environ.get('DISCOGS_KEY')
     DISCOGS_SECRET = os.environ.get('DISCOGS_SECRET')
     TIMEZONE = os.environ.get('TIMEZONE')
