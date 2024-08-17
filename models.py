@@ -62,3 +62,18 @@ class Label(ArtistOrLabel):
 
 class Artist(ArtistOrLabel):
     __tablename__ = "artist"
+
+
+class Goal(Base):
+    __tablename__ = "goal"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    start_date: Mapped[str] = mapped_column(String())
+    end_goal: Mapped[str] = mapped_column(String())
+    end_actual: Mapped[str] = mapped_column(String())
+    type: Mapped[str] = mapped_column(String()) # i.e. Releases, Albums, Labels
+    amount: Mapped[int] = mapped_column(Integer())
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
