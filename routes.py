@@ -238,3 +238,7 @@ def register_routes(app):
         data = request.form.to_dict()
         db.submit_manual(data)
         return redirect('/', 302)
+
+    @app.route('/goals', methods=['GET'])
+    def goals():
+        return render_template('goals.html', active_page='goals')
