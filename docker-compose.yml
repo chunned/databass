@@ -11,4 +11,4 @@ services:
       - DB_FILENAME=
       - TIMEZONE=           # e.g. America/New York
     volumes:
-      # - .DB_FILENAME/:/databass/DB_FILENAME.db
+      # - .DB_FILENAME/:/databass/instance/DB_FILENAME.db
