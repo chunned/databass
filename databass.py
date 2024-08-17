@@ -38,7 +38,7 @@ def create_app():
     return app
 
 
-if __name__ == '__main__':
+def main():
     app = create_app()
 
     app.run(
