@@ -75,6 +75,17 @@ def insert_label(label):
     return label_id
 
 
+def insert_goal(goal):
+    new_goal = Goal(
+       start_date=goal.get("start_date"),
+       end_goal=goal.get("end_goal"),
+       item_type=goal.get("item_type"),
+       value=goal.get("value")
+    )
+    goal_id = insert_item(new_goal)
+    return goal_id
+
+
 def get_stats():
     current_year = str(datetime.datetime.now().year)
     days_this_year = datetime.date.today().timetuple().tm_yday
