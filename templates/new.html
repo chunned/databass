@@ -1,7 +1,6 @@
-{% include 'header.html' %}
+{% extends '_base.html' %}
+{% block content %}
 
-<body>
-    {% include 'navbar.html' %}
     <div class="new-release">
         <form action="/search" method="POST">
             <label for="release">release</label>
@@ -23,5 +22,4 @@
 
     <script src="static/scripts.js"></script>
 
-</body>
-</html>
+{% endblock %}

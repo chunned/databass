@@ -273,6 +273,8 @@ input {
 }
 .dynamic-search-table td {
     text-align: center;
+    vertical-align: bottom;
+    white-space: nowrap;
     overflow: hidden;
     width: 100%;
 }

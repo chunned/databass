@@ -14,6 +14,9 @@
                 {% elif type == 'label' %}
                     <a class="link" href="/label/{{ id }}">
                 {% endif %}
+                {% if i == 0 %}
+                    <p>{{ items[i].data }}</p>
+                {% endif %}
 
                 {% if items[i].image %}
                     {% set local_img = id|img_exists(type, items[i].image) %}
@@ -22,10 +25,14 @@
                     {% else %}
                         <img src="{{ items[i].image }}" alt="Image for {{ items[i] }}">
                     {% endif %}
-                {% else %}
-                    <p>{{ items[i].name }} ({{ items[i].rating }}%)</p>
                 {% endif %}
-                </a>
+
+                {% if type == 'release' %}
+                        <p>{{ items[i].name }} ({{ items[i].rating }}%)</p>
+                {% else %}
+                        <p>{{ items[i].name }}</p>
+                {% endif %}
+                    </a>
             </td>
 {% endfor %}
         </tr>

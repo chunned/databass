@@ -1,7 +1,5 @@
-{% include 'header.html' %}
-<body>
-{% include 'navbar.html' %}
-
+{% extends '_base.html' %}
+{% block content %}
 <div class="page-content">
     <div>
         <h1>{{ data.artist.name }}</h1>
@@ -40,4 +38,4 @@
         </div>
     </div>
 </div>
-</body>
+{% endblock %}

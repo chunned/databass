@@ -1,6 +1,5 @@
-{% include 'header.html' %}
-<body>
-{% include 'navbar.html' %}
+{% extends '_base.html' %}
+{% block content %}
 <div>
     <form action="/edit-release" method="POST">
         <input type="hidden" id="release_id" name="release_id" value="{{ data.release.id }}">
@@ -68,4 +67,4 @@
     </form>
 </div>
 <script src="../static/scripts.js"></script>
-</body>
+{% endblock %}

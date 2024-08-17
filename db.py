@@ -1,87 +1,26 @@
-# Rewrite of db.py to use SQLAlchemy
 import sqlalchemy
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String, func, extract
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from typing import Optional
+from sqlalchemy import func
 import datetime
 import pytz
 from dotenv import load_dotenv
 import os
+from models import app_db, Release, Label, Artist
 
 load_dotenv()
 TIMEZONE = os.getenv('TIMEZONE')
 
 
-class Base(DeclarativeBase):
-    id: Mapped[int] = mapped_column(primary_key=True)
-
-
-db = SQLAlchemy(model_class=Base)
-
-
-# --- Database models ---
-class Release(db.Model):
-    __tablename__ = "release"
-    mbid: Mapped[Optional[str]] = mapped_column(String, unique=True)
-    artist_id: Mapped[int] = mapped_column(sqlalchemy.ForeignKey("artist.id"))
-    label_id: Mapped[int] = mapped_column(sqlalchemy.ForeignKey("label.id"))
-    name: Mapped[str] = mapped_column(String())
-    release_year: Mapped[int] = mapped_column(Integer())
-    runtime: Mapped[int] = mapped_column(Integer())
-    rating: Mapped[int] = mapped_column(Integer())
-    listen_date: Mapped[str] = mapped_column(String())
-    track_count: Mapped[int] = mapped_column(Integer())
-    country: Mapped[str] = mapped_column(String())
-    genre: Mapped[str] = mapped_column(String())
-    tags: Mapped[Optional[str]] = mapped_column(String())
-    image: Mapped[Optional[str]] = mapped_column(String())
-    review: Mapped[Optional[str]] = mapped_column(String())
-
-    def __init__(self, mbid: Optional[str] = None, artist_id: int = 0, label_id: int = 0, **kwargs):
-        self.mbid = mbid
-        self.artist_id = artist_id
-        self.label_id = label_id
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-
-class ArtistOrLabel(db.Model):
-    # Artist and Label tables are both built from this prototype
-    __abstract__ = True
-    mbid: Mapped[Optional[str]] = mapped_column(String(), unique=True)
-    name: Mapped[str] = mapped_column(String())
-    country: Mapped[Optional[str]] = mapped_column(String())
-    type: Mapped[Optional[str]] = mapped_column(String())
-    begin_date: Mapped[Optional[str]] = mapped_column(String())
-    end_date: Mapped[Optional[str]] = mapped_column(String())
-    image: Mapped[Optional[str]] = mapped_column(String())
-
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-
-class Label(ArtistOrLabel):
-    __tablename__ = "label"
-
-
-class Artist(ArtistOrLabel):
-    __tablename__ = "artist"
-
-
-# --- Database operation functions ---
 def insert_item(item):
     # Insert an instance of one of the table classes
     try:
-        db.session.add(item)
-        db.session.commit()
+        app_db.session.add(item)
+        app_db.session.commit()
         return item.id
     except sqlalchemy.exc.IntegrityError as err:
-        db.session.rollback()
+        app_db.session.rollback()
         print(f'SQLite Integrity Error: \n{err}\n')
     except Exception as err:
-        db.session.rollback()
+        app_db.session.rollback()
         print(f'Unexpected error: {err}')
 
 
@@ -140,21 +79,21 @@ def get_stats():
     current_year = str(datetime.datetime.now().year)
     days_this_year = datetime.date.today().timetuple().tm_yday
     # Check if any releases are in the database. If not, skip stats
-    db_length = db.session.query(func.count(Release.id)).scalar()
+    db_length = app_db.session.query(func.count(Release.id)).scalar()
     if db_length == 0:
         return ''
 
-    stats = {"total_listens": db.session.query(Release.id).count(),
-             "total_artists": db.session.query(Artist).count(),
-             "total_labels": db.session.query(Label).count(),
-             "average_rating": db.session.query(
+    stats = {"total_listens": app_db.session.query(Release.id).count(),
+             "total_artists": app_db.session.query(Artist).count(),
+             "total_labels": app_db.session.query(Label).count(),
+             "average_rating": app_db.session.query(
                  func.round(
                      func.avg(Release.rating), 2)
              ).scalar(),
              "average_runtime": round(
                  (
                          (
-                             db.session.query(
+                             app_db.session.query(
                                  func.avg(
                                      Release.runtime
                                  )
@@ -165,7 +104,7 @@ def get_stats():
              "total_runtime": round(
                  (
                          (
-                             db.session.query(
+                             app_db.session.query(
                                  func.sum(
                                      Release.runtime
                                  )
@@ -173,7 +112,7 @@ def get_stats():
                          ) / 3600000
                  ), 2
              ),
-             "listens_this_year": db.session.query(func.count(Release.id)).filter(
+             "listens_this_year": app_db.session.query(func.count(Release.id)).filter(
                  func.substr(Release.listen_date, 1, 4) == current_year).scalar(),
              }
     listens_per_day = stats["listens_this_year"] / days_this_year
@@ -181,7 +120,7 @@ def get_stats():
 
     # Top rated labels
     query = (
-        db.session.query(
+        app_db.session.query(
             Label.name,
             func.round(func.avg(Release.rating), 2).label('average_rating'),
             func.count(Release.label_id).label('release_count')
@@ -203,7 +142,7 @@ def get_stats():
 
     # Highest rated artists
     query = (
-        db.session.query(
+        app_db.session.query(
             Artist.name,
             func.round(func.avg(Release.rating), 2).label('average_rating'),
             func.count(Release.artist_id).label('release_count')
@@ -223,7 +162,7 @@ def get_stats():
 
     # Most frequent labels
     query = (
-        db.session.query(
+        app_db.session.query(
             Label.name,
             func.count(Release.label_id).label('count')
         )
@@ -240,7 +179,7 @@ def get_stats():
 
     # Most frequent artists
     query = (
-        db.session.query(
+        app_db.session.query(
             Artist.name,
             func.count(Release.artist_id).label('count')
         )
@@ -261,7 +200,7 @@ def get_stats():
 
 def get_homepage_data():
     home_data = (
-        db.session.query(
+        app_db.session.query(
             Artist.id,
             Artist.name,
             Release.id,
@@ -281,11 +220,11 @@ def get_homepage_data():
 def get_items(item_type):
     # Gets all items of a specified type
     if item_type == 'releases':
-        items = db.session.query(Release)
+        items = app_db.session.query(Release)
     elif item_type == 'artists':
-        items = db.session.query(Artist)
+        items = app_db.session.query(Artist)
     elif item_type == 'labels':
-        items = db.session.query(Label)
+        items = app_db.session.query(Label)
     else:
         raise ValueError('ERROR: Invalid item_type: ', item_type)
     return items
@@ -294,17 +233,17 @@ def get_items(item_type):
 def get_item(item_type, item_id):
     # Gets a single item specified by its ID
     if item_type == 'release':
-        release = db.session.query(Release).where(Release.id == item_id).first()
-        artist = db.session.query(Artist).where(Artist.id == release.artist_id).first()
-        label = db.session.query(Label).where(Label.id == release.label_id).first()
+        release = app_db.session.query(Release).where(Release.id == item_id).first()
+        artist = app_db.session.query(Artist).where(Artist.id == release.artist_id).first()
+        label = app_db.session.query(Label).where(Label.id == release.label_id).first()
         item_data = {
             "release": release,
             "artist": artist,
             "label": label
         }
     elif item_type == 'artist':
-        artist = db.session.query(Artist).where(Artist.id == item_id).all()
-        releases = (db.session.query(Release, Label.name)
+        artist = app_db.session.query(Artist).where(Artist.id == item_id).all()
+        releases = (app_db.session.query(Release, Label.name)
                     .join(Label, Release.label_id == Label.id)
                     .join(Artist, Artist.id == Release.artist_id)
                     .where(Artist.id == item_id)
@@ -315,8 +254,8 @@ def get_item(item_type, item_id):
             "releases": releases
         }
     elif item_type == 'label':
-        label = db.session.query(Label).where(Label.id == item_id).all()
-        releases = (db.session.query(Release, Artist)
+        label = app_db.session.query(Label).where(Label.id == item_id).all()
+        releases = (app_db.session.query(Release, Artist)
                     .join(Artist, Artist.id == Release.artist_id)
                     .where(Release.label_id == item_id)
                     ).all()
@@ -336,11 +275,11 @@ def exists(mbid, item_type):
     # - 1: True if an item exists in the database, False otherwise
     # - 2: Item's ID (primary key) in the database if it exists, None otherwise
     if item_type == 'label':
-        q = db.session.query(Label.id).where(Label.mbid == mbid).scalar()
+        q = app_db.session.query(Label.id).where(Label.mbid == mbid).scalar()
     elif item_type == 'artist':
-        q = db.session.query(Artist.id).where(Artist.mbid == mbid).scalar()
+        q = app_db.session.query(Artist.id).where(Artist.mbid == mbid).scalar()
     elif item_type == 'release':
-        q = db.session.query(Release.id).where(Release.mbid == mbid).scalar()
+        q = app_db.session.query(Release.id).where(Release.mbid == mbid).scalar()
     else:
         raise ValueError('Invalid item_type passed')
     if q:
@@ -351,23 +290,23 @@ def exists(mbid, item_type):
 
 def delete_item(item_type, item_id):
     if item_type == 'release':
-        release = db.session.execute(
-            db.select(Release).where(Release.id == item_id)
+        release = app_db.session.execute(
+            app_db.select(Release).where(Release.id == item_id)
         ).scalar_one_or_none()
-        db.session.delete(release)
-        db.session.commit()
+        app_db.session.delete(release)
+        app_db.session.commit()
     elif item_type == 'artist':
-        artist = db.session.execute(
-            db.select(Artist).where(Artist.id == item_id)
+        artist = app_db.session.execute(
+            app_db.select(Artist).where(Artist.id == item_id)
         ).scalar_one_or_none()
-        db.session.delete(artist)
-        db.session.commit()
+        app_db.session.delete(artist)
+        app_db.session.commit()
     elif item_type == 'label':
-        label = db.session.execute(
-            db.select(Label).where(Label.id == item_id)
+        label = app_db.session.execute(
+            app_db.select(Label).where(Label.id == item_id)
         ).scalar_one_or_none()
-        db.session.delete(label)
-        db.session.commit()
+        app_db.session.delete(label)
+        app_db.session.commit()
     else:
         raise ValueError("ERROR: Invalid item_type")
     return 0
@@ -384,7 +323,7 @@ def update_release(edit_data):
     release_entry.tags = edit_data['tags']
     release_entry.country = edit_data['country']
     release_entry.image = edit_data['image']
-    db.session.commit()
+    app_db.session.commit()
     return 0
 
 
@@ -392,9 +331,9 @@ def add_review(data):
     release_id = data['release_id']
     review = data['review']
 
-    release = db.session.query(Release).where(Release.id == release_id).one_or_none()
+    release = app_db.session.query(Release).where(Release.id == release_id).one_or_none()
     release.review = review
-    db.session.commit()
+    app_db.session.commit()
     return 0
 
 
@@ -406,7 +345,7 @@ def distinct_entries(table, column):
         raise ValueError('Invalid column for this table')
 
     col = getattr(table, column)
-    distinct = db.session.query(sqlalchemy.distinct(col)).order_by(col).all()
+    distinct = app_db.session.query(sqlalchemy.distinct(col)).order_by(col).all()
     # distinct comes out as a list of tuples so below unpacks into just a list
     return [genre[0] for genre in distinct]
 
@@ -448,11 +387,11 @@ def submit_manual(data):
 
 def check_item_by_name(item_type, name):
     if item_type == 'artist':
-        result = db.session.query(Artist.id).where(func.lower(Artist.name) == func.lower(name)).one_or_none()
+        result = app_db.session.query(Artist.id).where(func.lower(Artist.name) == func.lower(name)).one_or_none()
     elif item_type == 'label':
-        result = db.session.query(Label.id).where(func.lower(Label.name) == func.lower(name)).one_or_none()
+        result = app_db.session.query(Label.id).where(func.lower(Label.name) == func.lower(name)).one_or_none()
     elif item_type == 'release':
-        result = db.session.query(Label.id).where(func.lower(Label.name) == func.lower(name)).one_or_none()
+        result = app_db.session.query(Label.id).where(func.lower(Label.name) == func.lower(name)).one_or_none()
     else:
         raise ValueError('Invalid item_type')
     return result
@@ -496,11 +435,11 @@ def dynamic_search(data):
                                 .id
                             )
                             populated_fields['artist_id'] = artist_id
-                            # print(f'ARTIST FOUND WTIH ID {artist_id}')
+                            # print(f'ARTIST FOUND WITH ID {artist_id}')
                         except AttributeError:
                             print('Artist does not exist')
                     elif key == 'country' and value == 'None':
-                            print('INFO: Country empty, moving on')
+                        print('INFO: Country empty, moving on')
                     elif key in ['rating', 'year']:
                         populated_fields[key] = int(value)
                     else:
@@ -546,7 +485,7 @@ def dynamic_search(data):
                     if key == 'country' and value == 'None':
                         print('INFO: Country empty, moving on')
                     elif key == 'type' and value == 'None':
-                            print('INFO: Type empty, moving on')
+                        print('INFO: Type empty, moving on')
                     else:
                         populated_fields[key] = value
                     query = Artist.query
@@ -590,13 +529,13 @@ def dynamic_search(data):
 
 
 def get_all_id_and_img():
-    releases = db.session.query(
+    releases = app_db.session.query(
         Release.id, Release.image
     ).all()
-    artists = db.session.query(
+    artists = app_db.session.query(
         Artist.id, Artist.image
     )
-    labels = db.session.query(
+    labels = app_db.session.query(
         Label.id, Label.image
     )
     data = {

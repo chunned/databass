@@ -1,7 +1,5 @@
-{% include 'header.html' %}
-<body>
-{% include 'navbar.html' %}
-
+{% extends '_base.html' %}
+{% block content %}
 <div>
     <table class="release-table">
         <thead>
@@ -65,4 +63,4 @@
 
 <script src="../static/scripts.js"></script>
 
-</body>
+{% endblock %}
