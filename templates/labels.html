@@ -1,7 +1,6 @@
-{% include 'header.html' %}
+{% extends '_base.html' %}
+{% block content %}
 
-<body>
-{% include 'navbar.html' %}
 
 <div class="search-bar">
 <form action="/dynamic_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
@@ -87,4 +86,4 @@
     });
 </script>
 
-</body>
+{% endblock %}

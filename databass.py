@@ -123,7 +123,7 @@ def search():
 
     data = api.pick_release(search_release, search_artist, search_label)
 
-    return flask.render_template("search.html", data=data)
+    return flask.render_template("search/static.html", data=data)
 
 
 @app.route("/submit", methods=["POST"])
@@ -317,7 +317,7 @@ def stats():
 def dynamic_search():
     form_data = flask.request.get_json()
     search_results = db.dynamic_search(form_data)
-    return flask.render_template('dynamic_search_results.html', data=search_results)
+    return flask.render_template('search/dynamic.html', data=search_results)
 
 
 @app.route('/submit-manual', methods=['POST'])
