@@ -10,4 +10,4 @@ RUN touch /databass/music.db
 
 EXPOSE 8080
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "databass:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "databass:create_app"]
