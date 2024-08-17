@@ -2,6 +2,7 @@ from flask import render_template, request, redirect
 from flask_paginate import Pagination, get_page_parameter
 import db
 import api
+import util
 
 
 def register_routes(app):
@@ -242,3 +243,10 @@ def register_routes(app):
     @app.route('/goals', methods=['GET'])
     def goals():
         return render_template('goals.html', active_page='goals')
+
+    @app.route('/add_goal', methods=['POST'])
+    def add_goal():
+        data = request.form.to_dict()
+        print(data)
+        db.insert_goal(data)
+        return redirect('/goals', 302)

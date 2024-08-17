@@ -69,7 +69,7 @@ class Goal(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     start_date: Mapped[str] = mapped_column(String())
     end_goal: Mapped[str] = mapped_column(String())
-    end_actual: Mapped[str] = mapped_column(String())
+    end_actual: Mapped[Optional[str]] = mapped_column(String())
     type: Mapped[str] = mapped_column(String()) # i.e. Releases, Albums, Labels
     amount: Mapped[int] = mapped_column(Integer())
 

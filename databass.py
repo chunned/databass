@@ -26,14 +26,12 @@ def create_app():
     util.register_filters(app)
 
     app_db.init_app(app)
-    print('DB initialized')
     with app.app_context():
         app_db.create_all()
-        print('Tables created')
     return app
 
 
-if __name__ == '__main__':
+def main():
     app = create_app()
 
     app.run(
@@ -41,3 +39,7 @@ if __name__ == '__main__':
         host='0.0.0.0',
         port=8080
     )
+
+
+if __name__ == '__main__':
+    main()

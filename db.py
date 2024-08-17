@@ -4,7 +4,7 @@ import datetime
 import pytz
 from dotenv import load_dotenv
 import os
-from models import app_db, Release, Label, Artist
+from models import app_db, Release, Label, Artist, Goal
 
 load_dotenv()
 TIMEZONE = os.getenv('TIMEZONE')
@@ -77,10 +77,11 @@ def insert_label(label):
 
 def insert_goal(goal):
     new_goal = Goal(
-       start_date=goal.get("start_date"),
-       end_goal=goal.get("end_goal"),
-       item_type=goal.get("item_type"),
-       value=goal.get("value")
+        start_date=goal.get("start_date"),
+        end_goal=goal.get("end_goal"),
+        end_actual="0",
+        type=goal.get("type"),
+        amount=goal.get("amount")
     )
     goal_id = insert_item(new_goal)
     return goal_id

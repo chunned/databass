@@ -1,0 +1,65 @@
+{% extends '_base.html' %}
+{% block content %}
+
+<div class="goals">
+    <div class="new-goal">
+    <h3>New Goal</h3>
+    <form action="/add_goal" method="POST">
+        <table>
+            <tr>
+                <td class="form-cell">
+                    <label for="start_date">
+                        start date
+                    </label>
+                </td>
+                <td class="form-cell">
+                    <label for="end_goal">end goal date</label>
+                </td>
+                <td class="form-cell">
+                    <label for="type">type</label>
+                </td>
+                <td class="form-cell">
+                    <label for="amount">amount</label>
+                </td>
+                <td class="form-cell">
+
+                </td>
+            </tr>
+            <tr>
+                <td class="form-cell">
+                    <input id="start_date" type="date" name="start_date" class="box" required>
+                </td>
+                <td class="form-cell">
+                    <input id="end_goal" type="date" name="end_goal" class="box" required>
+                </td>
+                <td class="form-cell">
+                    <select id="type" name="type" class="box" required>
+                        <option value="release">release</option>
+                        <option value="artist">artist</option>
+                        <option value="label">label</option>
+                    </select>
+                </td>
+                <td class="form-cell">
+                    <input id="amount" type="number" min="0" name="amount" class="box" required>
+                </td>
+                <td class="form-cell">
+                    <button type="submit" class="box" value="submit" id="submit">submit</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+    </div>
+    <div class="existing-goals">
+        <h3>Existing Goals</h3>
+        <table>
+            <tr>
+
+            </tr>
+            <tr>
+
+            </tr>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
