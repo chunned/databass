@@ -7,10 +7,10 @@ from dotenv import load_dotenv
 from uuid import uuid4
 
 load_dotenv()
-db_filename = os.environ.get('DB_NAME')
+db_name = os.environ.get('DB_NAME')
 db_user = os.environ.get('DB_USER')
 db_password = os.environ.get('DB_PASSWORD')
-db_connection_string = f'postgresql://{db_user}:{db_password}@localhost/{db_filename}'
+db_connection_string = f'postgresql://{db_user}:{db_password}@localhost/{db_name}'
 
 
 class Config:

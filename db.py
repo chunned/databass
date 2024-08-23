@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy import func
+from sqlalchemy import func, extract
 import datetime
 import pytz
 from dotenv import load_dotenv
@@ -113,7 +113,8 @@ def get_stats():
                  ), 2
              ),
              "listens_this_year": app_db.session.query(func.count(Release.id)).filter(
-                 func.substr(Release.listen_date, 1, 4) == current_year).scalar(),
+                 extract('year', Release.listen_date) == current_year
+             ).scalar()
              }
     listens_per_day = stats["listens_this_year"] / days_this_year
     stats["listens_per_day"] = round(listens_per_day, 2)
