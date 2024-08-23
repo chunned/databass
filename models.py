@@ -48,8 +48,8 @@ class ArtistOrLabel(app_db.Model):
     name: Mapped[str] = mapped_column(String())
     country: Mapped[Optional[str]] = mapped_column(String())
     type: Mapped[Optional[str]] = mapped_column(String())
-    begin_date: Mapped[Optional[date]] = mapped_column(Date())
-    end_date: Mapped[Optional[date]] = mapped_column(Date())
+    begin_date: Mapped[Optional[str]] = mapped_column(String())
+    end_date: Mapped[Optional[str]] = mapped_column(String())
     image: Mapped[Optional[str]] = mapped_column(String())
 
     def __init__(self, **kwargs):
