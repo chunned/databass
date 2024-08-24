@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from dateutil import parser as dateparser
 from os import makedirs as mkdir
 
-header = {"Accept": "application/json", "User-Agent": "databass/0.3 (https://github.com/chunned/databass)"}
+header = {"Accept": "application/json", "User-Agent": "databass/0.4 (https://github.com/chunned/databass)"}
 
 # Load environment variables
 load_dotenv()
