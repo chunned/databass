@@ -9,3 +9,4 @@ db.bat
 test*
 pyrightconfig.json
 static/img/
+pg_data

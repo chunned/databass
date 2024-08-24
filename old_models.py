@@ -1,8 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Date
+from sqlalchemy import String, Integer, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Optional
-from datetime import datetime, date
 
 
 class Base(DeclarativeBase):
@@ -24,7 +23,7 @@ class Release(app_db.Model):
     release_year: Mapped[int] = mapped_column(Integer())
     runtime: Mapped[int] = mapped_column(Integer())
     rating: Mapped[int] = mapped_column(Integer())
-    listen_date: Mapped[datetime] = mapped_column(DateTime())
+    listen_date: Mapped[str] = mapped_column(String())
     track_count: Mapped[int] = mapped_column(Integer())
     country: Mapped[str] = mapped_column(String())
     genre: Mapped[str] = mapped_column(String())
