@@ -34,10 +34,11 @@ def create_app():
     app_db.init_app(app)
     with app.app_context():
         app_db.create_all()
+        util.update_sequence(app, app_db)
     return app
 
 
-def main():
+if __name__ == '__main__':
     app = create_app()
 
     app.run(
