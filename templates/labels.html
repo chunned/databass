@@ -14,6 +14,7 @@
             <td class="form-cell">
                 <label for="country">country</label><br>
                 <select id="country" name="country" class="box">
+                    <option value="NO VALUE" selected></option>
                     {% for country in data.countries %}
                     <option value="{{ country }}">{{ country }}</option>
                     {% endfor %}
@@ -40,6 +41,7 @@
             <td class="form-cell">
                 <label for="type">type</label><br>
                 <select id="type" name="type" class="box">
+                    <option value="NO VALUE" selected></option>
                     {% for type in data.types %}
                     <option value="{{ type }}">{{ type }}</option>
                     {% endfor %}

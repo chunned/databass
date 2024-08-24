@@ -28,6 +28,7 @@
             <td class="form-cell">
                 <label for="country">country</label><br>
                 <select id="country" name="country" class="box">
+                    <option value="NO VALUE" selected></option>
                     {% for country in data.countries %}
                     <option value="{{ country }}">{{ country }}</option>
                     {% endfor %}

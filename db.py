@@ -430,7 +430,9 @@ def dynamic_search(data):
                         try:
                             artist_id = (
                                 Artist.query.filter(
-                                    func.lower(Artist.name) == func.lower(value)
+                                    Artist.name.ilike(
+                                        f'%{value}%'
+                                    )
                                 )
                                 .first()
                                 .id
@@ -439,17 +441,18 @@ def dynamic_search(data):
                             # print(f'ARTIST FOUND WITH ID {artist_id}')
                         except AttributeError:
                             print('Artist does not exist')
-                    elif key == 'country' and value == 'None':
+                    elif key == 'country' and value == 'NO VALUE':
                         print('INFO: Country empty, moving on')
                     elif key in ['rating', 'year']:
                         populated_fields[key] = int(value)
                     else:
-                        # print('OTHER KEY FOUND; ADDING TO POPULATED FIELDS')
-                        # print(key, value)
+                        print('OTHER KEY FOUND; ADDING TO POPULATED FIELDS')
+                        print(key, value)
                         populated_fields[key] = value
                     print(f'INFO: Populated Fields: {populated_fields}')
                     query = Release.query
                     for k, v in populated_fields.items():
+                        print(f'current key: {k}')
                         print(f'INFO: Adding to query: {key}, {value}')
                         if k == 'rating':
                             op = data['rating_comparison']
@@ -459,23 +462,23 @@ def dynamic_search(data):
                             elif op == '0':
                                 # print('OPERATOR: Equal')
                                 query = query.filter(Release.rating == v)
-                            elif op == '+1':
+                            elif op == '1':
                                 query = query.filter(Release.rating > v)
                                 # print('OPERATOR: Greater than')
-                        if k == 'year':
+                        elif k == 'year':
                             op = data['year_comparison']
                             if op == '-1':
                                 # print('OPERATOR: Less than')
-                                query = query.filter(Release.year < v)
+                                query = query.filter(Release.release_year < v)
                             elif op == '0':
                                 # print('OPERATOR: Equal')
-                                query = query.filter(Release.year == v)
-                            elif op == '+1':
+                                query = query.filter(Release.release_year == v)
+                            elif op == '1':
                                 # print('OPERATOR: Greater than')
-                                query = query.filter(Release.year > v)
-                        if k == 'name':
+                                query = query.filter(Release.release_year > v)
+                        elif k == 'name':
                             query = query.filter(
-                                func.lower(Release.name) == func.lower(v)
+                                Release.name.ilike(f'%{v}%')
                             )
                         else:
                             query = query.filter(getattr(Release, k) == v)
@@ -483,28 +486,34 @@ def dynamic_search(data):
 
                 elif data['qtype'] == 'artist':
                     return_data = ["artist"]
-                    if key == 'country' and value == 'None':
+                    if key == 'country' and value == 'NO VALUE':
                         print('INFO: Country empty, moving on')
-                    elif key == 'type' and value == 'None':
+                    elif key == 'type' and value == 'NO VALUE':
                         print('INFO: Type empty, moving on')
                     else:
                         populated_fields[key] = value
+                    print(f'POPULATED FIELDS: {populated_fields}')
                     query = Artist.query
                     for k, v in populated_fields.items():
                         if k in ['begin_comparison', 'end_comparison']:
                             print('INFO: Not implemented')
                         elif k == 'name':
                             query = query.filter(
-                                func.lower(Artist.name) == func.lower(v)
+                                Artist.name.ilike(f'%{v}%')
+                            )
+                        elif k == 'country':
+                            print(f'Filtering for country like {v}')
+                            query = query.filter(
+                                Artist.country == v
                             )
                         else:
-                            query.filter(getattr(Artist, k) == v)
+                            query = query.filter(getattr(Artist, k) == v)
 
                 elif data['qtype'] == 'label':
                     return_data = ["label"]
-                    if key == 'country' and value == 'None':
+                    if key == 'country' and value == 'NO VALUE':
                         print('INFO: Country empty, moving on')
-                    elif key == 'type' and value == 'None':
+                    elif key == 'type' and value == 'NO VALUE':
                         print('INFO: Type empty, moving on')
                     else:
                         populated_fields[key] = value
@@ -514,10 +523,10 @@ def dynamic_search(data):
                             print('INFO: Not implemented')
                         elif k == 'name':
                             query = query.filter(
-                                func.lower(Label.name) == func.lower(v)
+                                Release.name.ilike(f'%{v}%')
                             )
                         else:
-                            query.filter(getattr(Label, k) == v)
+                            query = query.filter(getattr(Label, k) == v)
                 else:
                     raise ValueError('Invalid qtype; must be one of [release, artist, label]')
 
