@@ -8,9 +8,10 @@ from uuid import uuid4
 
 load_dotenv()
 db_name = os.environ.get('DB_NAME')
-db_user = os.environ.get('DB_USER')
-db_password = os.environ.get('DB_PASSWORD')
-db_connection_string = f'postgresql://{db_user}:{db_password}@localhost/{db_name}'
+db_user = os.environ.get('PG_USER')
+db_password = os.environ.get('PG_PASSWORD')
+db_hostname = os.environ.get('PG_HOSTNAME')
+db_connection_string = f'postgresql://{db_user}:{db_password}@{db_hostname}/{db_name}'
 
 
 class Config:
