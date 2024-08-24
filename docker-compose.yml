@@ -7,7 +7,7 @@ services:
       - postgres
     image: ghcr.io/chunned/databass:latest
     ports:
-      - 10111:8080
+      - ${APP_PORT}:8080
     environment:
       - DISCOGS_KEY=${DISCOGS_KEY}
       - DISCOGS_SECRET=${DISCOGS_SECRET}
@@ -30,4 +30,4 @@ services:
     volumes:
       - ./pg_data/:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - ${PG_PORT}:5432
