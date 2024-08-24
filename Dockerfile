@@ -1,12 +1,14 @@
-FROM python:3.12-slim
-
-RUN pip3 install gunicorn
+FROM python:3.12-alpine
 
 COPY . /databass
 WORKDIR /databass
 
-RUN pip3 install -r requirements.txt
-RUN touch /databass/music.db
+RUN \
+  apk add --no-cache postgresql-libs && \
+  apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
+  pip3 install gunicorn && \
+  pip3 install -r requirements.txt && \
+  apk --purge del .build-deps
 
 EXPOSE 8080
 
