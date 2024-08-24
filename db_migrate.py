@@ -30,7 +30,6 @@ def migrate():
     SQLite_Session = sessionmaker(bind=sqlite_engine)
     sqlite_session = SQLite_Session()
 
-
     postgres_db = f"postgresql://{user}:{password}@{db_hostname}/{pg_db}"
     pg_engine = create_engine(postgres_db)
     PG_Session = sessionmaker(bind=pg_engine)
@@ -60,14 +59,35 @@ def migrate():
 
     labels = sqlite_session.query(old_models.Label).all()
     for label in labels:
+        begin = label.begin_date
+        end = label.end_date
+
+        if not begin:
+            begin_date = datetime(year=1, month=1, day=1)
+        elif len(begin) == 4:
+            begin_date = datetime.strptime(begin, "%Y")
+        elif len(begin) == 7:
+            begin_date = datetime.strptime(begin, "%Y-%m")
+        elif len(begin) == 10:
+            begin_date = datetime.strptime(begin, "%Y-%m-%d")
+
+        if not end:
+            end_date = datetime(year=9999, month=12, day=31).date()
+        elif len(end) == 4:
+            end_date = datetime.strptime(end, "%Y").date()
+        elif len(end) == 7:
+            end_date = datetime.strptime(end, "%Y-%m").date()
+        elif len(end) == 10:
+            end_date = datetime.strptime(end, "%Y-%m-%d").date()
+
         new_label = models.Label(
             id=label.id,
             mbid=label.mbid,
             name=label.name,
             country=label.country,
             type=label.type,
-            begin_date=label.begin_date,
-            end_date=label.end_date,
+            begin_date=begin_date,
+            end_date=end_date,
             image=label.image
         )
         try:
@@ -83,14 +103,35 @@ def migrate():
 
     artists = sqlite_session.query(old_models.Artist).all()
     for artist in artists:
+        begin = artist.begin_date
+        end = artist.end_date
+
+        if not begin:
+            begin_date = datetime(year=1, month=1, day=1).date()
+        elif len(begin) == 4:
+            begin_date = datetime.strptime(begin, "%Y").date()
+        elif len(begin) == 7:
+            begin_date = datetime.strptime(begin, "%Y-%m").date()
+        elif len(begin) == 10:
+            begin_date = datetime.strptime(begin, "%Y-%m-%d").date()
+
+        if not end:
+            end_date = datetime(year=9999, month=12, day=31).date()
+        elif len(end) == 4:
+            end_date = datetime.strptime(end, "%Y").date()
+        elif len(end) == 7:
+            end_date = datetime.strptime(end, "%Y-%m").date()
+        elif len(end) == 10:
+            end_date = datetime.strptime(end, "%Y-%m-%d").date()
+
         new_artist = models.Artist(
             id=artist.id,
             mbid=artist.mbid,
             name=artist.name,
             country=artist.country,
             type=artist.type,
-            begin_date=artist.begin_date,
-            end_date=artist.end_date,
+            begin_date=begin_date,
+            end_date=end_date,
             image=artist.image
         )
 
@@ -115,7 +156,6 @@ def migrate():
             listen_date = datetime(9999, 12, 31, 23, 59, 59)
 
         year = release.release_year
-        print(year)
         if len(year) != 4:
             year = 0
 

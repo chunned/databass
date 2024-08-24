@@ -507,9 +507,7 @@ def dynamic_search(data):
                     print(f'POPULATED FIELDS: {populated_fields}')
                     query = Artist.query
                     for k, v in populated_fields.items():
-                        if k in ['begin_comparison', 'end_comparison']:
-                            print('INFO: Not implemented')
-                        elif k == 'name':
+                        if k == 'name':
                             query = query.filter(
                                 Artist.name.ilike(f'%{v}%')
                             )
@@ -518,6 +516,35 @@ def dynamic_search(data):
                             query = query.filter(
                                 Artist.country == v
                             )
+                        elif k == 'begin_date':
+                            op = data["begin_comparison"]
+                            if op == '-1':
+                                query = query.filter(
+                                    extract('year', Artist.begin_date) < int(v)
+                                )
+                            elif op == '0':
+                                query = query.filter(
+                                    extract('year', Artist.begin_date) == int(v)
+                                )
+                            elif op == '1':
+                                query = query.filter(
+                                    extract('year', Artist.begin_date) > int(v)
+                                )
+                        elif k == 'end_date':
+                            op = data["end_comparison"]
+                            if op == '-1':
+                                query = query.filter(
+                                    extract('year', Artist.end_date) < int(v)
+                                )
+                            elif op == '0':
+                                query = query.filter(
+                                    extract('year', Artist.end_date) == int(v)
+                                )
+                            elif op == '1':
+                                query = query.filter(
+                                    extract('year', Artist.end_date) > int(v)
+                                )
+
                         else:
                             query = query.filter(getattr(Artist, k) == v)
 
@@ -531,12 +558,38 @@ def dynamic_search(data):
                         populated_fields[key] = value
                     query = Label.query
                     for k, v in populated_fields.items():
-                        if k in ['begin_comparison', 'end_comparison']:
-                            print('INFO: Not implemented')
-                        elif k == 'name':
+                        if k == 'name':
                             query = query.filter(
                                 Release.name.ilike(f'%{v}%')
                             )
+                        elif k == 'begin_date':
+                            op = data["begin_comparison"]
+                            if op == '-1':
+                                query = query.filter(
+                                    extract('year', Label.begin_date) < int(v)
+                                )
+                            elif op == '0':
+                                query = query.filter(
+                                    extract('year', Label.begin_date) == int(v)
+                                )
+                            elif op == '1':
+                                query = query.filter(
+                                    extract('year', Label.begin_date) > int(v)
+                                )
+                        elif k == 'end_date':
+                            op = data["end_comparison"]
+                            if op == '-1':
+                                query = query.filter(
+                                    extract('year', Label.end_date) < int(v)
+                                )
+                            elif op == '0':
+                                query = query.filter(
+                                    extract('year', Label.end_date) == int(v)
+                                )
+                            elif op == '1':
+                                query = query.filter(
+                                    extract('year', Label.end_date) > int(v)
+                                )
                         else:
                             query = query.filter(getattr(Label, k) == v)
                 else:
