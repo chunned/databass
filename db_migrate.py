@@ -115,7 +115,8 @@ def migrate():
             listen_date = datetime(9999, 12, 31, 23, 59, 59)
 
         year = release.release_year
-        if isinstance(year, str):
+        print(year)
+        if len(year) != 4:
             year = 0
 
         rating = release.rating
