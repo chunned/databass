@@ -3,10 +3,9 @@ services:
   databass:
     restart: always
     container_name: databass
-    image: databass-test
-    depends_on: 
+    depends_on:
       - postgres
-    #    image: ghcr.io/chunned/databass:latest
+    image: ghcr.io/chunned/databass:latest
     ports:
       - 10111:8080
     environment:
