@@ -13,7 +13,7 @@ import models
 
 
 load_dotenv()
-db = os.getenv('DB_FILENAME')
+db = os.getenv('SQLITE_DB')
 user = os.getenv('DB_USER')
 password = os.getenv('DB_PASSWORD')
 pg_db = os.getenv('DB_NAME')
@@ -29,7 +29,7 @@ SQLite_Session = sessionmaker(bind=sqlite_engine)
 sqlite_session = SQLite_Session()
 
 
-postgres_db = f"postgresql://{user}:{password}@localhost/{pg_db}"
+postgres_db = f"postgresql://{user}:{password}@postgres/{pg_db}"
 pg_engine = create_engine(postgres_db)
 PG_Session = sessionmaker(bind=pg_engine)
 pg_session = PG_Session()

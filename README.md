@@ -15,16 +15,9 @@ There are a few things to note before you use it:
 
 
 # Usage
-Download the `docker-compose.yml` file: `wget https://raw.githubusercontent.com/chunned/databass/main/docker-compose.yml`
+Clone the repository, or just download the `docker-compose.yml` and `.env.example` files: `wget https://raw.githubusercontent.com/chunned/databass/main/docker-compose.yml && wget https://raw.githubusercontent.com/chunned/databass/main/.env.example`
 
-Choose a port to use on line 7.
-
-In the `environment` section:
-- Add your Discogs API key and secret. Obtain them [here](https://www.discogs.com/settings/developers).
-- Set `DB_FILENAME` to whichever filename you wish to use and `TIMEZONE` to your desired timezone.
-
-In the `volumes` section:
-- Optionally, choose a location to store the database outside the docker container. Change `DB_FILENAME` to the value you set in the `environment` section. If you get the error `not a directory: unknown: Are you trying to mount a directory onto a file (or vice-versa)? Check if the specified host path exists and is the expected type ` when running the Docker compose file, you need to do `touch music.db` to create the database file first (otherwise, Docker tries to mount it as a directory, rather than a file). 
+Rename `.env.example` to `.env` and fill out the required values. Unless you require a custom configuration, the only required values are the Discogs API key and secret.
 
 Then, run `docker compose up -d` and visit the application at `localhost:<port>`
 
