@@ -34,7 +34,7 @@ def create_app():
     app_db.init_app(app)
     with app.app_context():
         app_db.create_all()
-        print('Tables created')
+        util.update_sequence(app, app_db)
     return app
 
 
