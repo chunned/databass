@@ -3,6 +3,7 @@ import os
 from api import get_image_type_from_url, download_image
 from db import get_all_id_and_img
 from sqlalchemy import text
+from sqlalchemy.exc import DataError
 
 
 def download_all_missing_images(app):
@@ -80,7 +81,9 @@ def register_filters(app):
 def update_sequence(app, app_db):
     with app.app_context():
         with app_db.engine.connect() as conn:
-            conn.execute(text("SELECT setval(pg_get_serial_sequence('release', 'id'), MAX(id)) FROM release;"))
-            conn.execute(text("SELECT setval(pg_get_serial_sequence('artist', 'id'), MAX(id)) FROM artist;"))
-            conn.execute(text("SELECT setval(pg_get_serial_sequence('label', 'id'), MAX(id)) FROM label;"))
-
+            try:
+                conn.execute(text("SELECT setval(pg_get_serial_sequence('release', 'id'), MAX(id)) FROM release;"))
+                conn.execute(text("SELECT setval(pg_get_serial_sequence('artist', 'id'), MAX(id)) FROM artist;"))
+                conn.execute(text("SELECT setval(pg_get_serial_sequence('label', 'id'), MAX(id)) FROM label;"))
+            except DataError:
+                pass
