@@ -238,3 +238,9 @@ def register_routes(app):
         data = request.form.to_dict()
         db.submit_manual(data)
         return redirect('/', 302)
+
+    @app.route('/migrate', methods=['GET'])
+    def migrate():
+        import db_migrate
+        db_migrate.migrate()
+        return redirect('/', code=302)

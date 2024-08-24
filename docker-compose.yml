@@ -3,22 +3,23 @@ services:
   databass:
     restart: always
     container_name: databass
-    image: ghcr.io/chunned/databass:latest
+    image: databass-test
+    depends_on: 
+      - postgres
+    #    image: ghcr.io/chunned/databass:latest
     ports:
       - 10111:8080
     environment:
       - DISCOGS_KEY=${DISCOGS_KEY}
       - DISCOGS_SECRET=${DISCOGS_SECRET}
-      - PG_USER=${DB_USER}
-      - PG_PASSWORD=${DB_PASSWORD}
+      - PG_USER=${PG_USER}
+      - PG_PASSWORD=${PG_PASSWORD}
       - PG_HOSTNAME=${PG_HOSTNAME}
       - DB_NAME=${DB_NAME}
       - SQLITE_DB=${SQLITE_DB}
       - TIMEZONE=${TIMEZONE}           # e.g. America/New York
-    networks:
-      - db_net
     volumes:
-      - ${SQLITE_DB}/:/databass/instance/{SQLITE_DB}
+      - ./${SQLITE_DB}/:/databass/${SQLITE_DB}
   postgres:
     image: postgres
     restart: always
@@ -28,13 +29,6 @@ services:
       - POSTGRES_PASSWORD=${PG_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
     volumes:
-      - pg_data:/var/lib/postgresql/data
-    networks:
-      - db_net
-
-networks:
-  db_net:
-    driver: bridge
-
-volumes:
-  pg_data:
+      - ./pg_data/:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
