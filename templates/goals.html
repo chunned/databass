@@ -8,9 +8,7 @@
         <table>
             <tr>
                 <td class="form-cell">
-                    <label for="start_date">
-                        start date
-                    </label>
+                    <label for="start_date">start date</label>
                 </td>
                 <td class="form-cell">
                     <label for="end_goal">end goal date</label>
@@ -27,7 +25,7 @@
             </tr>
             <tr>
                 <td class="form-cell">
-                    <input id="start_date" type="date" name="start_date" class="box" required>
+                    <input id="start_date" type="date" name="start_date" class="box" value="{{ data.today }}" required>
                 </td>
                 <td class="form-cell">
                     <input id="end_goal" type="date" name="end_goal" class="box" required>
