@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Date
+from sqlalchemy import String, Integer, ForeignKey, DateTime, Date, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Optional
 from datetime import datetime, date
@@ -30,6 +30,7 @@ class Release(app_db.Model):
     genre: Mapped[str] = mapped_column(String())
     tags: Mapped[Optional[str]] = mapped_column(String())
     image: Mapped[Optional[str]] = mapped_column(String())
+    # Below is deprecated; can be removed, but need to deal with existing entries
     review: Mapped[Optional[str]] = mapped_column(String())
 
     def __init__(self, mbid: Optional[str] = None, artist_id: int = 0, label_id: int = 0, **kwargs):
@@ -78,3 +79,11 @@ class Goal(Base):
         super().__init__(**kwargs)
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+
+class Review(Base):
+    __tablename__ = "review"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
+    timestamp: Mapped[date] = mapped_column(DateTime, default=func.now())
+    text: Mapped[str] = mapped_column(String())

@@ -187,9 +187,11 @@ def register_routes(app):
         release_data = db.exists('release', release_id)[0]
         artist_data = db.exists('artist', release_data.artist_id)[0]
         label_data = db.exists('label', release_data.label_id)[0]
+        existing_reviews = db.get_release_reviews(release_id)
         data = {"release": release_data,
                 "artist": artist_data,
-                "label": label_data}
+                "label": label_data,
+                "reviews": existing_reviews}
         return render_template('release.html', data=data)
 
     @app.route('/artist/<string:artist_id>', methods=['GET'])
@@ -223,10 +225,10 @@ def register_routes(app):
 
     @app.route('/edit/<string:release_id>', methods=['GET'])
     def edit(release_id):
-        data = db.exists(item_type='release', item_id=release_id)
-        return render_template('edit.html', data=data)
+        release_data = db.exists(item_type='release', item_id=release_id)
+        return render_template('edit.html', data=release_data)
 
-    @app.route('/edit-release', methods=['POST'])
+    @app.route('/edit_release', methods=['POST'])
     def edit_release():
         edit_data = request.form.to_dict()
         updated_release = db.construct_item('release', edit_data)
@@ -239,11 +241,12 @@ def register_routes(app):
         db.delete(item_type='release', item_id=deletion_id)
         return redirect('/', 302)
 
-    # @app.route('/add-review', methods=['POST'])
-    # def add_review():
-    #     review_data = request.form.to_dict()
-    #     db.add_review(review_data)
-    #     return redirect('/', 302)
+    @app.route('/add_review', methods=['POST'])
+    def add_review():
+        review_data = request.form.to_dict()
+        new_review = db.construct_item('review', review_data)
+        db.insert(new_review)
+        return redirect(request.referrer, 302)
 
     @app.route('/stats', methods=['GET'])
     def stats():
@@ -257,7 +260,7 @@ def register_routes(app):
         search_results = db.dynamic_search(form_data)
         return render_template('search/dynamic.html', data=search_results)
 
-    @app.route('/submit-manual', methods=['POST'])
+    @app.route('/submit_manual', methods=['POST'])
     def submit_manual():
         data = request.form.to_dict()
         db.submit_manual(data)

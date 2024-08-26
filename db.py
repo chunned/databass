@@ -1,10 +1,10 @@
 import sqlalchemy
-from sqlalchemy import extract
+from sqlalchemy import extract, func
 from datetime import datetime
 import pytz
 from dotenv import load_dotenv
 from os import getenv
-from models import app_db, Release, Label, Artist
+from models import app_db, Release, Label, Artist, Goal, Review
 
 load_dotenv()
 TIMEZONE = getenv('TIMEZONE')
@@ -90,7 +90,7 @@ def exists(item_type: str,
         return False
 
 
-def get_artist_releases(artist_id):
+def get_artist_releases(artist_id: int):
     """
     Returns all releases related to the artist_id passed in
     :param artist_id: The ID of an Artist
@@ -105,9 +105,8 @@ def get_artist_releases(artist_id):
     return releases
 
 
-def get_label_releases(label_id):
+def get_label_releases(label_id: int):
     """
-    Returns all releases related to the label_id passed in
     :param label_id: The ID of a Label
     :return: All releases associated with this ID
     """
@@ -117,6 +116,20 @@ def get_label_releases(label_id):
         .where(Release.label_id == label_id)
     ).all()
     return releases
+
+
+def get_release_reviews(release_id: int):
+    """
+    :param release_id: ID of the release to filter by
+    :return: All reviews for the release ID
+    """
+    reviews = (
+        app_db.session.query(
+            func.to_char(Review.timestamp, 'YYYY-MM-DD HH24:MI').label('timestamp'),
+            Review.text
+        ).where(Review.release_id == release_id)
+    ).all()
+    return reviews
 
 
 def get_all(item_type: str):

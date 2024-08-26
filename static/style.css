@@ -293,3 +293,25 @@ input {
 .short {
     max-width: 10vw;
 }
+
+
+#review {
+    width: 80%;
+    height: 10vh;
+    max-height: 10vh;
+    max-width: 90%;
+    resize: none;
+    background-color: #c6c6c5;
+}
+
+.review-row {
+    vertical-align: top;
+}
+.review-col {
+    text-align: left!important;
+    height: 10%!important;
+}
+
+.review-time {
+    width: 10vw!important;
+}
