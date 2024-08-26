@@ -1,4 +1,3 @@
-import json
 import requests
 from datetime import datetime
 import pytz
@@ -43,7 +42,8 @@ def pick_release(release, artist, label):
 
         try:
             # TODO: make an attempt to grab original release date
-            # try using Discogs master release: https://www.discogs.com/developers#page:database,header:database-master-release
+            # try using Discogs master release:
+            # https://www.discogs.com/developers#page:database,header:database-master-release
             print(f'Attempting to extract year from search data: {release["date"]}')
             raw_date = release["date"]
             try:
