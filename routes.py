@@ -3,7 +3,6 @@ from flask_paginate import Pagination, get_page_parameter
 import api
 import util
 from stats import get_all as get_stats, get_homepage_releases as get_releases
-
 import db
 
 
@@ -75,7 +74,7 @@ def register_routes(app):
         if label_mbid:
             print(f"INFO: Checking if label with ID {label_mbid} exists in database")
             # check if label exists in database already, avoid some API calls
-            label_exists = db2.exists(item_type='label', mbid=label_mbid)
+            label_exists = db.exists(item_type='label', mbid=label_mbid)
             if not label_exists:
                 print(f'INFO: No existing label found; inserting a new label')
                 print(f'INFO: Fetching label info from API')
@@ -87,8 +86,8 @@ def register_routes(app):
                 label_data['begin_date'] = begin_date
                 end_date = util.to_date('end', label_data['end_date'])
                 label_data['end_date'] = end_date
-                new_label = db2.construct_item('label', label_data)
-                label_id = db2.insert(new_label)
+                new_label = db.construct_item('label', label_data)
+                label_id = db.insert(new_label)
                 # download image
                 label_image_url = label_data["image"]
                 print(f'INFO: Downloading label image from {label_image_url}')
@@ -106,7 +105,7 @@ def register_routes(app):
         # check if artist exists in db already
         if artist_mbid:
             print(f"INFO: Checking if artist with ID {artist_mbid} exists in database")
-            artist_exists = db2.exists(item_type='artist', mbid=artist_mbid)
+            artist_exists = db.exists(item_type='artist', mbid=artist_mbid)
             if not artist_exists:
                 # not in db
                 print(f"INFO: No existing artist found; inserting a new artist")
@@ -118,8 +117,8 @@ def register_routes(app):
                 artist_data['begin_date'] = begin_date
                 end_date = util.to_date('end', artist_data['end_date'])
                 artist_data['end_date'] = end_date
-                new_artist = db2.construct_item('artist', artist_data)
-                artist_id = db2.insert(new_artist)
+                new_artist = db.construct_item('artist', artist_data)
+                artist_id = db.insert(new_artist)
                 # download image
                 artist_image_url = artist_data["image"]
                 print(f'INFO: Downloading artist image from {artist_image_url}')
@@ -135,8 +134,8 @@ def register_routes(app):
                 release_data["artist_id"] = artist_exists[0].id
 
         print(f"INFO: Inserting release into database")
-        new_release = db2.construct_item('release', release_data)
-        release_id = db2.insert(new_release)
+        new_release = db.construct_item('release', release_data)
+        release_id = db.insert(new_release)
         print(f'INFO: Release insertion successful with ID: {release_id}')
         # Download image after inserting release into db
         release_image_url = release_data["image"]
@@ -150,12 +149,12 @@ def register_routes(app):
 
     @app.route('/releases', methods=["GET"])
     def releases():
-        genres = sorted(db2.get_distinct_col(db2.Release, 'genre'))
-        countries = sorted(db2.get_distinct_col(db2.Release, 'country'))
-        all_labels = sorted(db2.get_distinct_col(db2.Label, 'name'))
+        genres = sorted(db.get_distinct_col(db.Release, 'genre'))
+        countries = sorted(db.get_distinct_col(db.Release, 'country'))
+        all_labels = sorted(db.get_distinct_col(db.Label, 'name'))
 
-        all_artists = sorted(db2.get_distinct_col(db2.Artist, 'name'))
-        all_releases = sorted(db2.get_distinct_col(db2.Release, 'name'))
+        all_artists = sorted(db.get_distinct_col(db.Artist, 'name'))
+        all_releases = sorted(db.get_distinct_col(db.Release, 'name'))
         data = {
             "genres": genres,
             "countries": countries,
@@ -171,23 +170,23 @@ def register_routes(app):
 
     @app.route('/artists', methods=["GET"])
     def artists():
-        countries = db2.get_distinct_col(db2.Artist, 'country')
+        countries = db.get_distinct_col(db.Artist, 'country')
         data = {"countries": countries}
         return render_template('artists.html', data=data, active_page='artists')
 
     @app.route('/labels', methods=["GET"])
     def labels():
-        countries = db2.get_distinct_col(db2.Label, 'country')
-        types = db2.get_distinct_col(db2.Label, 'type')
+        countries = db.get_distinct_col(db.Label, 'country')
+        types = db.get_distinct_col(db.Label, 'type')
         data = {"countries": countries, "types": types}
         return render_template('labels.html', data=data, active_page='labels')
 
     @app.route('/release/<string:release_id>', methods=['GET'])
     def release(release_id):
         # Displays all info related to a particular release
-        release_data = db2.exists('release', release_id)[0]
-        artist_data = db2.exists('artist', release_data.artist_id)[0]
-        label_data = db2.exists('label', release_data.label_id)[0]
+        release_data = db.exists('release', release_id)[0]
+        artist_data = db.exists('artist', release_data.artist_id)[0]
+        label_data = db.exists('label', release_data.label_id)[0]
         data = {"release": release_data,
                 "artist": artist_data,
                 "label": label_data}
@@ -196,15 +195,15 @@ def register_routes(app):
     @app.route('/artist/<string:artist_id>', methods=['GET'])
     def artist(artist_id):
         # Displays all info related to a particular artist
-        artist_data = db2.exists(item_type='artist', item_id=artist_id)[0]
-        artist_releases = db2.get_artist_releases(artist_id)
+        artist_data = db.exists(item_type='artist', item_id=artist_id)[0]
+        artist_releases = db.get_artist_releases(artist_id)
         data = {"artist": artist_data, "releases": artist_releases}
         return render_template('artist.html', data=data)
 
     @app.route('/label/<string:label_id>', methods=['GET'])
     def label(label_id):
-        label_data = db2.exists(item_type='label', item_id=label_id)[0]
-        label_releases = db2.get_label_releases(label_id)
+        label_data = db.exists(item_type='label', item_id=label_id)[0]
+        label_releases = db.get_label_releases(label_id)
         data = {"label": label_data, "releases": label_releases}
         return render_template('label.html', data=data)
 
@@ -224,20 +223,20 @@ def register_routes(app):
 
     @app.route('/edit/<string:release_id>', methods=['GET'])
     def edit(release_id):
-        data = db2.exists(item_type='release', item_id=release_id)
+        data = db.exists(item_type='release', item_id=release_id)
         return render_template('edit.html', data=data)
 
     @app.route('/edit-release', methods=['POST'])
     def edit_release():
         edit_data = request.form.to_dict()
-        updated_release = db2.construct_item('release', edit_data)
-        db2.update(updated_release)
+        updated_release = db.construct_item('release', edit_data)
+        db.update(updated_release)
         return redirect('/', 302)
 
     @app.route('/delete', methods=['POST', 'GET'])
     def delete():
         deletion_id = request.get_json()['id']
-        db2.delete(item_type='release', item_id=deletion_id)
+        db.delete(item_type='release', item_id=deletion_id)
         return redirect('/', 302)
 
     # @app.route('/add-review', methods=['POST'])
@@ -255,13 +254,13 @@ def register_routes(app):
     def dynamic_search():
         form_data = request.get_json()
         print(form_data)
-        search_results = db2.dynamic_search(form_data)
+        search_results = db.dynamic_search(form_data)
         return render_template('search/dynamic.html', data=search_results)
 
     @app.route('/submit-manual', methods=['POST'])
     def submit_manual():
         data = request.form.to_dict()
-        db2.submit_manual(data)
+        db.submit_manual(data)
         return redirect('/', 302)
 
     @app.route('/goals', methods=['GET'])
@@ -274,6 +273,6 @@ def register_routes(app):
     @app.route('/add_goal', methods=['POST'])
     def add_goal():
         data = request.form.to_dict()
-        goal = db2.construct_item(model_name='goal', data_dict=data)
-        db2.insert(goal)
+        goal = db.construct_item(model_name='goal', data_dict=data)
+        db.insert(goal)
         return redirect('/goals', 302)
