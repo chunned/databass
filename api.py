@@ -110,7 +110,7 @@ def get_release_data(mbid, year, genre, rating):
     data = {
         "mbid": mbid,
         "name": name,
-        "release_date": year,
+        "release_year": year,
         "runtime": length,
         "rating": rating,
         "listen_date": listen_date,
