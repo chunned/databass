@@ -24,7 +24,7 @@
         <td class="short">{{ item['date'] }}</td>
         <td class="short">{{ item['track-count'] }}</td>
         <td class="long">{{ item['format'] }}</td>
-        <td style="display: none;">{{ item['release_date'] }}</td>
+        <td style="display: none;">{{ item['release_year'] }}</td>
         <td style="display: none;">{{ item['rating'] }}</td>
         <td style="display: none;">{{ item['genre'] }}</td>
         <td style="display: none;">{{ item['tags'] }}</td>
@@ -39,7 +39,7 @@
 
 <h3>No search results. Either search again or manually enter data below.</h3>
 <p>* optional</p>
-<form action="/submit-manual" method="POST">
+<form action="/submit_manual" method="POST">
     <table class="manual-release-table">
         <thead>
             <tr>

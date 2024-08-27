@@ -65,9 +65,9 @@ function showPopup(deleteButton) {
                             <input type="hidden" name="release" value="${parsed_data.release.name}">
                             <input type="hidden" name="artist" value="${parsed_data.artist.name}">
                             <input type="hidden" name="label" value="${parsed_data.label.name}">
-                            <input type="hidden" name="release_id" value="${parsed_data.release.mbid}">
-                            <input type="hidden" name="artist_id" value="${parsed_data.artist.mbid}">
-                            <input type="hidden" name="label_id" value="${parsed_data.label.mbid}">
+                            <input type="hidden" name="release_mbid" value="${parsed_data.release.mbid}">
+                            <input type="hidden" name="artist_mbid" value="${parsed_data.artist.mbid}">
+                            <input type="hidden" name="label_mbid" value="${parsed_data.label.mbid}">
                             <table id="popup-table">
                                 <tr>
                                     <td>RELEASE</td>

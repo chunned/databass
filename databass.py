@@ -6,6 +6,7 @@ from models import app_db
 from dotenv import load_dotenv
 from uuid import uuid4
 
+
 load_dotenv()
 db_name = os.environ.get('DB_NAME')
 db_user = os.environ.get('PG_USER')
@@ -38,7 +39,7 @@ def create_app():
     return app
 
 
-if __name__ == '__main__':
+def main():
     app = create_app()
 
     app.run(
@@ -46,3 +47,7 @@ if __name__ == '__main__':
         host='0.0.0.0',
         port=8080
     )
+
+
+if __name__ == '__main__':
+    main()

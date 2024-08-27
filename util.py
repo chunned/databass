@@ -4,6 +4,7 @@ from api import get_image_type_from_url, download_image
 from db import get_all_id_and_img
 from sqlalchemy import text
 from sqlalchemy.exc import DataError
+import datetime
 
 
 def download_all_missing_images(app):
@@ -87,3 +88,23 @@ def update_sequence(app, app_db):
                 conn.execute(text("SELECT setval(pg_get_serial_sequence('label', 'id'), MAX(id)) FROM label;"))
             except DataError:
                 pass
+
+              
+def today():
+    return datetime.datetime.today().strftime('%Y-%m-%d')
+
+
+def to_date(begin_or_end, date_str):
+    # Converts a string into a date object
+    if not date_str:
+        if begin_or_end == 'begin':
+            date = datetime.datetime(year=1, month=1, day=1)
+        elif begin_or_end == 'end':
+            date = datetime.datetime(year=9999, month=12, day=31)
+    elif len(date_str) == 4:
+        date = datetime.datetime.strptime(date_str, "%Y")
+    elif len(date_str) == 7:
+        date = datetime.datetime.strptime(date_str, "%Y-%m")
+    elif len(date_str) == 10:
+        date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+    return date.date()

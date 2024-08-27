@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Date
+from sqlalchemy import String, Integer, ForeignKey, DateTime, Date, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Optional
 from datetime import datetime, date
@@ -30,6 +30,7 @@ class Release(app_db.Model):
     genre: Mapped[str] = mapped_column(String())
     tags: Mapped[Optional[str]] = mapped_column(String())
     image: Mapped[Optional[str]] = mapped_column(String())
+    # Below is deprecated; can be removed, but need to deal with existing entries
     review: Mapped[Optional[str]] = mapped_column(String())
 
     def __init__(self, mbid: Optional[str] = None, artist_id: int = 0, label_id: int = 0, **kwargs):
@@ -63,3 +64,42 @@ class Label(ArtistOrLabel):
 
 class Artist(ArtistOrLabel):
     __tablename__ = "artist"
+
+
+class Goal(app_db.Model):
+    __tablename__ = "goal"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    start_date: Mapped[datetime] = mapped_column(DateTime())
+    end_goal: Mapped[datetime] = mapped_column(DateTime())
+    end_actual: Mapped[Optional[datetime]] = mapped_column(DateTime())
+    type: Mapped[str] = mapped_column(String()) # i.e. Releases, Albums, Labels
+    amount: Mapped[int] = mapped_column(Integer())
+
+    @property
+    def new_releases_since_start_date(self):
+        return (
+            app_db.session.query(func.count(Release.id))
+            .filter(Release.listen_date >= self.start_date)
+            .scalar()
+        )
+
+    def check_and_update_goal(self):
+        print(f'Target amount: {self.amount} - Actual amount: {self.new_releases_since_start_date}')
+        if self.type == 'release':
+            if self.new_releases_since_start_date >= self.amount:
+                print('Updating end_actual to current time')
+                self.end_actual = datetime.now()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+class Review(app_db.Model):
+    __tablename__ = "review"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
+    timestamp: Mapped[date] = mapped_column(DateTime, default=func.now())
+    text: Mapped[str] = mapped_column(String())
+

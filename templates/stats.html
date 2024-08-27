@@ -18,25 +18,25 @@
         <tbody>
             <tr>
                 <td>most frequent labels: </td>
-                {% for label in data["frequent_labels"] %}
+                {% for label in data["top_frequent_labels"] %}
                 <td>{{ label["name"] }} ({{label["count"]}})</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td>highest rated labels: </td>
-                {% for label in data["favourite_labels"] %}
+                {% for label in data["top_rated_labels"] %}
                 <td>{{ label["name"] }} ({{ label["average_rating"] }})</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td>most frequent artists: </td>
-                {% for artist in data["frequent_artists"] %}
+                {% for artist in data["top_frequent_artists"] %}
                 <td>{{ artist["name"] }} ({{ artist["count"] }})</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td>top rated artists: </td>
-                {% for artist in data["favourite_artists"] %}
+                {% for artist in data["top_rated_artists"] %}
                 <td>{{ artist["name"] }} ({{ artist["average_rating"] }})</td>
                 {% endfor %}
             </tr>

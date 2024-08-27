@@ -1,17 +1,34 @@
 import sqlalchemy
-from sqlalchemy import func, extract
-import datetime
+from sqlalchemy import extract, func
+from datetime import datetime
 import pytz
 from dotenv import load_dotenv
-import os
-from models import app_db, Release, Label, Artist
+from os import getenv
+from models import app_db, Release, Label, Artist, Goal, Review
 
 load_dotenv()
-TIMEZONE = os.getenv('TIMEZONE')
+TIMEZONE = getenv('TIMEZONE')
 
 
-def insert_item(item):
-    # Insert an instance of one of the table classes
+def construct_item(model_name: str,
+                   data_dict: dict):
+    """
+    Construct an instance of a model from a dictionary
+    :param model_name: String corresponding to SQLAlchemy model class from models.py
+    :param data_dict: Dictionary containing keys corresponding to the database model class
+    :return: The newly constructed instance of the model class.
+    """
+    model = get_model(model_name)
+    item = model(**data_dict)
+    return item
+
+
+def insert(item: app_db.Model):
+    """
+    Insert an instance of a model class into the database
+    :param item: Instance of SQLAlchemy model class from models.py
+    :return: ID of the newly inserted item on success; -1 on failure
+    """
     try:
         app_db.session.add(item)
         app_db.session.commit()
@@ -24,352 +41,325 @@ def insert_item(item):
         print(f'Unexpected error: {err}')
 
 
-def insert_release(release):
-    # Construct an instance of the Release class, then insert it
-    new_release = Release(
-        mbid=release.get("mbid"),
-        artist_id=release.get("artist_id", 0),
-        label_id=release.get("label_id", 0),
-        name=release.get("name"),
-        release_year=release.get("release_year", 0),
-        runtime=release.get("runtime", 0),
-        rating=release.get("rating"),
-        listen_date=release.get("listen_date"),
-        track_count=release.get("track_count"),
-        country=release.get("country", 0),
-        image=release.get("image", ''),
-        genre=release.get("genre"),
-        tags=release.get("tags", '')
-    )
-    release_id = insert_item(new_release)
-    return release_id
+def update(item: app_db.Model):
+    """
+    Update an existing database entry
+    :param item: Instance of database model class to update
+    """
+    app_db.session.merge(item)
+    app_db.session.commit()
 
 
-def insert_artist(artist):
-    # Construct an instance of the Artist class, then insert it
-    new_artist = Artist(
-        mbid=artist.get("mbid", "0"),
-        name=artist.get("name"),
-        country=artist.get("country", ""),
-        type=artist.get("type", ""),
-        begin_date=artist.get("begin_date", ""),
-        end_date=artist.get("end_date", ""),
-        image=artist.get("image")
-    )
-    artist_id = insert_item(new_artist)
-    return artist_id
+def delete(item_type: str, item_id: str):
+    """
+    Delete an existing entry from the database
+    :param item_type: String corresponding to a database model class
+    :param item_id: The ID of the item to delete
+    """
+    model = get_model(item_type)
+    to_delete = app_db.session.query(model).where(model.id == item_id)
+    app_db.session.delete(to_delete)
+    app_db.session.commit()
 
 
-def insert_label(label):
-    # Construct an instance of the Label class, then insert it
-    new_label = Label(
-        mbid=label.get("mbid", "0"),
-        name=label.get("name"),
-        country=label.get("country", ""),
-        type=label.get("type", ""),
-        begin_date=label.get("begin_date", ""),
-        end_date=label.get("end_date", ""),
-        image=label.get("image")
-    )
-    label_id = insert_item(new_label)
-    return label_id
+def exists(item_type: str,
+           item_id: int = -1,
+           mbid: str = '',
+           name: str = ''):
+    """
+    Check if an entry exists in the database matching a mbid or name
+    :param item_type: Item's type, corresponding to a database model class
+    :param item_id: Optional - item's ID
+    :param mbid: Optional - item's MBID
+    :param name: Optional - item's name
+    :return: Item object if item exists, False otherwise
+    """
+    model = get_model(item_type)
+    query = model.query
+    if int(item_id) > -1:
+        query = query.filter(model.id == item_id)
+    if mbid:
+        query = query.filter(model.mbid == mbid)
+    if name:
+        query = query.filter(model.name.ilike(f'%{name}%'))
+
+    result = query.all()
+    if result:
+        return result
+    else:
+        return False
 
 
-def get_stats():
-    current_year = str(datetime.datetime.now().year)
-    days_this_year = datetime.date.today().timetuple().tm_yday
-    # Check if any releases are in the database. If not, skip stats
-    db_length = app_db.session.query(func.count(Release.id)).scalar()
-    if db_length == 0:
-        return ''
-
-    stats = {"total_listens": app_db.session.query(Release.id).count(),
-             "total_artists": app_db.session.query(Artist).count(),
-             "total_labels": app_db.session.query(Label).count(),
-             "average_rating": app_db.session.query(
-                 func.round(
-                     func.avg(Release.rating), 2)
-             ).scalar(),
-             "average_runtime": round(
-                 (
-                         (
-                             app_db.session.query(
-                                 func.avg(
-                                     Release.runtime
-                                 )
-                             ).scalar()
-                         ) / 60000
-                 ), 2
-             ),
-             "total_runtime": round(
-                 (
-                         (
-                             app_db.session.query(
-                                 func.sum(
-                                     Release.runtime
-                                 )
-                             ).scalar()
-                         ) / 3600000
-                 ), 2
-             ),
-             "listens_this_year": app_db.session.query(func.count(Release.id)).filter(
-                 extract('year', Release.listen_date) == current_year
-             ).scalar()
-             }
-    listens_per_day = stats["listens_this_year"] / days_this_year
-    stats["listens_per_day"] = round(listens_per_day, 2)
-
-    # Top rated labels
-    query = (
-        app_db.session.query(
-            Label.name,
-            func.round(func.avg(Release.rating), 2).label('average_rating'),
-            func.count(Release.label_id).label('release_count')
-        )
-        .join(Release, Release.label_id == Label.id)
-        .filter(
-            Label.name.notin_(['none', '[no label]']))  # Don't count the entries corresponding to no label for release
-        .group_by(Label.name)
-        .having(func.count(Release.label_id) != 1)  # Don't count labels with only 1 release
-        .order_by(func.round(func.avg(Release.rating), 2).desc())
-        .limit(5)
-        .all()
-    )
-    results = [{'name': row.name,
-                'average_rating': row.average_rating,
-                'release_count': row.release_count}
-               for row in query]
-    stats["favourite_labels"] = results
-
-    # Highest rated artists
-    query = (
-        app_db.session.query(
-            Artist.name,
-            func.round(func.avg(Release.rating), 2).label('average_rating'),
-            func.count(Release.artist_id).label('release_count')
-        )
-        .join(Release, Release.artist_id == Artist.id)
-        .group_by(Artist.name)
-        .having(func.count(Release.artist_id) != 1)
-        .order_by(func.round(func.avg(Release.rating), 2).desc())
-        .limit(5)
-        .all()
-    )
-    results = [{'name': row.name,
-                'average_rating': row.average_rating,
-                'release_count': row.release_count}
-               for row in query]
-    stats["favourite_artists"] = results
-
-    # Most frequent labels
-    query = (
-        app_db.session.query(
-            Label.name,
-            func.count(Release.label_id).label('count')
-        )
-        .join(Release, Release.label_id == Label.id)
-        .group_by(Label.name)
-        .order_by(func.count(Release.label_id).desc())
-        .limit(5)
-        .all()
-    )
-    results = [{'name': row.name,
-                'count': row.count}
-               for row in query]
-    stats["frequent_labels"] = results
-
-    # Most frequent artists
-    query = (
-        app_db.session.query(
-            Artist.name,
-            func.count(Release.artist_id).label('count')
-        )
-        .join(Release, Release.artist_id == Artist.id)
-        .where(Artist.name != "Various Artists")
-        .group_by(Artist.name)
-        .order_by(func.count(Release.artist_id).desc())
-        .limit(5)
-        .all()
-    )
-    results = [{'name': row.name,
-                'count': row.count}
-               for row in query]
-    stats["frequent_artists"] = results
-
-    return stats
-
-
-def get_homepage_data():
-    home_data = (
-        app_db.session.query(
-            Artist.id,
-            Artist.name,
-            Release.id,
-            Release.name,
-            Release.rating,
-            Release.listen_date,
-            Release.genre,
-            Release.image,
-            Release.tags
-        )
+def get_artist_releases(artist_id: int):
+    """
+    Returns all releases related to the artist_id passed in
+    :param artist_id: The ID of an Artist
+    :return: All releases associated with this ID
+    """
+    releases = (
+        app_db.session.query(Release, Label.name)
+        .join(Label, Release.label_id == Label.id)
         .join(Artist, Artist.id == Release.artist_id)
-        .order_by(Release.id.desc())
+        .where(Artist.id == artist_id)
+    ).all()
+    return releases
+
+
+def get_label_releases(label_id: int):
+    """
+    :param label_id: The ID of a Label
+    :return: All releases associated with this ID
+    """
+    releases = (
+        app_db.session.query(Release, Artist)
+        .join(Artist, Artist.id == Release.artist_id)
+        .where(Release.label_id == label_id)
+    ).all()
+    return releases
+
+
+def get_release_reviews(release_id: int):
+    """
+    :param release_id: ID of the release to filter by
+    :return: All reviews for the release ID
+    """
+    reviews = (
+        app_db.session.query(
+            func.to_char(Review.timestamp, 'YYYY-MM-DD HH24:MI').label('timestamp'),
+            Review.text
+        ).where(Review.release_id == release_id)
+    ).all()
+    return reviews
+
+
+def get_all(item_type: str):
+    """
+    Get all entries of a given SQLAlchemy model class
+    :param item_type: String corresponding to database model class
+    :return: All entries for that class
+    """
+    model = get_model(item_type)
+    return model.query.all()
+
+
+def get_distinct_col(table: app_db.Model,
+                     col: str):
+    """
+    Get distinct values of a non-unique column from the database
+    :param table: Database model class to query against
+    :param col: Column for which unique values are to be retrieved
+    :return: Distinct values for the column
+    """
+    if not hasattr(table, col):
+        raise ValueError('Model class does not have a matching column')
+
+    column = getattr(table, col)
+    query = app_db.session.query(
+        sqlalchemy.distinct(column)
     )
-    return home_data
+    distinct_values = [val[0] for val in query.all()]
+    return distinct_values
 
 
-def get_items(item_type):
-    # Gets all items of a specified type
-    if item_type == 'releases':
-        items = app_db.session.query(Release)
-    elif item_type == 'artists':
-        items = app_db.session.query(Artist)
-    elif item_type == 'labels':
-        items = app_db.session.query(Label)
-    else:
-        raise ValueError('ERROR: Invalid item_type: ', item_type)
-    return items
+def get_all_id_and_img():
+    """
+    Retrieve all IDs and images from the database
+    :return: Dictionary containing all IDs and images
+    """
+    releases = app_db.session.query(
+        Release.id, Release.image
+    ).all()
+    artists = app_db.session.query(
+        Artist.id, Artist.image
+    ).all()
+    labels = app_db.session.query(
+        Label.id, Label.image
+    ).all()
+    data = {
+        "releases": releases,
+        "artists": artists,
+        "labels": labels
+    }
+    return data
 
 
-def get_item(item_type, item_id):
-    # Gets a single item specified by its ID
-    if item_type == 'release':
-        release = app_db.session.query(Release).where(Release.id == item_id).first()
-        artist = app_db.session.query(Artist).where(Artist.id == release.artist_id).first()
-        label = app_db.session.query(Label).where(Label.id == release.label_id).first()
-        item_data = {
-            "release": release,
-            "artist": artist,
-            "label": label
-        }
-    elif item_type == 'artist':
-        artist = app_db.session.query(Artist).where(Artist.id == item_id).all()
-        releases = (app_db.session.query(Release, Label.name)
-                    .join(Label, Release.label_id == Label.id)
-                    .join(Artist, Artist.id == Release.artist_id)
-                    .where(Artist.id == item_id)
-                    .all()
-                    )
-        item_data = {
-            "artist": artist[0],
-            "releases": releases
-        }
-    elif item_type == 'label':
-        label = app_db.session.query(Label).where(Label.id == item_id).all()
-        releases = (app_db.session.query(Release, Artist)
-                    .join(Artist, Artist.id == Release.artist_id)
-                    .where(Release.label_id == item_id)
-                    ).all()
-        item_data = {
-            "label": label[0],
-            "releases": releases
-        }
-    else:
-        raise ValueError('ERROR: Invalid item_type: ', item_type)
-    return item_data
+def dynamic_search(data: dict):
+    """
+    Query data from the database. Used for /releases, /labels, /artists
+    :param data: Dictionary containing data to query by
+    :return: Results of a query returned from a dynamic_Model_search() function
+    """
+    if data['qtype'] == 'release':
+        return ["release", dynamic_release_search(data)]
+    elif data['qtype'] == 'artist':
+        return ["artist", dynamic_artist_search(data)]
+    elif data['qtype'] == 'label':
+        return ["label", dynamic_label_search(data)]
 
 
-def exists(mbid, item_type):
-    # mbid = the MusicBrainz ID for the entity
-    # item_type = release, artist, or label
-    # Returns a 2 element array:
-    # - 1: True if an item exists in the database, False otherwise
-    # - 2: Item's ID (primary key) in the database if it exists, None otherwise
-    if item_type == 'label':
-        q = app_db.session.query(Label.id).where(Label.mbid == mbid).scalar()
-    elif item_type == 'artist':
-        q = app_db.session.query(Artist.id).where(Artist.mbid == mbid).scalar()
-    elif item_type == 'release':
-        q = app_db.session.query(Release.id).where(Release.mbid == mbid).scalar()
-    else:
-        raise ValueError('Invalid item_type passed')
-    if q:
-        return [True, q]
-    else:
-        return [False, q]
+def dynamic_release_search(data: dict):
+    """
+    Query existing data entries from the database. Used for /releases
+    :param data: A dictionary containing terms to filter by
+    :return: Results of the constructed query
+    """
+    query = Release.query
+    for key, value in data.items():
+        if 'comparison' in key or key == 'qtype':
+            # Utility field, not meant to be queried by
+            pass
+        elif value != '' and value != 'NO VALUE':
+            # If value is non-empty, add it to query
+            if key == 'label':
+                search_label = exists(item_type='Label', name=value)
+                label_id = [label.id for label in search_label]
+                query = query.filter(Release.label_id.in_(label_id))
+            elif key == 'artist':
+                search_artist = exists(item_type='artist', name=value)
+                artist_id = [artist.id for artist in search_artist]
+                query = query.filter(Release.artist_id.in_(artist_id))
+            elif key == 'rating':
+                # op denotes the type of comparison to make
+                # -1 = less than; 0 = equal; 1 = greater than
+                op = data['rating_comparison']
+                if op == '-1':
+                    query = query.filter(Release.rating < value)
+                elif op == '0':
+                    query = query.filter(Release.rating == value)
+                elif op == '1':
+                    query = query.filter(Release.rating > value)
+            elif key == 'year':
+                # op denotes the type of comparison to make
+                # -1 = less than; 0 = equal; 1 = greater than
+                op = data['year_comparison']
+                if op == '-1':
+                    query = query.filter(Release.release_year < value)
+                elif op == '0':
+                    query = query.filter(Release.release_year == value)
+                elif op == '1':
+                    query = query.filter(Release.release_year > value)
+            elif key == 'name' or key == 'tags':
+                query = query.filter(
+                    Release.name.ilike(f'%{value}%')
+                )
+            else:
+                query = query.filter(
+                    getattr(Release, key) == value
+                )
+    results = query.order_by(Release.id).all()
+    return results
 
 
-def delete_item(item_type, item_id):
-    if item_type == 'release':
-        release = app_db.session.execute(
-            app_db.select(Release).where(Release.id == item_id)
-        ).scalar_one_or_none()
-        app_db.session.delete(release)
-        app_db.session.commit()
-    elif item_type == 'artist':
-        artist = app_db.session.execute(
-            app_db.select(Artist).where(Artist.id == item_id)
-        ).scalar_one_or_none()
-        app_db.session.delete(artist)
-        app_db.session.commit()
-    elif item_type == 'label':
-        label = app_db.session.execute(
-            app_db.select(Label).where(Label.id == item_id)
-        ).scalar_one_or_none()
-        app_db.session.delete(label)
-        app_db.session.commit()
-    else:
-        raise ValueError("ERROR: Invalid item_type")
-    return 0
+def dynamic_artist_search(data: dict):
+    """
+    Query existing data entries from the database. Used for /artists
+    :param data: A dictionary containing terms to filter by
+    :return: Results of the constructed query
+    """
+    query = Artist.query
+    for key, value in data.items():
+        if 'comparison' in key or key == 'qtype':
+            # Utility field, not meant to be queried by
+            pass
+        elif value != '' and value != 'NO VALUE':
+            if key == 'name':
+                query = query.filter(
+                    Artist.name.ilike(f'%{value}%')
+                )
+            elif key == 'begin_date':
+                op = data["begin_comparison"]
+                query = apply_date_filter(query, Artist, key, op, value)
+            elif key == 'end_date':
+                op = data["end_comparison"]
+                query = apply_date_filter(query, Artist, key, op, value)
+            else:
+                query = query.filter(
+                    getattr(Artist, key) == value
+                )
+    results = query.all()
+    return results
 
 
-def update_release(edit_data):
-    # edit_data is a dictionary POSTed from /edit/<release>
-    release_id = edit_data['release_id']
-    release_entry = get_item(item_type='release', item_id=release_id)['release']
-    release_entry.listen_date = edit_data['listen_date']
-    release_entry.rating = edit_data['rating_edit']
-    release_entry.release_year = edit_data['release_year']
-    release_entry.genre = edit_data['genre']
-    release_entry.tags = edit_data['tags']
-    release_entry.country = edit_data['country']
-    release_entry.image = edit_data['image']
-    app_db.session.commit()
-    return 0
+def dynamic_label_search(data: dict):
+    """
+    Query existing data entries from the database. Used for /labels
+    :param data: A dictionary containing terms to filter by
+    :return: Results of the constructed query
+    """
+    query = Label.query
+    for key, value in data.items():
+        if 'comparison' in key or key == 'qtype':
+            # Utility field, not meant to be queried by
+            pass
+        elif value != '' and value != 'NO VALUE':
+            if key == 'name':
+                query = query.filter(
+                    Label.name.ilike(f'%{value}%')
+                )
+            elif key == 'begin_date':
+                op = data["begin_comparison"]
+                query = apply_date_filter(query, Label, key, op, value)
+            elif key == 'end_date':
+                op = data["end_comparison"]
+                query = apply_date_filter(query, Label, key, op, value)
+            else:
+                query = query.filter(
+                    getattr(Label, key) == value
+                )
+    results = query.all()
+    return results
 
 
-def add_review(data):
-    release_id = data['release_id']
-    review = data['review']
-
-    release = app_db.session.query(Release).where(Release.id == release_id).one_or_none()
-    release.review = review
-    app_db.session.commit()
-    return 0
+def get_model(model_name: str):
+    """
+    :param model_name: String corresponding to a database model class
+    :return: Instance of that model's class
+    """
+    return globals().get(model_name.capitalize())
 
 
-def distinct_entries(table, column):
-    # Column should correspond to a column in the database table (one of the model class attributes)
-    if not hasattr(table, '__table__'):
-        raise ValueError('Invalid table')
-    if not hasattr(table, column):
-        raise ValueError('Invalid column for this table')
-
-    col = getattr(table, column)
-    distinct = app_db.session.query(sqlalchemy.distinct(col)).order_by(col).all()
-    # distinct comes out as a list of tuples so below unpacks into just a list
-    return [genre[0] for genre in distinct]
+def apply_date_filter(query,
+                      model: app_db.Model,
+                      key: str,
+                      op: str,
+                      value: str):
+    """
+    Used by dynamic_(artist|label)_search to perform comparisons on begin_date and end_date
+    :param query: An instance of a database model query class
+    :param model: The database model class to filter on
+    :param key: The column to filter on - begin_date or end_date
+    :param op: Denotes the comparison to perform; -1 = lt, 0 = eq, 1 = gt
+    :param value: The value to compare against
+    :return: Newly constructed query
+    """
+    if op == '-1':
+        query = query.filter(extract('year', getattr(model, key)) < int(value))
+    elif op == '0':
+        query = query.filter(extract('year', getattr(model, key)) == int(value))
+    elif op == '1':
+        query = query.filter(extract('year', getattr(model, key)) > int(value))
+    return query
 
 
 def submit_manual(data):
     print(data)
     label_name = data["label"]
-    existing_label = check_item_by_name('label', label_name)
+    existing_label = exists(item_type='label', name=label_name)
     if existing_label is not None:
-        label_id = existing_label[0]
+        label_id = existing_label.id
     else:
         label = Label()
         label.name = label_name
-        label_id = insert_item(label)
+        label_id = insert(label)
 
     artist_name = data["artist"]
-    existing_artist = check_item_by_name('artist', artist_name)
+    existing_artist = exists(item_type='artist', name=artist_name)
     if existing_artist is not None:
-        artist_id = existing_artist[0]
+        artist_id = existing_artist.id
     else:
         artist = Artist()
         artist.name = artist_name
-        artist_id = insert_item(artist)
+        artist_id = insert(artist)
 
     local_timezone = pytz.timezone(TIMEZONE)
 
@@ -382,250 +372,10 @@ def submit_manual(data):
     release.genre = data["genre"]
     release.tags = data["tags"]
     release.image = data["image"]
-    release.listen_date = datetime.datetime.now(local_timezone).strftime("%Y-%m-%d")
-    insert_item(release)
+    release.listen_date = datetime.now(local_timezone).strftime("%Y-%m-%d")
+    insert(release)
 
 
-def check_item_by_name(item_type, name):
-    if item_type == 'artist':
-        result = app_db.session.query(Artist.id).where(func.lower(Artist.name) == func.lower(name)).one_or_none()
-    elif item_type == 'label':
-        result = app_db.session.query(Label.id).where(func.lower(Label.name) == func.lower(name)).one_or_none()
-    elif item_type == 'release':
-        result = app_db.session.query(Label.id).where(func.lower(Label.name) == func.lower(name)).one_or_none()
-    else:
-        raise ValueError('Invalid item_type')
-    return result
-
-
-def dynamic_search(data):
-    # data is a dictionary POSTed from /releases, /artists, or /labels
-    # we don't know which form fields will be populated beforehand
-    print(f'INFO: SEARCH DATA: {data}')
-    populated_fields = {}
-    for key, value in data.items():
-        if 'comparison' in key or key == 'qtype':
-            print('INFO: Utility field, not meant to be in the query, moving on')
-        else:
-            if value != '':
-                # print(f'CURRENT DATA ITEM: {key}, {value}')
-                if data['qtype'] == 'release':
-                    return_data = ["release"]
-                    if key == 'label':
-                        # print('LABEL IDENTIFIED - QUERYING')
-                        try:
-                            label_id = (
-                                Label.query.filter(
-                                    func.lower(Label.name) == func.lower(value)
-                                )
-                                .first()
-                                .id
-                            )
-                            populated_fields['label_id'] = label_id
-                            # print(f'LABEL FOUND WITH ID {label_id}')
-                        except AttributeError:
-                            print('ERROR: Label does not exist')
-                    elif key == 'artist':
-                        # print('ARTIST IDENTIFIED - QUERYING')
-                        try:
-                            artist_id = (
-                                Artist.query.filter(
-                                    Artist.name.ilike(
-                                        f'%{value}%'
-                                    )
-                                )
-                                .first()
-                                .id
-                            )
-                            populated_fields['artist_id'] = artist_id
-                            # print(f'ARTIST FOUND WITH ID {artist_id}')
-                        except AttributeError:
-                            print('Artist does not exist')
-                    elif key == 'country' and value == 'NO VALUE':
-                        print('INFO: Country empty, moving on')
-                    elif key in ['rating', 'year']:
-                        populated_fields[key] = int(value)
-                    else:
-                        print('OTHER KEY FOUND; ADDING TO POPULATED FIELDS')
-                        print(key, value)
-                        populated_fields[key] = value
-                    print(f'INFO: Populated Fields: {populated_fields}')
-                    query = Release.query
-                    for k, v in populated_fields.items():
-                        print(f'current key: {k}')
-                        print(f'INFO: Adding to query: {key}, {value}')
-                        if k == 'rating':
-                            op = data['rating_comparison']
-                            if op == '-1':
-                                # print('OPERATOR: Less than')
-                                query = query.filter(Release.rating < v)
-                            elif op == '0':
-                                # print('OPERATOR: Equal')
-                                query = query.filter(Release.rating == v)
-                            elif op == '1':
-                                query = query.filter(Release.rating > v)
-                                # print('OPERATOR: Greater than')
-                        elif k == 'year':
-                            op = data['year_comparison']
-                            if op == '-1':
-                                # print('OPERATOR: Less than')
-                                query = query.filter(Release.release_year < v)
-                            elif op == '0':
-                                # print('OPERATOR: Equal')
-                                query = query.filter(Release.release_year == v)
-                            elif op == '1':
-                                # print('OPERATOR: Greater than')
-                                query = query.filter(Release.release_year > v)
-                        elif k == 'name':
-                            query = query.filter(
-                                Release.name.ilike(f'%{v}%')
-                            )
-                        else:
-                            query = query.filter(getattr(Release, k) == v)
-                        print(f'IFNO: Results after this query: {query.all()}')
-
-                elif data['qtype'] == 'artist':
-                    return_data = ["artist"]
-                    if key == 'country' and value == 'NO VALUE':
-                        print('INFO: Country empty, moving on')
-                    elif key == 'type' and value == 'NO VALUE':
-                        print('INFO: Type empty, moving on')
-                    else:
-                        populated_fields[key] = value
-                    print(f'POPULATED FIELDS: {populated_fields}')
-                    query = Artist.query
-                    for k, v in populated_fields.items():
-                        if k == 'name':
-                            query = query.filter(
-                                Artist.name.ilike(f'%{v}%')
-                            )
-                        elif k == 'country':
-                            print(f'Filtering for country like {v}')
-                            query = query.filter(
-                                Artist.country == v
-                            )
-                        elif k == 'begin_date':
-                            op = data["begin_comparison"]
-                            if op == '-1':
-                                query = query.filter(
-                                    extract('year', Artist.begin_date) < int(v)
-                                )
-                            elif op == '0':
-                                query = query.filter(
-                                    extract('year', Artist.begin_date) == int(v)
-                                )
-                            elif op == '1':
-                                query = query.filter(
-                                    extract('year', Artist.begin_date) > int(v)
-                                )
-                        elif k == 'end_date':
-                            op = data["end_comparison"]
-                            if op == '-1':
-                                query = query.filter(
-                                    extract('year', Artist.end_date) < int(v)
-                                )
-                            elif op == '0':
-                                query = query.filter(
-                                    extract('year', Artist.end_date) == int(v)
-                                )
-                            elif op == '1':
-                                query = query.filter(
-                                    extract('year', Artist.end_date) > int(v)
-                                )
-
-                        else:
-                            query = query.filter(getattr(Artist, k) == v)
-
-                elif data['qtype'] == 'label':
-                    return_data = ["label"]
-                    if key == 'country' and value == 'NO VALUE':
-                        print('INFO: Country empty, moving on')
-                    elif key == 'type' and value == 'NO VALUE':
-                        print('INFO: Type empty, moving on')
-                    else:
-                        populated_fields[key] = value
-                    query = Label.query
-                    for k, v in populated_fields.items():
-                        if k == 'name':
-                            query = query.filter(
-                                Release.name.ilike(f'%{v}%')
-                            )
-                        elif k == 'begin_date':
-                            op = data["begin_comparison"]
-                            if op == '-1':
-                                query = query.filter(
-                                    extract('year', Label.begin_date) < int(v)
-                                )
-                            elif op == '0':
-                                query = query.filter(
-                                    extract('year', Label.begin_date) == int(v)
-                                )
-                            elif op == '1':
-                                query = query.filter(
-                                    extract('year', Label.begin_date) > int(v)
-                                )
-                        elif k == 'end_date':
-                            op = data["end_comparison"]
-                            if op == '-1':
-                                query = query.filter(
-                                    extract('year', Label.end_date) < int(v)
-                                )
-                            elif op == '0':
-                                query = query.filter(
-                                    extract('year', Label.end_date) == int(v)
-                                )
-                            elif op == '1':
-                                query = query.filter(
-                                    extract('year', Label.end_date) > int(v)
-                                )
-                        else:
-                            query = query.filter(getattr(Label, k) == v)
-                else:
-                    raise ValueError('Invalid qtype; must be one of [release, artist, label]')
-
-    return_data.append(query.all())
-    print(return_data)
-
-    # print("FINAL QUERY DATA:")
-    # print(data)
-    return return_data
-
-
-def get_all_id_and_img():
-    releases = app_db.session.query(
-        Release.id, Release.image
-    ).all()
-    artists = app_db.session.query(
-        Artist.id, Artist.image
-    )
-    labels = app_db.session.query(
-        Label.id, Label.image
-    )
-    data = {
-        "releases": releases,
-        "artists": artists,
-        "labels": labels
-    }
-    return data
-
-
-# ---- INCOMPLETE -----
-def update_artist():
-    return 0
-
-
-def update_label():
-    return 0
-
-
-# below should maybe be moved elsewhere
-def get_missing_covers():
-    return 0
-
-
-def get_missing_artist_data():
-    return 0
-
-
-def get_missing_label_data():
-    return 0
+def get_incomplete_goals():
+    query = Goal.query.where(Goal.end_actual.is_(None))
+    return query.all()

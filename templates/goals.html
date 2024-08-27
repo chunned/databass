@@ -1,0 +1,71 @@
+{% extends '_base.html' %}
+{% block content %}
+
+<div class="goals">
+    <div class="new-goal">
+    <h3>New Goal</h3>
+    <form action="/add_goal" method="POST">
+        <table>
+            <tr>
+                <td class="form-cell">
+                    <label for="start_date">start date</label>
+                </td>
+                <td class="form-cell">
+                    <label for="end_goal">end goal date</label>
+                </td>
+                <td class="form-cell">
+                    <label for="type">type</label>
+                </td>
+                <td class="form-cell">
+                    <label for="amount">amount</label>
+                </td>
+                <td class="form-cell">
+
+                </td>
+            </tr>
+            <tr>
+                <td class="form-cell">
+                    <input id="start_date" type="date" name="start_date" class="box" value="{{ data.today }}" required>
+                </td>
+                <td class="form-cell">
+                    <input id="end_goal" type="date" name="end_goal" class="box" required>
+                </td>
+                <td class="form-cell">
+                    <select id="type" name="type" class="box" required>
+                        <option value="release">release</option>
+                    </select>
+                </td>
+                <td class="form-cell">
+                    <input id="amount" type="number" min="0" name="amount" class="box" required>
+                </td>
+                <td class="form-cell">
+                    <button type="submit" class="box" value="submit" id="submit">submit</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+    </div>
+    <div class="existing-goals">
+        <h3>Existing Goals</h3>
+        <table style="text-align: center; width: 80vw;">
+            <tr>
+                <td>start date</td>
+                <td>end target</td>
+                <td>type</td>
+                <td>value (goal)</td>
+                <td>value (actual)</td>
+            </tr>
+            {% for goal in data.existing_goals %}
+            <tr>
+                <td>{{ goal.start_date.date() }}</td>
+                <td>{{ goal.end_goal.date() }}</td>
+                <td>{{ goal.type }}</td>
+                <td>{{ goal.amount }}</td>
+                <td>{{ goal.new_releases_since_start_date }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends '_base.html' %}
 {% block content %}
 <div>
-    <form action="/edit-release" method="POST">
+    <form action="/edit_release" method="POST">
         <input type="hidden" id="release_id" name="release_id" value="{{ data.release.id }}">
     <table class="release-table">
         <thead>
