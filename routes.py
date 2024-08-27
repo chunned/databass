@@ -291,3 +291,4 @@ def register_routes(app):
         goal = db.construct_item(model_name='goal', data_dict=data)
         db.insert(goal)
         return redirect('/goals', 302)
+

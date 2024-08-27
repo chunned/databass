@@ -89,7 +89,7 @@ def update_sequence(app, app_db):
             except DataError:
                 pass
 
-
+              
 def today():
     return datetime.datetime.today().strftime('%Y-%m-%d')
 
