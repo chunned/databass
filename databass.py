@@ -6,6 +6,7 @@ from models import app_db
 from dotenv import load_dotenv
 from uuid import uuid4
 
+
 load_dotenv()
 db_name = os.environ.get('DB_NAME')
 db_user = os.environ.get('PG_USER')

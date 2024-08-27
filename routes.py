@@ -11,6 +11,7 @@ def register_routes(app):
     @app.route('/home', methods=['GET'])
     def home():
         stats = get_stats()
+        goals = db.get_incomplete_goals()
         data = get_releases()
         page = request.args.get(
             get_page_parameter(),
@@ -36,6 +37,7 @@ def register_routes(app):
             'index.html',
             data=paged_data,
             stats=stats,
+            goals=goals,
             pagination=flask_pagination,
             active_page='home'
         )
@@ -145,6 +147,14 @@ def register_routes(app):
             item_id=release_id,
             img_url=release_image_url)
         print(f'INFO: Image saved to {release_image_path}')
+        print('INFO: Checking active goals')
+        goals = db.get_incomplete_goals()
+        for goal in goals:
+            goal.check_and_update_goal()
+            if goal.end_actual:
+                print(f'Goal is complete. End date set to {goal.end_actual}')
+                db.update(goal)
+                print('Goal updated.')
         return redirect("/", code=302)
 
     @app.route('/releases', methods=["GET"])
@@ -268,8 +278,10 @@ def register_routes(app):
 
     @app.route('/goals', methods=['GET'])
     def goals():
+        existing_goals = db.get_incomplete_goals()
         data = {
-            "today": util.today()
+            "today": util.today(),
+            "existing_goals": existing_goals
         }
         return render_template('goals.html', active_page='goals', data=data)
 

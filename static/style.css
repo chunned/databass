@@ -315,3 +315,17 @@ input {
 .review-time {
     width: 10vw!important;
 }
+
+.home-stats {
+    width: 90%;
+    text-align: center;
+}
+
+.home-stats tr {
+    vertical-align: top;
+    height: 5vh;
+}
+
+.home2 {
+    width: 100%
+}

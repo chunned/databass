@@ -66,14 +66,29 @@ class Artist(ArtistOrLabel):
     __tablename__ = "artist"
 
 
-class Goal(Base):
+class Goal(app_db.Model):
     __tablename__ = "goal"
     id: Mapped[int] = mapped_column(primary_key=True)
-    start_date: Mapped[str] = mapped_column(String())
-    end_goal: Mapped[str] = mapped_column(String())
-    end_actual: Mapped[Optional[str]] = mapped_column(String())
+    start_date: Mapped[datetime] = mapped_column(DateTime())
+    end_goal: Mapped[datetime] = mapped_column(DateTime())
+    end_actual: Mapped[Optional[datetime]] = mapped_column(DateTime())
     type: Mapped[str] = mapped_column(String()) # i.e. Releases, Albums, Labels
     amount: Mapped[int] = mapped_column(Integer())
+
+    @property
+    def new_releases_since_start_date(self):
+        return (
+            app_db.session.query(func.count(Release.id))
+            .filter(Release.listen_date >= self.start_date)
+            .scalar()
+        )
+
+    def check_and_update_goal(self):
+        print(f'Target amount: {self.amount} - Actual amount: {self.new_releases_since_start_date}')
+        if self.type == 'release':
+            if self.new_releases_since_start_date >= self.amount:
+                print('Updating end_actual to current time')
+                self.end_actual = datetime.now()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -81,9 +96,10 @@ class Goal(Base):
             setattr(self, key, value)
 
 
-class Review(Base):
+class Review(app_db.Model):
     __tablename__ = "review"
     id: Mapped[int] = mapped_column(primary_key=True)
     release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
     timestamp: Mapped[date] = mapped_column(DateTime, default=func.now())
     text: Mapped[str] = mapped_column(String())
+

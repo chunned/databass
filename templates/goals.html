@@ -33,8 +33,6 @@
                 <td class="form-cell">
                     <select id="type" name="type" class="box" required>
                         <option value="release">release</option>
-                        <option value="artist">artist</option>
-                        <option value="label">label</option>
                     </select>
                 </td>
                 <td class="form-cell">
@@ -49,13 +47,23 @@
     </div>
     <div class="existing-goals">
         <h3>Existing Goals</h3>
-        <table>
+        <table style="text-align: center; width: 80vw;">
             <tr>
-
+                <td>start date</td>
+                <td>end target</td>
+                <td>type</td>
+                <td>value (goal)</td>
+                <td>value (actual)</td>
             </tr>
+            {% for goal in data.existing_goals %}
             <tr>
-
+                <td>{{ goal.start_date.date() }}</td>
+                <td>{{ goal.end_goal.date() }}</td>
+                <td>{{ goal.type }}</td>
+                <td>{{ goal.amount }}</td>
+                <td>{{ goal.new_releases_since_start_date }}</td>
             </tr>
+            {% endfor %}
         </table>
     </div>
 </div>

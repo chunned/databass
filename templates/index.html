@@ -65,36 +65,95 @@
     <div class="home2">
         <table class="home-stats">
             <tr>
-                <th>STATS</th>
+                <th colspan="3"><h3>STATS</h3></th>
             </tr>
             <tr>
-                <td>listens</td>
-                <td>{{ stats["total_listens"] }}</td>
+                <td>
+                    listens
+                </td>
+                <td>
+                    artists
+                </td>
+                <td>
+                    labels
+                </td>
             </tr>
             <tr>
-                <td>artists</td>
-                <td>{{ stats["total_artists"] }}</td>
+                <td>
+                   {{ stats.total_listens }}
+                </td>
+                <td>
+                    {{ stats.total_artists }}
+                </td>
+                <td>
+                    {{ stats.total_labels }}
+                </td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td>
+                    avg rating
+                </td>
+                <td>
+                    avg runtime (m)
+                </td>
+                <td>
+                    total runtime (h)
+                </td>
             </tr>
             <tr>
-                <td>avg. rating (%)</td>
-                <td>{{ stats["average_rating"] }}</td>
+                <td>
+                    {{ stats.average_rating }}
+                </td>
+                <td>
+                    {{ stats.average_runtime }}
+                </td>
+                <td>
+                    {{ stats.total_runtime }}
+                </td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td>
+                    listens this year
+                </td>
+                <td></td>
+                <td>
+                    listens per day (2024)
+                </td>
             </tr>
             <tr>
-                <td>avg. runtime (m)</td>
-                <td>{{ stats["average_runtime"] }}</td>
+                <td>
+                    {{ stats.listens_this_year }}
+                </td>
+                <td></td>
+                <td>
+                    {{ stats.listens_per_day }}
+                </td>
+            </tr>
+        </table>
+
+        <table style="width: 90%; text-align: center;">
+            <tr>
+                <th colspan="5"><h3>GOALS</h3></th>
+            </tr>
+            {% for goal in goals %}
+            <tr>
+                <td>start:</td>
+                <td>goal:</td>
+                <td>progress:</td>
             </tr>
             <tr>
-                <td>total runtime (h)</td>
-                <td>{{ stats["total_runtime"] }}</td>
+                <td>{{ goal.start_date.date() }}</td>
+                <td>{{ goal.amount }} releases by</td>
+                <td>{{ goal.new_releases_since_start_date / goal.amount * 100}}%</td>
             </tr>
             <tr>
-                <td>listens this year</td>
-                <td>{{ stats["listens_this_year"] }}</td>
+                <td></td>
+                <td>{{ goal.end_goal.date() }}</td>
+                <td>{{ goal.new_releases_since_start_date }}/{{ goal.amount }} </td>
             </tr>
-            <tr>
-                <td>listens per day (2024)</td>
-                <td>{{ stats["listens_per_day"] }}</td>
-            </tr>
+            {% endfor %}
         </table>
     </div>
 </div>

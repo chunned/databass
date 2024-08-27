@@ -374,3 +374,8 @@ def submit_manual(data):
     release.image = data["image"]
     release.listen_date = datetime.now(local_timezone).strftime("%Y-%m-%d")
     insert(release)
+
+
+def get_incomplete_goals():
+    query = Goal.query.where(Goal.end_actual.is_(None))
+    return query.all()
