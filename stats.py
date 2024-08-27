@@ -187,8 +187,8 @@ def top_frequent_artists():
 def get_homepage_releases():
     results = (
         app_db.session.query(
-            Artist.id,
-            Artist.name,
+            Artist.id.label('artist_id'),
+            Artist.name.label('artist_name'),
             Release.id,
             Release.name,
             Release.rating,

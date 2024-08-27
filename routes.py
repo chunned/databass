@@ -24,7 +24,8 @@ def register_routes(app):
             error_out=True
         )
 
-        paged_data = pagination.items
+        paged_data = [result._asdict() for result in pagination.items]
+        print(paged_data)
 
         flask_pagination = Pagination(
             page=page,

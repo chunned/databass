@@ -1,8 +1,8 @@
 {% extends '_base.html' %}
 {% block content %}
-<div class="home0">
-    <div class="home1">
-        <table>
+<div class="home">
+    <div class="home_albums_container">
+        <table class="home_pagination">
             <tr>
                 <td>
                     {% if pagination.has_prev %}
@@ -20,139 +20,140 @@
                 </td>
             </tr>
         </table>
-        <table class="main-album-table">
-            <tr id="header_row">
-                <th class="col1">ART</th>
-                <th class="col2">ARTIST</th>
-                <th class="col3">TITLE</th>
-                <th class="col4">RATING</th>
-                <th class="col5">LISTEN DATE</th>
-                <th class="col6">GENRE</th>
-                <th class="col7">TAGS</th>
-            </tr>
+        <table class="home_album_table">
+            <thead>
+                <tr>
+                    <th class="col1">ART</th>
+                    <th class="col2">ARTIST</th>
+                    <th class="col3">TITLE</th>
+                    <th class="col4">RATING</th>
+                    <th class="col5">LISTEN DATE</th>
+                    <th class="col6">GENRE</th>
+                    <th class="col7">TAGS</th>
+                </tr>
+            </thead>
+
             {% for item in data %}
             <tr>
                 <td class="col1">
-                {% set local_image = item[2]|string|img_exists("release", item[7]) %}
+                {% set local_image = item.id|string|img_exists("release", item.image) %}
                 {% if local_image %}
                     <img src="{{ local_image }}" class="homepage_covers" alt="Album art">
                 {% else %}
-                    <img src="{{ item[7] }}" class="homepage_covers col1" alt="Album art">
+                    <img src="{{ item.image }}" class="homepage_covers col1" alt="Album art">
                 {% endif %}
                 </td>
                 <td class="col2">
-                    <a href="/artist/{{ item[0] }}" class="link">{{ item[1] }}</a>
+                    <a href="/artist/{{ item.artist_id }}" class="link">{{ item.artist_name }}</a>
                 </td>
                 <td class="col3">
-                    <a href="/release/{{ item[2] }}" class="link">{{ item[3] }}</a>
+                    <a href="/release/{{ item.id }}" class="link">{{ item.name }}</a>
                 </td>
                 <td class="col4">
-                    {{ item[4] }}%
+                    {{ item.rating }}%
                 </td>
                 <td class="col5">
-                    {{ item[5] }}
+                    {{ item.listen_date.date() }}
                 </td>
                 <td class="col6">
-                    {{ item[6] }}
+                    {{ item.genre }}
                 </td>
                 <td class="col7">
-                    {{ item[8] }}
+                    {{ item.tags }}
                 </td>
             </tr>
         {% endfor %}
         </table>
     </div>
-    <div class="home2">
-        <table class="home-stats">
+    <div class="home_stats_container">
+        <table class="home_stats">
             <tr>
-                <th colspan="3"><h3>STATS</h3></th>
+                <th colspan="2"><h3>STATS</h3></th>
             </tr>
             <tr>
                 <td>
                     listens
                 </td>
                 <td>
-                    artists
-                </td>
-                <td>
-                    labels
+                    {{ stats.total_listens }}
                 </td>
             </tr>
             <tr>
                 <td>
-                   {{ stats.total_listens }}
+                    artists
                 </td>
                 <td>
                     {{ stats.total_artists }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    labels
                 </td>
                 <td>
                     {{ stats.total_labels }}
                 </td>
             </tr>
-            <tr></tr>
             <tr>
                 <td>
                     avg rating
                 </td>
                 <td>
-                    avg runtime (m)
-                </td>
-                <td>
-                    total runtime (h)
+                    {{ stats.average_rating }}%
                 </td>
             </tr>
             <tr>
                 <td>
-                    {{ stats.average_rating }}
+                    avg runtime
                 </td>
                 <td>
-                    {{ stats.average_runtime }}
-                </td>
-                <td>
-                    {{ stats.total_runtime }}
+                    {{ stats.average_runtime }}m
                 </td>
             </tr>
-            <tr></tr>
+            <tr>
+                <td>
+                    total runtime
+                </td>
+                <td>
+                    {{ stats.total_runtime }}h
+                </td>
+            </tr>
             <tr>
                 <td>
                     listens this year
                 </td>
-                <td></td>
                 <td>
-                    listens per day (2024)
+                    {{ stats.listens_this_year }}
                 </td>
             </tr>
             <tr>
                 <td>
-                    {{ stats.listens_this_year }}
+                    listens per day
                 </td>
-                <td></td>
                 <td>
                     {{ stats.listens_per_day }}
                 </td>
             </tr>
         </table>
 
-        <table style="width: 90%; text-align: center;">
+        <table class="home_stats">
             <tr>
-                <th colspan="5"><h3>GOALS</h3></th>
+                <th colspan="2"><h3>GOALS</h3></th>
             </tr>
             {% for goal in goals %}
             <tr>
-                <td>start:</td>
-                <td>goal:</td>
-                <td>progress:</td>
+                <td style="text-align: right;">{{ goal.amount }} releases by </td>
+                <td style="text-align: left;">{{ goal.end_goal.date() }}</td>
             </tr>
             <tr>
-                <td>{{ goal.start_date.date() }}</td>
-                <td>{{ goal.amount }} releases by</td>
-                <td>{{ goal.new_releases_since_start_date / goal.amount * 100}}%</td>
+                <td style="text-align: right;">start:</td>
+                <td style="text-align: left;">{{ goal.start_date.date() }}</td>
             </tr>
             <tr>
-                <td></td>
-                <td>{{ goal.end_goal.date() }}</td>
-                <td>{{ goal.new_releases_since_start_date }}/{{ goal.amount }} </td>
+                <td style="text-align: right;">progress:</td>
+                <td style="text-align: left;">{{ goal.new_releases_since_start_date / goal.amount * 100}}% ({{ goal.new_releases_since_start_date }}/{{ goal.amount }})</td>
             </tr>
+
             {% endfor %}
         </table>
     </div>
