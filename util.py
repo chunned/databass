@@ -1,7 +1,7 @@
 from flask import url_for
 import os
 from api import get_image_type_from_url, download_image
-from db import get_all_id_and_img
+from db import insert, get_all, construct_item, get_all_id_and_img
 from sqlalchemy import text
 from sqlalchemy.exc import DataError
 import datetime
@@ -95,6 +95,7 @@ def today():
 
 
 def to_date(begin_or_end, date_str):
+    date = None
     # Converts a string into a date object
     if not date_str:
         if begin_or_end == 'begin':
@@ -107,4 +108,31 @@ def to_date(begin_or_end, date_str):
         date = datetime.datetime.strptime(date_str, "%Y-%m")
     elif len(date_str) == 10:
         date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-    return date.date()
+    
+    if date is not None:
+        return date.date()
+    else:
+        raise ValueError(f"Unexpected date string format: {date_str}")
+
+
+
+def get_page_range(per_page, current_page):
+    start = (current_page - 1) * per_page
+    end = start + per_page
+    return start, end
+
+
+def db_migrate():
+    releases = get_all('release')
+    for release in releases:
+        if release.tags:
+            tags = release.tags.split(',')
+            for tag in tags:
+                tag_data = {"name": tag, "release_id": release.id}
+                tag_obj = construct_item('tag', tag_data)
+                insert(tag_obj) 
+
+
+
+
+

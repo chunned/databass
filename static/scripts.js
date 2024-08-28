@@ -272,7 +272,7 @@ function handleReleaseSearch() {
         year_comparison: document.querySelector("#year-filter").value,
         year: document.querySelector("#year").value,
         genre: document.querySelector("#genre").value,
-        tags: document.querySelector("#tags").value
+        tags: [document.querySelector("#tags").value]
     };
     searchAjax(data);
 }

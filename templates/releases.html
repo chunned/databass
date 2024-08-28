@@ -58,7 +58,13 @@
             </td>
             <td class="form-cell">
                 <label for="tags">tags</label><br>
-                <input type="text" id="tags" name="tags" class="box">
+                <div class="checkbox-form">
+                    <select id="tags">
+                    {% for tag in data.tags %}
+                        <option value="{{ tag }}">{{ tag }}</option>
+                    {% endfor %}
+                    </select>
+                </div>
             </td>
             <td class="form-cell"><br>
                 <button type="button" class="box release-search" value="submit">submit</button>

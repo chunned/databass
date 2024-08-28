@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Date, func
+from sqlalchemy import String, Integer, ForeignKey, DateTime, Date, func, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from typing import Optional
 from datetime import datetime, date
@@ -103,3 +103,14 @@ class Review(app_db.Model):
     timestamp: Mapped[date] = mapped_column(DateTime, default=func.now())
     text: Mapped[str] = mapped_column(String())
 
+
+class Tag(app_db.Model):
+    __tablename__ = "tag"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
+    name: Mapped[str] = mapped_column(String())
+
+    __table_args__ = (
+        # Make sure release can't have multiple of the same tag
+        UniqueConstraint('release_id', 'name', name='unique_release_tag'),
+    )

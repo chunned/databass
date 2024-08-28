@@ -1,4 +1,4 @@
-from models import app_db, Release, Artist, Label
+from models import app_db, Release, Artist, Label, Tag
 from sqlalchemy import func, extract
 from datetime import datetime, date
 
@@ -195,9 +195,14 @@ def get_homepage_releases():
             Release.listen_date,
             Release.genre,
             Release.image,
-            Release.tags
+            func.array_agg(func.concat(Tag.name)).label('tags')
         )
         .join(Artist, Artist.id == Release.artist_id)
+        .outerjoin(Tag, Tag.release_id == Release.id)
+        .group_by(
+            Artist.id,
+            Release.id,
+        )
         .order_by(Release.id.desc())
-    )
+    ).all()
     return results

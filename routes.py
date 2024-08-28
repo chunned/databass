@@ -18,17 +18,14 @@ def register_routes(app):
             type=int,
             default=1
         )
-        pagination = data.paginate(
-            page=page,
-            per_page=5,
-            error_out=True
-        )
-
-        paged_data = [result._asdict() for result in pagination.items]
-
+        per_page = 5
+        start, end = util.get_page_range(per_page, page)
+        
+        paged_data = data[start:end]
+        
         flask_pagination = Pagination(
             page=page,
-            total=pagination.total,
+            total=len(data),
             search=False,
             record_name='latest_releases'
         )
@@ -63,16 +60,14 @@ def register_routes(app):
                 default=1
             )
             per_page = 10
-            start = (page - 1) * per_page
-            end = start + per_page
+            start, end = util.get_page_range(per_page, page)
             paged_data = release_data[start:end]
         elif origin == 'page_button':
             page = data["next_page"]
             per_page = data["per_page"]
             release_data = data["data"]
             data_length = len(release_data)
-            start = (page - 1) * per_page
-            end = start + per_page
+            start, end = util.get_page_range(per_page, page)
             paged_data = release_data[start:end]
 
         flask_pagination = Pagination(
@@ -104,7 +99,6 @@ def register_routes(app):
         print(f"INFO: Fetching release info from API")
         release_data = api.get_release_data(release_mbid, year, genre, rating)
         print(f"INFO: API Response data: {release_data}")
-        release_data["tags"] = tags
         if label_mbid:
             print(f"INFO: Checking if label with ID {label_mbid} exists in database")
             # check if label exists in database already, avoid some API calls
@@ -171,6 +165,12 @@ def register_routes(app):
         new_release = db.construct_item('release', release_data)
         release_id = db.insert(new_release)
         print(f'INFO: Release insertion successful with ID: {release_id}')
+        print('Inserting tags')
+        print(tags)
+        for tag in tags.split(','):
+            tag_data = {"name": tag, "release_id": release_id}
+            tag_obj = db.construct_item('tags', tag_data)
+            db.insert(tag_obj)
         # Download image after inserting release into db
         release_image_url = release_data["image"]
         print(f'INFO: Downloading release image from {release_image_url}')
@@ -192,6 +192,7 @@ def register_routes(app):
     @app.route('/releases', methods=["GET"])
     def releases():
         genres = sorted(db.get_distinct_col(db.Release, 'genre'))
+        tags = sorted(db.get_distinct_col(db.Tag, 'name'))
         countries = sorted(db.get_distinct_col(db.Release, 'country'))
         all_labels = sorted(db.get_distinct_col(db.Label, 'name'))
 
@@ -199,6 +200,7 @@ def register_routes(app):
         all_releases = sorted(db.get_distinct_col(db.Release, 'name'))
         data = {
             "genres": genres,
+            "tags": tags,
             "countries": countries,
             "labels": all_labels,
             "releases": all_releases,
@@ -341,8 +343,7 @@ def register_routes(app):
                 full_data.append(temp)
             data_length = len(search_results)
             per_page = 14
-            start = (page - 1) * per_page
-            end = start + per_page
+            start, end = util.get_page_range(per_page, page)
 
             paged_data = full_data[start:end]
 
@@ -350,8 +351,7 @@ def register_routes(app):
             page = data["next_page"]
             per_page = data["per_page"]
             full_data = data["data"]
-            start = (page - 1) * per_page
-            end = start + per_page
+            start, end = util.get_page_range(per_page, page)
             data_length = len(full_data)
             paged_data = full_data[start:end]
             for item in paged_data:
@@ -401,3 +401,9 @@ def register_routes(app):
         db.insert(goal)
         return redirect('/goals', 302)
 
+    @app.route('/migrate', methods=['GET'])
+    def migrate():
+        util.db_migrate()
+        print('Migration successful')
+        return redirect('/', 302)
+    

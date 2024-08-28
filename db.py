@@ -4,7 +4,7 @@ from datetime import datetime
 import pytz
 from dotenv import load_dotenv
 from os import getenv
-from models import app_db, Release, Label, Artist, Goal, Review
+from models import app_db, Release, Label, Artist, Goal, Review, Tag
 
 load_dotenv()
 TIMEZONE = getenv('TIMEZONE')
@@ -238,10 +238,16 @@ def dynamic_release_search(data: dict):
                     query = query.filter(Release.release_year == value)
                 elif op == '1':
                     query = query.filter(Release.release_year > value)
-            elif key == 'name' or key == 'tags':
+            elif key == 'name':
                 query = query.filter(
                     Release.name.ilike(f'%{value}%')
                 )
+            elif key == 'tags':
+                print(f'Tags: {value}')
+                query = query.join(Tag, Tag.release_id == Release.id)
+                print(query)
+                for tag in value:
+                    query = query.filter(Tag.name == tag)
             else:
                 query = query.filter(
                     getattr(Release, key) == value
