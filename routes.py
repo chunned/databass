@@ -336,7 +336,7 @@ def register_routes(app):
                 "search/dynamic.html",
                 data=paged_data,
                 pagination=flask_pagination,
-                data_full=search_data
+                data_full=search_data,
                 per_page=per_page
             )
 
