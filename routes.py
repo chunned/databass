@@ -79,15 +79,13 @@ def register_routes(app):
 
     @app.route('/search_next', methods=['POST'])
     def search_next():
+        # TODO: consolidate with search()
         data = request.get_json()
         page = data["next_page"]
-        print('Changing to page ', page)
         per_page = data["per_page"]
         release_data = data["data"]
-        print(f'Release total: {len(release_data)}')
         start = (page - 1) * 10
         end = start + per_page
-        print(f'{start} to {end}')
         paged_data = release_data[start:end]
 
         flask_pagination = Pagination(
@@ -96,7 +94,6 @@ def register_routes(app):
             search=False,
             record_name='search_results'
         )
-        print(flask_pagination)
         return render_template(
             "search/static.html",
             data=paged_data,
@@ -312,10 +309,36 @@ def register_routes(app):
 
     @app.route('/dynamic_search', methods=['POST'])
     def dynamic_search():
-        form_data = request.get_json()
-        print(form_data)
-        search_results = db.dynamic_search(form_data)
-        return render_template('search/dynamic.html', data=search_results)
+        data = request.get_json()
+        page = request.args.get(
+            get_page_parameter(),
+            type=int,
+            default=1
+        )
+        per_page = 35
+        try:
+            page = data["next_page"]
+            search_data = data["data"]
+            start = (page - 1) * 10
+            end = start + per_page
+            paged_data = search_data[start:end]
+            flask_paginate = Pagination(
+                page=page,
+                total=len(search_data),
+                search=False,
+                record_name="search_results"
+            )
+        except Exception:
+            # TODO: figure out a better way to figure out if this is a new search or if it's a "next/prev page" request
+            search_data = db.dynamic_search(form_data)
+        finally:
+            return render_template(
+                "search/dynamic.html",
+                data=paged_data,
+                pagination=flask_pagination,
+                data_full=search_data
+                per_page=per_page
+            )
 
     @app.route('/submit_manual', methods=['POST'])
     def submit_manual():
