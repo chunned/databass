@@ -2,8 +2,8 @@ name: CI Pipeline
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
@@ -17,5 +17,7 @@ jobs:
         run: echo ${{ secrets.PAT }} | docker login ghcr.io -u chunned --password-stdin
       - name: Build and push image
         run: |
-          docker build . -t ghcr.io/chunned/databass:latest 
+          TAG=${GITHUB_REF#refs/tags/}
+          docker build . -t ghcr.io/chunned/databass:latest -t ghcr.io/chunned/databass:$TAG 
           docker push ghcr.io/chunned/databass:latest
+          docker push ghcr.io/chunned/databass/:$TAG
