@@ -65,7 +65,7 @@
                 <input type="text" id="tags" name="tags" class="box">
             </td>
             <td class="form-cell"><br>
-                <button type="button" class="box" value="submit" id="releases_search">submit</button>
+                <button type="button" class="box release-search" value="submit">submit</button>
             </td>
         </tr>
     </thead>
@@ -74,36 +74,6 @@
 </div>
 <div id="search-results"></div>
 
-<script>
-    const searchBtn = document.querySelector("#releases_search");
-    searchBtn.addEventListener("click", (event) => {
-    const data = {
-            qtype: "release",
-            name: document.querySelector("#name").value,
-            artist: document.querySelector("#artist").value,
-            label: document.querySelector("#label").value,
-            country: document.querySelector("#country").value,
-            rating_comparison: document.querySelector("#rating-filter").value,
-            rating: document.querySelector("#rating").value,
-            year_comparison: document.querySelector("#year-filter").value,
-            year: document.querySelector("#year").value,
-            genre: document.querySelector("#genre").value,
-            tags: document.querySelector("#tags").value
-        };
-        fetch('/dynamic_search', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(function(response) {
-            return response.text();
-         })
-        .then(function(html) {
-            document.querySelector("#search-results").innerHTML = html;
-         });
-    });
-</script>
+<script src="/static/scripts.js"></script>
 
 {% endblock %}

@@ -1,6 +1,23 @@
+<table class="pagination">
+    <tr>
+        <td>
+            {% if pagination.has_prev %}
+            <button type="button" class="box dynamic-page-btn" data-direction="prev" id="prev_page" value="{{ pagination.page - 1 }}">back</button>
+            {% else %}
+            <button type="button" class="box" disabled style="color: var(--color-black);">back</button>
+            {% endif %}
+        </td>
+        <td>
+            {% if pagination.has_next %}
+            <button type="button" class="box dynamic-page-btn" data-direction="next" id="next_page" value="{{ pagination.page + 1 }}">next</button>
+            {% else %}
+            <button type="button" class="box" disabled style="color: var(--color-black);">next</button>
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
 <table class="dynamic-search-table">
-{% set type = data[0] %}
-{% set items = data[1] %}
 {% for i in range(items|length) %}
     {% if i % 7 == 0 %}
         <tr>
@@ -37,3 +54,8 @@
 {% endfor %}
         </tr>
 </table>
+
+<script src="/static/scripts.js"></script>
+<p id="per_page" hidden>{{ per_page }}</p>
+<p id="data_full" hidden>{{ data_full }}</p>
+<p id="search_type" hidden>{{ type }}</p>

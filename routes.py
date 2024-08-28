@@ -49,53 +49,41 @@ def register_routes(app):
 
     @app.route("/search", methods=["POST"])
     def search():
-        search_data = request.get_json()
-        search_release = search_data["release"]
-        search_artist = search_data["artist"]
-        search_label = search_data["label"]
-        data = api.pick_release(search_release, search_artist, search_label)
-        page = request.args.get(
-            get_page_parameter(),
-            type=int,
-            default=1
-        )
-        per_page = 10
-        start = (page - 1) * per_page
-        end = start + per_page
-        paged_data = data[start:end]
-        flask_pagination = Pagination(
-            page=page,
-            total=len(data),
-            search=False,
-            record_name='search_results'
-        )
-        return render_template(
-            "search/static.html",
-            data=paged_data,
-            pagination=flask_pagination,
-            data_full=data,
-            per_page=per_page
-        )
-
-    @app.route('/search_next', methods=['POST'])
-    def search_next():
-        # TODO: consolidate with search()
         data = request.get_json()
-        page = data["next_page"]
-        per_page = data["per_page"]
-        release_data = data["data"]
-        start = (page - 1) * 10
-        end = start + per_page
-        paged_data = release_data[start:end]
+        origin = data["referrer"]
+        if origin == 'search':
+            search_release = data["release"]
+            search_artist = data["artist"]
+            search_label = data["label"]
+            release_data = api.pick_release(search_release, search_artist, search_label)
+            data_length = len(release_data)
+            page = request.args.get(
+                get_page_parameter(),
+                type=int,
+                default=1
+            )
+            per_page = 10
+            start = (page - 1) * per_page
+            end = start + per_page
+            paged_data = release_data[start:end]
+        elif origin == 'page_button':
+            page = data["next_page"]
+            per_page = data["per_page"]
+            release_data = data["data"]
+            data_length = len(release_data)
+            start = (page - 1) * per_page
+            end = start + per_page
+            paged_data = release_data[start:end]
 
         flask_pagination = Pagination(
             page=page,
-            total=len(release_data),
+            total=data_length,
             search=False,
             record_name='search_results'
         )
         return render_template(
             "search/static.html",
+            page=page,
             data=paged_data,
             pagination=flask_pagination,
             data_full=release_data,
@@ -310,35 +298,69 @@ def register_routes(app):
     @app.route('/dynamic_search', methods=['POST'])
     def dynamic_search():
         data = request.get_json()
-        page = request.args.get(
-            get_page_parameter(),
-            type=int,
-            default=1
-        )
-        per_page = 35
-        try:
-            page = data["next_page"]
-            search_data = data["data"]
-            start = (page - 1) * 10
+        origin = data["referrer"]
+        del data["referrer"]
+        if origin == 'release':
+            search_data = db.dynamic_search(data)
+            page = request.args.get(
+                get_page_parameter(),
+                type=int,
+                default=1
+            )
+            search_type = search_data[0]
+            search_results = search_data[1]
+            # search_results is an array of SQLAlchemy objects; convert to array for use in JavaScript functions
+            full_data = []
+            for result in search_results:
+                temp = result.__dict__
+                if "_sa_instance_state" in temp:
+                    del temp["_sa_instance_state"]
+                if "listen_date" in temp:
+                    day = temp["listen_date"].date()
+                    temp["listen_date"] = str(day)
+                for key in ["tags", "review", "mbid"]:
+                    if not temp[key]:
+                        temp[key] = ""
+                full_data.append(temp)
+            data_length = len(search_results)
+            per_page = 14
+            start = (page - 1) * per_page
             end = start + per_page
-            paged_data = search_data[start:end]
-            flask_paginate = Pagination(
-                page=page,
-                total=len(search_data),
-                search=False,
-                record_name="search_results"
-            )
-        except Exception:
-            # TODO: figure out a better way to figure out if this is a new search or if it's a "next/prev page" request
-            search_data = db.dynamic_search(form_data)
-        finally:
-            return render_template(
-                "search/dynamic.html",
-                data=paged_data,
-                pagination=flask_pagination,
-                data_full=search_data,
-                per_page=per_page
-            )
+
+            paged_data = full_data[start:end]
+
+        elif origin == 'page_button':
+            page = data["next_page"]
+            per_page = data["per_page"]
+            full_data = data["data"]
+            start = (page - 1) * per_page
+            end = start + per_page
+            data_length = len(full_data)
+            paged_data = full_data[start:end]
+            for item in paged_data:
+                # Iterate through paged_data to check for 'amp;' substrings, remove these substrings
+                # Caused by '&' getting URL encoded
+                for key in item:
+                    if item[key] and isinstance(item[key], str) and 'amp;' in item[key]:
+                        original_value = item[key]
+                        new_value = original_value.replace('amp;', '')
+                        item[key] = new_value
+            search_type = data["search_type"]
+
+        flask_pagination = Pagination(
+            page=page,
+            total=data_length,
+            search=False,
+            record_name="search_results"
+        )
+        return render_template(
+            "search/dynamic.html",
+            items=paged_data,
+            pagination=flask_pagination,
+            data_full=full_data,
+            type=search_type,
+            per_page=per_page
+        )
 
     @app.route('/submit_manual', methods=['POST'])
     def submit_manual():
