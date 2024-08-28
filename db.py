@@ -57,7 +57,7 @@ def delete(item_type: str, item_id: str):
     :param item_id: The ID of the item to delete
     """
     model = get_model(item_type)
-    to_delete = app_db.session.query(model).where(model.id == item_id)
+    to_delete = app_db.session.query(model).where(model.id == item_id).one()
     app_db.session.delete(to_delete)
     app_db.session.commit()
 

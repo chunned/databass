@@ -280,6 +280,7 @@ def register_routes(app):
     @app.route('/delete', methods=['POST', 'GET'])
     def delete():
         deletion_id = request.get_json()['id']
+        print(f'Deleting release {deletion_id}')
         db.delete(item_type='release', item_id=deletion_id)
         return redirect('/', 302)
 
@@ -300,7 +301,7 @@ def register_routes(app):
         data = request.get_json()
         origin = data["referrer"]
         del data["referrer"]
-        if origin == 'release':
+        if origin in ['release', 'artist', 'label']:
             search_data = db.dynamic_search(data)
             page = request.args.get(
                 get_page_parameter(),
@@ -315,12 +316,28 @@ def register_routes(app):
                 temp = result.__dict__
                 if "_sa_instance_state" in temp:
                     del temp["_sa_instance_state"]
-                if "listen_date" in temp:
-                    day = temp["listen_date"].date()
-                    temp["listen_date"] = str(day)
-                for key in ["tags", "review", "mbid"]:
+                for key in temp.keys():
                     if not temp[key]:
                         temp[key] = ""
+                if search_type == 'release':
+                    if "listen_date" in temp:
+                        day = temp["listen_date"].date()
+                        temp["listen_date"] = str(day)
+                if search_type in ['label', 'artist']:
+                    if "begin_date" in temp:
+                        begin_date = temp["begin_date"]
+                        if not begin_date:
+                            begin_date = ""
+                        else:
+                            begin_date = begin_date.strftime('%Y-%m-%d')
+                        temp["begin_date"] = begin_date
+                    if "end_date" in temp:
+                        end_date = temp["end_date"]
+                        if not end_date:
+                            end_date = ""
+                        else:
+                            end_date = end_date.strftime('%Y-%m-%d')
+                        temp["end_date"] = end_date
                 full_data.append(temp)
             data_length = len(search_results)
             per_page = 14

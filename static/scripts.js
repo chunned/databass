@@ -1,14 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
-    try {
-        let deleteButton = document.querySelector("#delete");
-        deleteButton.addEventListener("click", function() {
-            showPopup(deleteButton);
-        });
-    } catch (error) {}
-});
-
-
-function showPopup(deleteButton) {
+function handleDeleteButton(deleteButton) {
     let releaseId = deleteButton.getAttribute('data-id');
     const popup = document.createElement('div');
     popup.className = 'popup';
@@ -26,6 +16,7 @@ function showPopup(deleteButton) {
             body: JSON.stringify({ id: releaseId })
         })
         .then(response => {
+            console.log(response);
             window.location.href = response.url;
         })
     });
@@ -33,7 +24,6 @@ function showPopup(deleteButton) {
         document.body.removeChild(popup);
     });
 }
-
 
 function formatDataString(data) {
     // Escape parts of response data that cause JSON.parse to error
@@ -43,7 +33,6 @@ function formatDataString(data) {
     // .replace(/ "n' /g, " 'n' ") = Neu! "75 -> Neu! '75
     // Both of the above cases are caused by the other more generic replacements
     // Way to avoid most of this altogether would be to just URLencode key/value pairs
-
     return data
         .replace(/{'/g, '{"')
         .replace(/'}/g, '"}')
@@ -128,7 +117,7 @@ function popupHTML(parsed_data) {
     `;
 }
 
-function showPopup(data) {
+function searchPopup(data) {
     // Used in static.html to show popup before release is inserted
     try {
         let jsonStr = formatDataString(data);
@@ -153,7 +142,6 @@ function showPopup(data) {
         console.log(data-item)
     }
 }
-
 
 function updateSearchPage(new_data) {
     let searchTableBody = document.getElementById('paged_search');
@@ -187,18 +175,16 @@ function updateSearchPage(new_data) {
     addPopupListeners();
 }
 
-
 function addPopupListeners(html) {
     document.querySelector("#search-results").innerHTML = html;
     let tableRows = document.querySelectorAll("#data-form table tbody tr");
     tableRows.forEach((tableRow) => {
         tableRow.addEventListener("click", function() {
             let data = tableRow.dataset.item;
-            showPopup(data);
+            searchPopup(data);
         });
     });
 }
-
 
 function handleSearchButton() {
     const data = {
@@ -288,11 +274,44 @@ function handleReleaseSearch() {
         genre: document.querySelector("#genre").value,
         tags: document.querySelector("#tags").value
     };
+    searchAjax(data);
+}
+
+function handleArtistSearch() {
+    let data = {
+        qtype: "artist",
+        referrer: "artist",
+        name: document.querySelector("#artist").value,
+        country: document.querySelector("#country").value,
+        begin_comparison: document.querySelector("#begin_filter").value,
+        begin_date: document.querySelector("#begin_date").value,
+        end_comparison: document.querySelector("#end_filter").value,
+        end_date: document.querySelector("#end_date").value,
+        type: document.querySelector("#type").value
+    };
+    searchAjax(data);
+}
+
+function handleLabelSearch() {
+    let data = {
+        qtype: "label",
+        referrer: "label",
+        name: document.querySelector("#label").value,
+        country: document.querySelector("#country").value,
+        begin_comparison: document.querySelector("#begin_filter").value,
+        begin_date: document.querySelector("#begin_date").value,
+        end_comparison: document.querySelector("#end_filter").value,
+        end_date: document.querySelector("#end_date").value,
+        type: document.querySelector("#type").value,
+    }
+    searchAjax(data);
+}
+
+function searchAjax(data) {
+    // AJAX function to update #search-results element
     fetch('/dynamic_search', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
     })
     .then(function(response) {
@@ -310,6 +329,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target && event.target.classList.contains('search-btn')) {
             handleSearchButton();
         }
+        if (event.target && event.target.classList.contains('delete-btn')) {
+            let deleteBtn = document.querySelector("#delete-btn");
+            handleDeleteButton(deleteBtn);
+        }
         // Handle /search pagination button clicks
         if (event.target && event.target.classList.contains('page-btn')) {
             let direction = event.target.dataset.direction;
@@ -317,6 +340,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (event.target && event.target.classList.contains('release-search')) {
             handleReleaseSearch();
+        }
+        if (event.target && event.target.classList.contains('artist-search')) {
+            handleArtistSearch();
+        }
+        if (event.target && event.target.classList.contains('label-search')) {
+            console.log('click');
+            handleLabelSearch();
         }
         // Handle /releases, /labels, /artists pagination button clicks
         if (event.target && event.target.classList.contains('dynamic-page-btn')) {
