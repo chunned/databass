@@ -10,8 +10,8 @@ def register_routes(app):
     @app.route('/', methods=['GET'])
     @app.route('/home', methods=['GET'])
     def home():
-        stats = get_stats()
-        goals = db.get_incomplete_goals()
+        stats_data = get_stats()
+        goals_data = db.get_incomplete_goals()
         data = get_releases()
         page = request.args.get(
             get_page_parameter(),
@@ -25,7 +25,6 @@ def register_routes(app):
         )
 
         paged_data = [result._asdict() for result in pagination.items]
-        print(paged_data)
 
         flask_pagination = Pagination(
             page=page,
@@ -37,8 +36,8 @@ def register_routes(app):
         return render_template(
             'index.html',
             data=paged_data,
-            stats=stats,
-            goals=goals,
+            stats=stats_data,
+            goals=goals_data,
             pagination=flask_pagination,
             active_page='home'
         )
@@ -54,10 +53,57 @@ def register_routes(app):
         search_release = search_data["release"]
         search_artist = search_data["artist"]
         search_label = search_data["label"]
-
         data = api.pick_release(search_release, search_artist, search_label)
+        page = request.args.get(
+            get_page_parameter(),
+            type=int,
+            default=1
+        )
+        per_page = 10
+        start = (page - 1) * per_page
+        end = start + per_page
+        paged_data = data[start:end]
+        flask_pagination = Pagination(
+            page=page,
+            total=len(data),
+            search=False,
+            record_name='search_results'
+        )
+        return render_template(
+            "search/static.html",
+            data=paged_data,
+            pagination=flask_pagination,
+            data_full=data,
+            per_page=per_page
+        )
 
-        return render_template("search/static.html", data=data)
+    @app.route('/search_next', methods=['POST'])
+    def search_next():
+        data = request.get_json()
+        page = data["next_page"]
+        print('Changing to page ', page)
+        per_page = data["per_page"]
+        release_data = data["data"]
+        print(f'Release total: {len(release_data)}')
+        start = (page - 1) * 10
+        end = start + per_page
+        print(f'{start} to {end}')
+        paged_data = release_data[start:end]
+
+        flask_pagination = Pagination(
+            page=page,
+            total=len(release_data),
+            search=False,
+            record_name='search_results'
+        )
+        print(flask_pagination)
+        return render_template(
+            "search/static.html",
+            data=paged_data,
+            pagination=flask_pagination,
+            data_full=release_data,
+            per_page=per_page
+        )
 
     @app.route("/submit", methods=["POST"])
     def submit():

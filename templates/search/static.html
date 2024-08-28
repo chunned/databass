@@ -1,5 +1,25 @@
-
 {% if data %}
+<table class="pagination">
+    <tr>
+        <td>
+            {% if pagination.has_prev %}
+                <button type="button" class="box page-btn" data-direction="prev" id="prev_page" value="{{ pagination.page - 1 }}">back</button>
+                <!--<a href="/search?page={{ pagination.page - 1 }}" class="link">back</a>-->
+            {% else %}
+            <button type="button" class="box" disabled style="color: var(--color-black);">back</button>
+            {% endif %}
+        </td>
+        <td>
+            {% if pagination.has_next %}
+                <button type="button" class="box page-btn" data-direction="next" id="next_page" value="{{ pagination.page + 1 }}">next</button>
+<!--                <a href="/search?page={{ pagination.page + 1 }}" class="link">next</a>-->
+            {% else %}
+                <button type="button" class="box" disabled style="color: var(--color-black);">next</button>
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
 <form id="data-form" action="/submit" method="post">
 <table id="data-table">
     <thead>
@@ -12,7 +32,7 @@
         <th style="width: 10%;">FORMAT</th>
     </tr>
     </thead>
-    <tbody>
+    <tbody id="paged_search">
     {% for item in data %}
     <tr data-item="{{ item }}" class="search-data">
         <td style="display: none;">
@@ -107,3 +127,7 @@
 {% endif %}
 
 <script src="/static/scripts.js"></script>
+
+<!-- Below are used by javascript function that handles pagination -->
+<p hidden id="data_full">{{ data_full }}</p>
+<p hidden id="per_page">{{ per_page }}</p>

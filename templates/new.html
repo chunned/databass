@@ -13,7 +13,7 @@
             <input type="text" id="label" name="label" class="box">
 
             {% for action in actions %}
-            <button class="box" type="button" data-action="{{ action }}" id="search">{{ action }}</button>
+            <button class="box search-btn" type="button" data-action="{{ action }}" id="search">{{ action }}</button>
             {% endfor %}
         </form>
     </div>
@@ -21,5 +21,6 @@
     <div id="search-results"></div>
 
     <script src="static/scripts.js"></script>
+
 
 {% endblock %}
