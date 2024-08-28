@@ -6,16 +6,16 @@
             <tr>
                 <td>
                     {% if pagination.has_prev %}
-                        <a href="/home?page={{ pagination.page - 1 }}" class="link">back</a>
+                        <button onclick="window.location.href='/home?page={{ pagination.page - 1 }}'" class="box">back</button>
                     {% else %}
-                        back
+                        <button disabled style="color: var(--color-black);">back</button>
                     {% endif %}
                 </td>
                 <td>
                     {% if pagination.has_next %}
-                        <a href="/home?page={{ pagination.page + 1 }}" class="link">next</a>
+                        <button onclick="window.location.href='/home?page={{ pagination.page + 1 }}'" class="box">next</button>
                     {% else %}
-                        next
+                        <button disabled style="color: var(--color-black);>next</button>
                     {% endif %}
                 </td>
             </tr>

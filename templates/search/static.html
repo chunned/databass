@@ -4,7 +4,6 @@
         <td>
             {% if pagination.has_prev %}
                 <button type="button" class="box page-btn" data-direction="prev" id="prev_page" value="{{ pagination.page - 1 }}">back</button>
-                <!--<a href="/search?page={{ pagination.page - 1 }}" class="link">back</a>-->
             {% else %}
             <button type="button" class="box" disabled style="color: var(--color-black);">back</button>
             {% endif %}
@@ -12,7 +11,6 @@
         <td>
             {% if pagination.has_next %}
                 <button type="button" class="box page-btn" data-direction="next" id="next_page" value="{{ pagination.page + 1 }}">next</button>
-<!--                <a href="/search?page={{ pagination.page + 1 }}" class="link">next</a>-->
             {% else %}
                 <button type="button" class="box" disabled style="color: var(--color-black);">next</button>
             {% endif %}
