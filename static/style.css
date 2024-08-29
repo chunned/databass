@@ -312,7 +312,28 @@ button {
     width: 10vw!important;
 }
 
+.stats_table {
+    border: 1px solid var(--color-grey);
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+}
+.stats_table > tbody > tr {
+    border: 1px solid var(--color-grey);
+    height: 6vh;
+}
+.stats_table > tbody > tr > td {
+    max-width: 10vw;
+}
 
+.stats_table th, .stats_table td {
+    padding: 10px;
+}
+
+.stats_container {
+    display: grid;
+    grid-template-columns: 25% 25% 25% 25%;
+}
 
 /* Generic element classes; reused throughout the app */
 .link {

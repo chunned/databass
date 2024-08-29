@@ -88,67 +88,76 @@ def listens_per_day():
 
 
 def top_rated_labels():
-    query = (
-        app_db.session.query(
-            Label.name,
-            func.round(func.avg(Release.rating), 2).label('average_rating'),
-            func.count(Release.label_id).label('release_count')
-        )
-        .join(Release, Release.label_id == Label.id)
-        # Exclude non-real labels
-        .filter(Label.name.notin_(['none', '[no label]']))
-        # Exclude labels with only 1 release
-        .group_by(Label.name)
-        .having(func.count(Release.label_id) != 1)
-        # Order by average release rating, rounded to 2 decimals
-        .order_by(func.round(func.avg(Release.rating), 2).desc())
-        # Limit to 10 results
-        .limit(10)
-        .all()
-    )
-    results = [
-        {
-            "name": result.name,
-            "average_rating": result.average_rating,
-            "release_count": result.release_count
-        } for result in query]
-    return results
+    return top_rated_entities(Label)
 
 
 def top_rated_artists():
-    query = (
-        app_db.session.query(
-            Artist.name,
-            func.round(func.avg(Release.rating), 2).label('average_rating'),
-            func.count(Release.artist_id).label('release_count')
+    return top_rated_entities(Artist)
+
+
+def top_rated_entities(model: app_db.Model):
+    if model == Artist:
+        join_id = Release.artist_id
+    elif model == Label:
+        join_id = Release.label_id
+    else:
+        raise ValueError(f'Unknown entity type: {model}')
+
+    if join_id:
+        entities = (
+            app_db.session.query(
+                model.id,
+                model.name,
+                func.avg(Release.rating).label('average_rating'),
+                func.count(Release.id).label('release_count'),
+                model.image
         )
-        .join(Release, Release.artist_id == Artist.id)
-        .group_by(Artist.name)
-        # Exclude artists with only 1 release
-        .having(func.count(Release.artist_id) != 1)
-        # Order by average release rating, rounded to 2 decimals
-        .order_by(func.round(func.avg(Release.rating), 2).desc())
-        # Limit to 10 results
-        .limit(10)
-        .all()
-    )
-    results = [
-        {
-            "name": result.name,
-            "average_rating": result.average_rating,
-            "release_count": result.release_count
-        } for result in query]
-    return results
+            .join(Release, join_id == model.id)
+            .where(model.name != "[NONE]")
+            .group_by(model.name, model.id).all())
+        # Calculate the mean average and mean length (i.e. average number of releases, and average of rating averages)
+        avg_sum = 0
+        len_sum = 0
+        for entity in entities:
+            avg_sum += int(entity[2])
+            len_sum += int(entity[3])
+        mean_avg = avg_sum / len(entities)
+        mean_len = len_sum / len(entities)
+        items = []
+        for entity in entities:
+            entity_avg = int(entity[2])
+            entity_len = int(entity[3])
+
+            entity_weight = entity_len / (entity_len + mean_len)
+            bayesian = bayesian_avg(entity_weight, entity_avg, mean_avg)
+
+            item = {"data": entity, "bayesian": bayesian}
+            items.append(item)
+
+        sorted_entities = sorted(items, key=lambda k: k['bayesian'], reverse=True)
+        top_entities = []
+        # Parse into a more usable dictionary format
+        for i in sorted_entities[0:10]:
+            top_entities.append({
+                "id": i["data"][0],
+                "name": i["data"][1],
+                "rating": round(i["bayesian"]),
+                "image": i["data"][4],
+                "count": i["data"][3]
+            })
+        return top_entities
 
 
 def top_frequent_labels():
     query = (
         app_db.session.query(
             Label.name,
-            func.count(Release.label_id).label('count')
+            func.count(Release.label_id).label('count'),
+            Label.image
         )
         .join(Release, Release.label_id == Label.id)
-        .group_by(Label.name)
+        .where(Label.name != "[NONE]")
+        .group_by(Label.name, Label.image)
         .order_by(func.count(Release.label_id).desc())
         .limit(10)
         .all()
@@ -156,7 +165,8 @@ def top_frequent_labels():
     results = [
         {
             "name": result.name,
-            "count": result.count
+            "count": result.count,
+            "image": result.image
         } for result in query]
     return results
 
@@ -165,12 +175,13 @@ def top_frequent_artists():
     query = (
         app_db.session.query(
             Artist.name,
-            func.count(Release.artist_id).label('count')
+            func.count(Release.artist_id).label('count'),
+            Artist.image
         )
         .join(Release, Release.artist_id == Artist.id)
         # Exclude "Various Artists"
         .where(Artist.name != "Various Artists")
-        .group_by(Artist.name)
+        .group_by(Artist.name, Artist.image)
         .order_by(func.count(Release.artist_id).desc())
         .limit(10)
         .all()
@@ -178,7 +189,8 @@ def top_frequent_artists():
     results = [
         {
             "name": result.name,
-            "count": result.count
+            "count": result.count,
+            "image": result.image
         } for result in query]
 
     return results
@@ -206,3 +218,8 @@ def get_homepage_releases():
         .order_by(Release.id.desc())
     ).all()
     return results
+
+
+def bayesian_avg(item_weight, item_avg, mean_avg):
+    return item_weight * item_avg + (1 - item_weight) * mean_avg
+
