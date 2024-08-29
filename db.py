@@ -248,6 +248,7 @@ def dynamic_release_search(data: dict):
                 print(query)
                 for tag in value:
                     query = query.filter(Tag.name == tag)
+                    print(query)
             else:
                 query = query.filter(
                     getattr(Release, key) == value

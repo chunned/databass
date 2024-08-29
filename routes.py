@@ -11,7 +11,29 @@ def register_routes(app):
     @app.route('/home', methods=['GET'])
     def home():
         stats_data = get_stats()
-        goals_data = db.get_incomplete_goals()
+        active_goals = db.get_incomplete_goals()
+        goal_data = []
+        for goal in active_goals:
+            start_date = goal.start_date
+            end_goal = goal.end_goal
+            goal_type = goal.type
+            amount = goal.amount
+
+            current = goal.new_releases_since_start_date
+            remaining = amount - current
+            days_left = (end_goal - start_date).days
+            progress = round((current / amount) * 100)
+            target = remaining / days_left
+            goal_data.append({
+                "start_date": start_date,
+                "end_goal": end_goal,
+                "type": goal_type,
+                "amount": amount,
+                "progress": progress,
+                "target": target,
+                "current": current
+            })
+
         data = get_releases()
         page = request.args.get(
             get_page_parameter(),
@@ -34,7 +56,7 @@ def register_routes(app):
             'index.html',
             data=paged_data,
             stats=stats_data,
-            goals=goals_data,
+            goals=goal_data,
             pagination=flask_pagination,
             active_page='home'
         )
