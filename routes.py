@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect
 from flask_paginate import Pagination, get_page_parameter
-import api
+import api2
 import util
 from stats import get_all as get_stats, get_homepage_releases as get_releases
 import db
@@ -74,7 +74,8 @@ def register_routes(app):
             search_release = data["release"]
             search_artist = data["artist"]
             search_label = data["label"]
-            release_data = api.pick_release(search_release, search_artist, search_label)
+            #release_data = api.pick_release(search_release, search_artist, search_label)
+            release_data = api2.search(release=search_release, artist=search_artist, label=search_label)
             data_length = len(release_data)
             page = request.args.get(
                 get_page_parameter(),
