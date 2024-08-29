@@ -2,27 +2,27 @@
 {% block content %}
 <div>
     <form action="/edit_release" method="POST">
-        <input type="hidden" id="release_id" name="release_id" value="{{ data.release.id }}">
+        <input type="hidden" id="release_id" name="release_id" value="{{ release.id }}">
     <table class="release-table">
         <thead>
         <tr>
             <th>
-                <img src="{{ data.release.art }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
+                <img src="{{ release.image }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
             </th>
             <th>
-                <h1><a href="/artist/{{ data.artist.id }}" class="link">{{data.artist.name}}</a></h1>
+                <h1><a href="/artist/{{ artist.id }}" class="link">{{ artist.name }}</a></h1>
             </th>
             <th>
-                <h2>{{ data.release.name }}</h2>
+                <h2>{{ release.name }}</h2>
             </th>
             <th>
-                <a href="/label/{{ data.label.id }}" class="link">{{ data.label.name }}</a>
+                <a href="/label/{{ label.id }}" class="link">{{ label.name }}</a>
             </th>
             <th>
-                <a href="/edit/{{ data.release.id }}" class="link">edit</a>
+                <a href="/edit/{{ release.id }}" class="link">edit</a>
             </th>
             <th>
-                <p class="link" id="delete" data-id="{{ data.release.id }}">delete</p>
+                <p class="link" id="delete" data-id="{{ release.id }}">delete</p>
             </th>
         </tr>
         </thead>
@@ -30,33 +30,33 @@
         <tr>
             <td>
                 <label for="listen_date">listen date</label>
-                <input type="text" id="listen_date" name="listen_date" value="{{ data.release.listen_date }}">
+                <input type="text" id="listen_date" name="listen_date" value="{{ release.listen_date }}">
             </td>
             <td>
                 <label for="rating_edit">rating</label>
-                <input type="number" min="0" max="100" id="rating_edit" name="rating_edit" value="{{ data.release.rating }}">
+                <input type="number" min="0" max="100" id="rating_edit" name="rating_edit" value="{{ release.rating }}">
             </td>
             <td>
                 <label for="release_year">released</label>
-                <input type="number" min="0" id="release_year" name="release_year" value="{{ data.release.release_year }}">
+                <input type="number" min="0" id="release_year" name="release_year" value="{{ release.release_year }}">
             </td>
              <td>
                 <label for="genre">genre</label>
-                <input type="text" id="genre" name="genre" value="{{ data.release.genre }}">
+                <input type="text" id="genre" name="genre" value="{{ release.genre }}">
             </td>
             <td>
                 <label for="tags">tags</label>
-                <input type="text" id="tags" name="tags" value="{{ data.release.tags }}">
+                <input type="text" id="tags" name="tags" value="{{ release.tags }}">
             </td>
             <td>
                 <label for="country">country</label>
-                <input type="text" id="country" name="country" value="{{ data.release.country }}">
+                <input type="text" id="country" name="country" value="{{ release.country }}">
             </td>
         </tr>
         <tr>
             <td>
                 <label for="image">album art</label>
-                <input type="text" id="image" name="image" value="{{ data.release.image }}">
+                <input type="text" id="image" name="image" value="{{ release.image }}">
             </td>
             <td>
                 <button type="submit" class="search-btn">submit</button>
