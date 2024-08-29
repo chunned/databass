@@ -60,6 +60,7 @@
                 <label for="tags">tags</label><br>
                 <div class="checkbox-form">
                     <select id="tags">
+                        <option value="NO VALUE" selected></option>
                     {% for tag in data.tags %}
                         <option value="{{ tag }}">{{ tag }}</option>
                     {% endfor %}
@@ -75,7 +76,5 @@
 </form>
 </div>
 <div id="search-results"></div>
-
-<script src="/static/scripts.js"></script>
 
 {% endblock %}

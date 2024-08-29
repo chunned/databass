@@ -1,5 +1,6 @@
 function handleDeleteButton(deleteButton) {
-    let releaseId = deleteButton.getAttribute('data-id');
+    let itemId = deleteButton.getAttribute('data-id');
+    let itemType = deleteButton.getAttribute('data-type');
     const popup = document.createElement('div');
     popup.className = 'popup';
     popup.innerHTML = `
@@ -13,7 +14,7 @@ function handleDeleteButton(deleteButton) {
         fetch('/delete', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ id: releaseId })
+            body: JSON.stringify({ id: itemId, type: itemType })
         })
         .then(response => {
             console.log(response);

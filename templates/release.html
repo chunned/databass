@@ -20,7 +20,7 @@
                     <a href="/edit/{{ data.release.id }}" class="link">edit</a>
                 </th>
                 <th>
-                   <button class="box delete-btn" id="delete-btn" data-id="{{ data.release.id }}">delete</button>
+                   <button class="box delete-btn" id="delete-btn" data-id="{{ data.release.id }}" data-type="release">delete</button>
                 </th>
             </tr>
         </thead>
@@ -73,7 +73,5 @@
         </tbody>
     </table>
 </div>
-
-<script src="../static/scripts.js"></script>
 
 {% endblock %}

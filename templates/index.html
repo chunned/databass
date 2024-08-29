@@ -161,7 +161,7 @@
             </tr>
             <tr>
                 <td style="text-align: right;">progress:</td>
-                <td style="text-align: left;">{{ goal.new_releases_since_start_date / goal.amount * 100}}% ({{ goal.new_releases_since_start_date }}/{{ goal.amount }})</td>
+                <td style="text-align: left;">{{ (goal.new_releases_since_start_date / goal.amount * 100)|round }}% ({{ goal.new_releases_since_start_date }}/{{ goal.amount }})</td>
             </tr>
 
             {% endfor %}

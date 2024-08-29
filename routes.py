@@ -281,9 +281,11 @@ def register_routes(app):
 
     @app.route('/delete', methods=['POST', 'GET'])
     def delete():
-        deletion_id = request.get_json()['id']
-        print(f'Deleting release {deletion_id}')
-        db.delete(item_type='release', item_id=deletion_id)
+        data = request.get_json()
+        deletion_id = data['id']
+        deletion_type = data['type']
+        print(f'Deleting {deletion_type} {deletion_id}')
+        db.delete(item_type=deletion_type, item_id=deletion_id)
         return redirect('/', 302)
 
     @app.route('/add_review', methods=['POST'])
