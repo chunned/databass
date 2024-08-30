@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, g
 import routes
 import util
 import os
@@ -8,6 +8,7 @@ from uuid import uuid4
 
 
 load_dotenv()
+VERSION = os.environ.get('VERSION')
 db_name = os.environ.get('DB_NAME')
 db_user = os.environ.get('PG_USER')
 db_password = os.environ.get('PG_PASSWORD')
@@ -26,11 +27,16 @@ class Config:
     DEBUG = True
 
 
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     routes.register_routes(app)
     util.register_filters(app)
+
+    @app.before_request
+    def before_request():
+        g.app_version = VERSION
 
     app_db.init_app(app)
     with app.app_context():
