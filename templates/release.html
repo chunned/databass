@@ -5,7 +5,17 @@
         <thead>
             <tr>
                 <th>
-                    <img src="{{ data.release.art }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
+                    {% set local_image = data.release.id|string|img_exists(item_type="release") %}
+                    {% if local_image %}
+                        {% set src = local_image %}
+                    {% else %}
+                        {% if data.release.image %}
+                            {% set src = data.release.image %}
+                        {% else %}
+                            {% set src = "/static/img/none.png" %}
+                        {% endif %}
+                    {% endif %}
+                    <img src="{{ src }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
                 </th>
                 <th>
                     <h1><a href="/artist/{{ data.artist.id }}" class="link">{{data.artist.name}}</a></h1>
@@ -17,7 +27,7 @@
                     <a href="/label/{{ data.label.id }}" class="link">{{ data.label.name }}</a>
                 </th>
                 <th>
-                    <a href="/edit/{{ data.release.id }}" class="link">edit</a>
+                    <button onclick="window.location.href='/edit/{{ data.release.id }}'" class="box edit-btn">edit</button>
                 </th>
                 <th>
                    <button class="box delete-btn" id="delete-btn" data-id="{{ data.release.id }}" data-type="release">delete</button>
