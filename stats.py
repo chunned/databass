@@ -95,7 +95,8 @@ def top_rated_artists():
     return top_rated_entities(Artist)
 
 
-def top_rated_entities(model: app_db.Model):
+def top_rated_entities(model: app_db.Model,
+                       sort_order: str = 'desc'):
     if model == Artist:
         join_id = Release.artist_id
     elif model == Label:
@@ -134,7 +135,10 @@ def top_rated_entities(model: app_db.Model):
             item = {"data": entity, "bayesian": bayesian}
             items.append(item)
 
-        sorted_entities = sorted(items, key=lambda k: k['bayesian'], reverse=True)
+        order = True
+        if sort_order == 'asc':
+            order = False
+        sorted_entities = sorted(items, key=lambda k: k['bayesian'], reverse=order)
         top_entities = []
         # Parse into a more usable dictionary format
         for i in sorted_entities[0:10]:
@@ -222,4 +226,5 @@ def get_homepage_releases():
 
 def bayesian_avg(item_weight, item_avg, mean_avg):
     return item_weight * item_avg + (1 - item_weight) * mean_avg
+
 
