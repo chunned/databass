@@ -16,7 +16,7 @@
 
 /* Base */
 html, body {
-    font-family: 'JetBrains Mono';
+    font-family: 'JetBrains Mono', sans-serif;
     color: var(--color-white);
     padding: 5px;
     background: var(--color-black);
@@ -179,9 +179,6 @@ button {
 #search-results img {
     width: 12.5vw;
 }
-.radio-col {
-    width: 5%;
-}
 
 .search-data {
     height: 7vh;
@@ -219,8 +216,8 @@ button {
 }
 
 #submit-btn {
-    color: #c6c6c5;
-    background-color: ;
+    color: var(--color-white);
+    background-color: var(--color-black);
     max-height: 10vh;
 }
 
@@ -261,6 +258,15 @@ button {
 
 .form-cell {
     text-align: center;
+    padding: 10px;
+    border: 1px solid var(--color-grey);
+    vertical-align: middle;
+
+}
+
+.form-cell input, .form-cell select, .form-cell button {
+    box-sizing: border-box;
+    height: 3vh;
 }
 
 

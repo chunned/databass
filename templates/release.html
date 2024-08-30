@@ -57,7 +57,7 @@
             </tr>
             <tr>
                 <td>
-                    <h1>Reviews</h1>
+                    <h1>REVIEWS</h1>
                 </td>
                 <td colspan="5" rowspan="3" style="height: 100%; border: 1px solid #c6c6c5; padding: 10px;">
                     <table style="height: 100%">
@@ -71,9 +71,10 @@
                 </td>
             </tr>
             <tr>
-                <td>
+                <td style="text-align: left;">
                     <form method="POST" action="/add_review">
                         <input type="hidden" id="release_id" name="release_id" value="{{ data.release.id }}">
+                        <label for="review">new review</label>
                         <textarea name="text" id="review"></textarea><br><br>
                         <button type="submit" class="box">submit</button>
                     </form>

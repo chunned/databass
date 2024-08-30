@@ -63,7 +63,7 @@
                     {% set tags = item.tags %}
                     {% set len = tags|length %}
                     {% for i in range(len) %}
-                        {% if i+1 == len %}
+                        {% if i + 1 == len %}
                             {{ tags[i] }}
                         {% else %}
                             {{ tags[i] }},

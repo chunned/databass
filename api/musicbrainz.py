@@ -33,7 +33,6 @@ class MusicBrainz:
                                           label=label,
                                           release=release)
             search_data = []        # Will hold the main return data
-            backup_mbids = []       # Holds all release MBIDs found during search; used for fetching images
             for r in results["release-list"]:
                 try:
                     labelinfo = r["label-info-list"][0]["label"]
@@ -234,6 +233,8 @@ class MusicBrainz:
         :param mbid: MBID of the release group to check for existing images
         :return: List of available image URLs
         """
-        r = None
-        r = mbz.get_release_group_image_front(mbid, size='250')
-        return r
+        try:
+            return mbz.get_release_group_image_front(mbid, size='250')
+        except Exception as e:
+            raise e
+

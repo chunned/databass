@@ -50,7 +50,7 @@ class Discogs:
             image_url = item["cover_image"]
             try:
                 # Attempt to determine image dimensions from the URL
-                # URL should contain a string like /h:500/w:500/ to denote the height and width
+                # Should contain a string like /h:500/w:500/ to denote the height and width
                 # Below regex first extracts that entire substring; the next extract the height and width themselves
 
                 # IN: https://........../h:250/w:500/......  OUT: "/h:250/w:500"

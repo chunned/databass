@@ -39,7 +39,7 @@
         </div>
         <div class="data-grid" style="grid-template-columns: repeat(4, 25%); grid-auto-rows: 350px;">
             {% for release in data.releases %}
-            <div class="grid-cell" style="height: 350px; width: 250px; overflow: hidden; border: collapse;">
+            <div class="grid-cell" style="height: 350px; width: 250px; overflow: hidden; border-collapse: collapse;">
 
                 {% set local_image = release[0].id|string|img_exists(item_type="release") %}
                 {% if local_image %}

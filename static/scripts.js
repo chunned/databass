@@ -143,7 +143,6 @@ function searchPopup(data) {
         }
     } catch (error) {
         console.error('Failed to parse data-item:', error);
-        console.log(data-item)
     }
 }
 
@@ -168,38 +167,6 @@ function handleSearchSubmitButton() {
             throw new Error('Failed to submit form')
         }
     })
-}
-
-function updateSearchPage(new_data) {
-    let searchTableBody = document.getElementById('paged_search');
-    searchTableBody.innerHTML = ''; // Clear existing rows
-
-    new_data.forEach(item => {
-        const row = document.createElement('tr');
-        row.classList.add('search-data');
-        row.dataset.item = JSON.stringify(item);
-
-        row.innerHTML = `
-            <td style="display: none;">
-                <input value="${JSON.stringify(item)}" type="radio" name="selected_item">
-            </td>
-            <td class="long">${item.release.name}</td>
-            <td class="long">${item.artist.name}</td>
-            <td class="long">${item.label.name}</td>
-            <td class="short">${item.date}</td>
-            <td class="short">${item.trackCount}</td>
-            <td class="long">${item.format}</td>
-            <td style="display: none;">${item.releaseYear}</td>
-            <td style="display: none;">${item.rating}</td>
-            <td style="display: none;">${item.genre}</td>
-            <td style="display: none;">${item.tags}</td>
-        `;
-
-        searchTableBody.appendChild(row);
-    });
-
-    // Add popup listeners to the new rows
-    addPopupListeners();
 }
 
 function addPopupListeners(html) {
@@ -239,11 +206,11 @@ function handleSearchButton() {
 function handlePageButton(direction) {
     // Retrieve next page and per_page numbers as integer
     let next = getPageButtonDirection(direction);
-    perPage = +document.querySelector("#per_page").innerHTML;
+    let perPage = +document.querySelector("#per_page").innerHTML;
     // Retrieve raw data list and parse it as JSON
-    data = document.querySelector("#data_full").innerHTML;
-    formatted = formatDataString(data);
-    parsed = JSON.parse(formatted);
+    let data = document.querySelector("#data_full").innerHTML;
+    let formatted = formatDataString(data);
+    let parsed = JSON.parse(formatted);
     let requestData = {
         "next_page": next,
         "per_page": perPage,
@@ -261,11 +228,11 @@ function handlePageButton(direction) {
 
 function handleDynamicPageButton(direction) {
     let next = getPageButtonDirection(direction);
-    perPage = +document.querySelector("#per_page").innerHTML;
-    data = document.querySelector("#data_full").innerHTML;
-    search_type = document.querySelector("#search_type").innerHTML;
-    formatted = formatDataString(data);
-    parsed = JSON.parse(formatted);
+    let perPage = +document.querySelector("#per_page").innerHTML;
+    let data = document.querySelector("#data_full").innerHTML;
+    let search_type = document.querySelector("#search_type").innerHTML;
+    let formatted = formatDataString(data);
+    let parsed = JSON.parse(formatted);
     let requestData = {"next_page": next, "per_page": perPage, "data": parsed, "referrer": "page_button", "search_type": search_type}
      fetch('/dynamic_search', {
         method: 'POST',
@@ -334,6 +301,11 @@ function handleLabelSearch() {
     searchAjax(data);
 }
 
+function handleStatsSearch() {
+    let data = document.getElementById("stats-filter")
+    console.log(data);
+}
+
 function searchAjax(data) {
     // AJAX function to update #search-results element
     fetch('/dynamic_search', {
@@ -356,9 +328,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target && event.target.classList.contains('search-btn')) {
             handleSearchButton();
         }
-//        if (event.target && event.target.classList.contains('search-submit-btn')) {
-//            handleSearchSubmitButton();
-//        }
+       if (event.target && event.target.classList.contains('search-submit-btn')) {
+           handleSearchSubmitButton();
+       }
         if (event.target && event.target.classList.contains('delete-btn')) {
             let deleteBtn = document.querySelector("#delete-btn");
             handleDeleteButton(deleteBtn);
@@ -381,6 +353,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target && event.target.classList.contains('dynamic-page-btn')) {
             let direction = event.target.dataset.direction;
             handleDynamicPageButton(direction);
+        }
+        // Handle /stats search button
+        if (event.target && event.target.classList.contains('stats-search')) {
+            handleStatsSearch();
         }
     });
 });
