@@ -35,14 +35,18 @@
                     <p>{{ items[i].data }}</p>
                 {% endif %}
 
-                {% if items[i].image %}
-                    {% set local_img = id|img_exists(type, items[i].image) %}
-                    {% if local_img %}
-                        <img src="{{ local_img }}" alt="Image for {{ items[i] }}">
+                {% set local_image = id|string|img_exists(item_type=type) %}
+                {% if local_image %}
+                    {% set src = local_image %}
+                {% else %}
+                    {% if items[i].image %}
+                        {% set src = items[i].image %}
                     {% else %}
-                        <img src="{{ items[i].image }}" alt="Image for {{ items[i] }}">
+                        {% set src = "/static/img/none.png" %}
                     {% endif %}
                 {% endif %}
+                <img src="{{ src }}" alt="Image for {{ items[i] }}">
+
 
                 {% if type == 'release' %}
                         <p>{{ items[i].name }} ({{ items[i].rating }}%)</p>

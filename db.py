@@ -83,7 +83,7 @@ def exists(item_type: str,
     if name:
         query = query.filter(model.name.ilike(f'%{name}%'))
 
-    result = query.all()
+    result = query.one_or_none()
     if result:
         return result
     else:
@@ -208,7 +208,7 @@ def dynamic_release_search(data: dict):
         if 'comparison' in key or key == 'qtype':
             # Utility field, not meant to be queried by
             pass
-        elif value != '' and value != 'NO VALUE':
+        elif value != '' and value != 'NO VALUE' and value != ['NO VALUE']:
             # If value is non-empty, add it to query
             if key == 'label':
                 search_label = exists(item_type='Label', name=value)
@@ -283,7 +283,9 @@ def dynamic_artist_search(data: dict):
                 query = query.filter(
                     getattr(Artist, key) == value
                 )
-    results = query.all()
+    results = query.where(
+        Artist.name != "[NONE]"
+    ).all()
     return results
 
 
@@ -313,7 +315,11 @@ def dynamic_label_search(data: dict):
                 query = query.filter(
                     getattr(Label, key) == value
                 )
-    results = query.all()
+    results = query.where(
+        Label.name != "[NONE]"
+    ).where(
+        Label.name != "[no label]"
+    ).all()
     return results
 
 

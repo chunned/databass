@@ -36,7 +36,7 @@
             {% for item in data %}
             <tr>
                 <td class="col1">
-                {% set local_image = item.id|string|img_exists("release", item.image) %}
+                {% set local_image = item.id|string|img_exists(item_type="release") %}
                 {% if local_image %}
                     <img src="{{ local_image }}" class="homepage_covers" alt="Album art">
                 {% else %}

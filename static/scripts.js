@@ -17,7 +17,6 @@ function handleDeleteButton(deleteButton) {
             body: JSON.stringify({ id: itemId, type: itemType })
         })
         .then(response => {
-            console.log(response);
             window.location.href = response.url;
         })
     });
@@ -41,22 +40,28 @@ function formatDataString(data) {
         .replace(/ '/g, ' "')
         .replace(/',/g, '",')
         .replace(/ "n' /g, " 'n' ")
+        .replace(/\['/g, '\["')
+        .replace(/'\]/g, '"\]')
         .replace(/! "75/g, "! '75'")
         .replace(/(12|10|7)" Vinyl/g, '$1\\" Vinyl');
 }
 
 
 function popupHTML(parsed_data) {
+    console.log(parsed_data);
     return `
     <div class="popup-content">
         <span class="close-btn">&times;</span>
         <form action="/submit" method="POST" id="popup-form">
-            <input type="hidden" name="release" value="${parsed_data.release.name}">
+            <input type="hidden" name="release_group_id" value="${parsed_data.release_group_id}">
+            <input type="hidden" name="release_name" value="${parsed_data.release.name}">
             <input type="hidden" name="artist" value="${parsed_data.artist.name}">
             <input type="hidden" name="label" value="${parsed_data.label.name}">
             <input type="hidden" name="release_mbid" value="${parsed_data.release.mbid}">
             <input type="hidden" name="artist_mbid" value="${parsed_data.artist.mbid}">
             <input type="hidden" name="label_mbid" value="${parsed_data.label.mbid}">
+            <input type="hidden" name="track_count" value="${parsed_data.track_count}">
+            <input type="hidden" name="country" value="${parsed_data.country}">
             <table id="popup-table">
                 <tr>
                     <td>RELEASE</td>
@@ -73,7 +78,7 @@ function popupHTML(parsed_data) {
                 </tr>
                 <tr>
                     <td>TRACKS</td>
-                    <td>${parsed_data["track-count"]}</td>
+                    <td>${parsed_data["track_count"]}</td>
                 </tr>
                 <tr>
                     <td>
@@ -109,7 +114,7 @@ function popupHTML(parsed_data) {
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <button type="submit" id="submit-btn" class="search-btn">submit</button>
+                        <button type="submit" id="submit-btn" class="search-btn search-submit-btn">submit</button>
                     </td>
                 </tr>
             </table>
@@ -124,7 +129,6 @@ function searchPopup(data) {
         let jsonStr = formatDataString(data);
         try {
             const parsed_data = JSON.parse(jsonStr) // Create the pop-up container
-            console.log(parsed_data);
             const popup = document.createElement('div');
             popup.className = 'popup';
             popup.innerHTML = popupHTML(parsed_data)
@@ -142,6 +146,29 @@ function searchPopup(data) {
         console.error('Failed to parse data-item:', error);
         console.log(data-item)
     }
+}
+
+function handleSearchSubmitButton() {
+    let form = document.getElementById("popup-form");
+    let form_data = {};
+    let inputs = form.querySelectorAll('input');
+    inputs.forEach(function(input) {
+        form_data[input.name] = input.value;
+    })
+    fetch('/image_search', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(form_data)
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.text()
+        } else {
+            throw new Error('Failed to submit form')
+        }
+    })
 }
 
 function updateSearchPage(new_data) {
@@ -330,6 +357,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target && event.target.classList.contains('search-btn')) {
             handleSearchButton();
         }
+//        if (event.target && event.target.classList.contains('search-submit-btn')) {
+//            handleSearchSubmitButton();
+//        }
         if (event.target && event.target.classList.contains('delete-btn')) {
             let deleteBtn = document.querySelector("#delete-btn");
             handleDeleteButton(deleteBtn);
@@ -346,7 +376,6 @@ document.addEventListener('DOMContentLoaded', () => {
             handleArtistSearch();
         }
         if (event.target && event.target.classList.contains('label-search')) {
-            console.log('click');
             handleLabelSearch();
         }
         // Handle /releases, /labels, /artists pagination button clicks
