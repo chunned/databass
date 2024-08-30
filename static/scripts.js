@@ -46,7 +46,6 @@ function formatDataString(data) {
         .replace(/(12|10|7)" Vinyl/g, '$1\\" Vinyl');
 }
 
-
 function popupHTML(parsed_data) {
     console.log(parsed_data);
     return `
@@ -85,7 +84,7 @@ function popupHTML(parsed_data) {
                         <label for="rating">RATING</label>
                     </td>
                     <td>
-                        <input type="number" min="0" max="100" required id="rating" name="rating" class="search-btn">
+                        <input type="number" min="0" max="100" required id="rating" name="rating">
                     </td>
                 </tr>
                 <tr>
@@ -93,7 +92,7 @@ function popupHTML(parsed_data) {
                         <label for="release_year">YEAR</label>
                     </td>
                     <td>
-                        <input type="number" min="0" required id="year" name="release_year" class="search-btn" value="${parsed_data.date}">
+                        <input type="number" min="0" required id="year" name="release_year" value="${parsed_data.date}">
                     </td>
                 </tr>
                 <tr>
@@ -101,7 +100,7 @@ function popupHTML(parsed_data) {
                         <label for="genre">GENRE</label>
                     </td>
                     <td>
-                        <input type="text" required id="genre" name="genre" class="search-btn">
+                        <input type="text" required id="genre" name="genre">
                     </td>
                 </tr>
                 <tr>
@@ -109,12 +108,12 @@ function popupHTML(parsed_data) {
                         <label for="tags">TAGS</label>
                     </td>
                     <td>
-                        <input type="text" id="tags" name="tags" class="search-btn">
+                        <input type="text" id="tags" name="tags">
                     </td>
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <button type="submit" id="submit-btn" class="search-btn search-submit-btn">submit</button>
+                        <button type="submit" id="submit-btn" class="search-submit-btn">submit</button>
                     </td>
                 </tr>
             </table>
