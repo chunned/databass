@@ -266,7 +266,7 @@ button {
 
 .form-cell input, .form-cell select, .form-cell button {
     box-sizing: border-box;
-    height: 3vh;
+    height: 4vh;
 }
 
 
