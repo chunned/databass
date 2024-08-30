@@ -146,7 +146,7 @@ def get_distinct_col(table: app_db.Model,
                      col: str):
     """
     Get distinct values of a non-unique column from the database
-    :param table: Database model class to query against
+    :param table: Model class to query against
     :param col: Column for which unique values are to be retrieved
     :return: Distinct values for the column
     """
@@ -263,30 +263,10 @@ def dynamic_artist_search(data: dict):
     :param data: A dictionary containing terms to filter by
     :return: Results of the constructed query
     """
-    query = Artist.query
-    for key, value in data.items():
-        if 'comparison' in key or key == 'qtype':
-            # Utility field, not meant to be queried by
-            pass
-        elif value != '' and value != 'NO VALUE':
-            if key == 'name':
-                query = query.filter(
-                    Artist.name.ilike(f'%{value}%')
-                )
-            elif key == 'begin_date':
-                op = data["begin_comparison"]
-                query = apply_date_filter(query, Artist, key, op, value)
-            elif key == 'end_date':
-                op = data["end_comparison"]
-                query = apply_date_filter(query, Artist, key, op, value)
-            else:
-                query = query.filter(
-                    getattr(Artist, key) == value
-                )
-    results = query.where(
-        Artist.name != "[NONE]"
-    ).all()
-    return results
+    return dynamic_artist_or_label_query(
+        item_type=Artist,
+        filters=data
+    )
 
 
 def dynamic_label_search(data: dict):
@@ -295,32 +275,46 @@ def dynamic_label_search(data: dict):
     :param data: A dictionary containing terms to filter by
     :return: Results of the constructed query
     """
-    query = Label.query
-    for key, value in data.items():
+    return dynamic_artist_or_label_query(
+        item_type=Label,
+        filters=dict(data.items())
+    )
+
+
+def dynamic_artist_or_label_query(item_type: app_db.Model, filters: dict):
+    """
+    Handles the querying and filtering for dynamic label/artist search
+    :param item_type: Artist or Label
+    :param filters: Dictionary of values to filter by
+    :return: Query object with filters applied
+    """
+    query = item_type.query
+    for key, value in filters.items():
         if 'comparison' in key or key == 'qtype':
             # Utility field, not meant to be queried by
             pass
         elif value != '' and value != 'NO VALUE':
             if key == 'name':
                 query = query.filter(
-                    Label.name.ilike(f'%{value}%')
+                    item_type.name.ilike(f'%{value}%')
                 )
             elif key == 'begin_date':
-                op = data["begin_comparison"]
-                query = apply_date_filter(query, Label, key, op, value)
+                op = filters["begin_comparison"]
+                query = apply_date_filter(query, item_type, key, op, value)
             elif key == 'end_date':
-                op = data["end_comparison"]
-                query = apply_date_filter(query, Label, key, op, value)
+                op = filters["end_comparison"]
+                query = apply_date_filter(query, item_type, key, op, value)
             else:
                 query = query.filter(
-                    getattr(Label, key) == value
+                    getattr(item_type, key) == value
                 )
-    results = query.where(
-        Label.name != "[NONE]"
+    query = query.where(
+        item_type.name != "[NONE]"
     ).where(
-        Label.name != "[no label]"
+        item_type.name != "[no label]"
     ).all()
-    return results
+    return query
+
 
 
 def get_model(model_name: str):
