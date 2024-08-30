@@ -441,3 +441,15 @@ def register_routes(app):
         goal = db.construct_item(model_name='goal', data_dict=data)
         db.insert(goal)
         return redirect('/goals', 302)
+
+    @app.route('/stats_search', methods=['GET'])
+    def stats_search():
+        data = request.get_json()
+        sort = data["sort"]
+        metric = data["metric"]
+        item_type = data["item_type"]
+        item_property = data["item_property"]
+        stats.search(sort=sort,
+                     metric=metric,
+                     item_type=item_type,
+                     item_property=item_property)

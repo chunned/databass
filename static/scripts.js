@@ -303,7 +303,23 @@ function handleLabelSearch() {
 
 function handleStatsSearch() {
     let data = document.getElementById("stats-filter")
-    console.log(data);
+    let vars = data.querySelectorAll("select");
+
+    let formData = {};
+    vars.forEach(input => {
+        formData[input.name] = input.value;
+    });
+    Object.keys(formData).forEach(key => {
+        if (formData[key] === '') {
+            let alertStr = `Empty form field: ${key}`
+            alert(alertStr);
+        }
+    });
+    fetch('/stats_search', {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(formData)
+    })
 }
 
 function searchAjax(data) {
