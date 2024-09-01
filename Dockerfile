@@ -1,6 +1,6 @@
 FROM python:3.12-alpine
 
-COPY . /databass
+COPY ./src /databass
 WORKDIR /databass
 
 RUN \
