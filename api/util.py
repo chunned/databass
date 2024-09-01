@@ -33,7 +33,7 @@ class Util:
 
     @staticmethod
     def today():
-        # Return a datetime object of the current day
+        # Return current day as a string
         return datetime.datetime.today().strftime('%Y-%m-%d')
 
     @staticmethod

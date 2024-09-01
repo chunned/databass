@@ -4,7 +4,7 @@ import api
 #import util
 from stats import get_all as get_stats, get_homepage_releases as get_releases
 import db
-
+from datetime import datetime
 
 def register_routes(app):
     @app.route('/', methods=['GET'])
@@ -21,7 +21,7 @@ def register_routes(app):
 
             current = goal.new_releases_since_start_date
             remaining = amount - current
-            days_left = (end_goal - start_date).days
+            days_left = (end_goal - datetime.today()).days      
             progress = round((current / amount) * 100)
             target = remaining / days_left
             goal_data.append({
