@@ -220,7 +220,6 @@ def register_routes(app):
                     db.update(goal)
         return redirect("/", code=302)
 
-
     @app.route('/releases', methods=["GET"])
     def releases():
         genres = sorted(db.get_distinct_col(db.Release, 'genre'))

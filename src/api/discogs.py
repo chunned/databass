@@ -66,7 +66,7 @@ class Discogs:
                 else:
                     return image_url
             except Exception as e:
-                raise e
+                pass
 
     @staticmethod
     def get_release_image_url(name: str, artist: str):
