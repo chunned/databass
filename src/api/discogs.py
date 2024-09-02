@@ -67,6 +67,8 @@ class Discogs:
                     return image_url
             except Exception as e:
                 pass
+            finally:
+                print('INFO: No square images found.')
 
     @staticmethod
     def get_release_image_url(name: str, artist: str):

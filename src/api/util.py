@@ -1,7 +1,8 @@
 import datetime
 import requests
-from os import mkdir, getenv
+from os import getenv
 from dotenv import load_dotenv
+import pathlib
 
 load_dotenv()
 VERSION = getenv('VERSION')
@@ -84,9 +85,9 @@ class Util:
         subdir = item_type
         try:
             # Create image subdirectory
-            mkdir(f"{base_path}/{subdir}")
-        except FileExistsError:
-            pass  # Directory already exists; continue
+            pathlib.Path(f"{base_path}/{subdir}").mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            print(f'Encountered exception while creating directory: {e}')
 
         if item_type not in ['release', 'artist', 'label']:
             raise Exception(f'Unexpected item_type: {item_type}')
@@ -123,4 +124,4 @@ class Util:
                 img_file.write(img)
             return file_path
         else:
-            raise Exception('img or img_type was blank; requires manual debug')
+            print('img or img_type was blank; requires manual debug')
