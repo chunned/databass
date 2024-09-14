@@ -115,6 +115,7 @@ def top_rated_entities(model: app_db.Model,
         )
             .join(Release, join_id == model.id)
             .where(model.name != "[NONE]")
+            .having(func.count(Release.id) > 1)
             .group_by(model.name, model.id).all())
         # Calculate the mean average and mean length (i.e. average number of releases, and average of rating averages)
         avg_sum = 0
