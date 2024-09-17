@@ -300,11 +300,11 @@ def register_routes(app):
 
     @app.route('/edit/<string:release_id>', methods=['GET'])
     def edit(release_id):
-        release_data = db.exists(item_type='release', item_id=release_id)[0]
+        release_data = db.exists(item_type='release', item_id=release_id)
         label_id = release_data.label_id
-        label_data = db.exists(item_type='label', item_id=label_id)[0]
+        label_data = db.exists(item_type='label', item_id=label_id)
         artist_id = release_data.artist_id
-        artist_data = db.exists(item_type='artist', item_id=artist_id)[0]
+        artist_data = db.exists(item_type='artist', item_id=artist_id)
         return render_template('edit.html',
                                release=release_data,
                                artist=artist_data,
