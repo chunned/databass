@@ -1,0 +1,174 @@
+{% extends '_base.html' %}
+{% block content %}
+<div class="home">
+    <div class="home_albums_container">
+        <table class="pagination">
+            <tr>
+                <td>
+                    {% if pagination.has_prev %}
+                        <button onclick="window.location.href='/home?page={{ pagination.page - 1 }}'" class="box">back</button>
+                    {% else %}
+                        <button disabled style="color: var(--color-black);">back</button>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if pagination.has_next %}
+                        <button onclick="window.location.href='/home?page={{ pagination.page + 1 }}'" class="box">next</button>
+                    {% else %}
+                        <button disabled style="color: var(--color-black);">next</button>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        <table class="home_album_table">
+            <thead>
+                <tr>
+                    <th class="col1">ART</th>
+                    <th class="col2">ARTIST</th>
+                    <th class="col3">TITLE</th>
+                    <th class="col4">RATING</th>
+                    <th class="col5">LISTEN DATE</th>
+                    <th class="col6">GENRE</th>
+                    <th class="col7">TAGS</th>
+                </tr>
+            </thead>
+
+            {% for item in data %}
+            <tr>
+                <td class="col1">
+                {% set local_image = item.id|string|img_exists(item_type="release") %}
+                {% if local_image %}
+                    <img src="{{ local_image }}" class="homepage_covers" alt="Album art">
+                {% else %}
+                    <img src="{{ item.image }}" class="homepage_covers col1" alt="Album art">
+                {% endif %}
+                </td>
+                <td class="col2">
+                    <a href="/artist/{{ item.artist_id }}" class="link">{{ item.artist_name }}</a>
+                </td>
+                <td class="col3">
+                    <a href="/release/{{ item.id }}" class="link">{{ item.name }}</a>
+                </td>
+                <td class="col4">
+                    {{ item.rating }}%
+                </td>
+                <td class="col5">
+                    {{ item.listen_date.date() }}
+                </td>
+                <td class="col6">
+                    {{ item.genre }}
+                </td>
+                <td class="col7">
+                    <p>
+                    {% set tags = item.tags %}
+                    {% set len = tags|length %}
+                    {% for i in range(len) %}
+                        {% if i + 1 == len %}
+                            {{ tags[i] }}
+                        {% else %}
+                            {{ tags[i] }},
+                        {% endif %}
+                    {% endfor %}
+                    </p>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    <div class="home_stats_container">
+        <table class="home_stats">
+            <tr>
+                <th colspan="2"><h3>STATS</h3></th>
+            </tr>
+            <tr>
+                <td>
+                    listens
+                </td>
+                <td>
+                    {{ stats.total_listens }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    artists
+                </td>
+                <td>
+                    {{ stats.total_artists }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    labels
+                </td>
+                <td>
+                    {{ stats.total_labels }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    avg rating
+                </td>
+                <td>
+                    {{ stats.average_rating }}%
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    avg runtime
+                </td>
+                <td>
+                    {{ stats.average_runtime }}m
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    total runtime
+                </td>
+                <td>
+                    {{ stats.total_runtime }}h
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    listens this year
+                </td>
+                <td>
+                    {{ stats.listens_this_year }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    listens per day
+                </td>
+                <td>
+                    {{ stats.listens_per_day }}
+                </td>
+            </tr>
+        </table>
+
+        <table class="home_stats">
+            <tr>
+                <th colspan="2"><h3>GOALS</h3></th>
+            </tr>
+            {% for goal in goals %}
+            <tr>
+                <td style="text-align: right;">{{ goal["amount"] }} {{ goal["type"] }}s by </td>
+                <td style="text-align: left;">{{ goal["end_goal"].date() }}</td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">start:</td>
+                <td style="text-align: left;">{{ goal["start_date"].date() }}</td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">progress:</td>
+                <td style="text-align: left;">{{ goal["progress"] }}% ({{ goal["current"] }}/{{ goal["amount"] }})</td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">target:</td>
+                <td style="text-align: left;">{{ goal["target"] }} per day</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}
