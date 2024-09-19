@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from os import getenv
 import requests
 import re
+import urllib.parse
 
 load_dotenv()
 DISCOGS_KEY = getenv("DISCOGS_KEY")
@@ -45,7 +46,10 @@ class Discogs:
     def get_item_image_url(endpoint):
         # Receives an API endpoint with query; extracts the first square image found
         response = Discogs.request(endpoint)
-        results = response["results"]
+        try:
+           results = response["results"]
+        except TypeError:
+            return None
         for item in results:
             image_url = item["cover_image"]
             try:
@@ -62,17 +66,22 @@ class Discogs:
 
                 # Make sure image is square; if not, try next result
                 if not height == width:
-                    continue
+                    pass
                 else:
                     return image_url
             except Exception as e:
                 pass
-            finally:
-                print('INFO: No square images found.')
+        print('INFO: No square images found.')
 
     @staticmethod
     def get_release_image_url(name: str, artist: str):
-        endpoint = f"/database/search?q={artist}&type=release&release_title={name}"
+        query_params = {
+            "q": artist,
+            "type": "release",
+            "releasE_title": name
+        }
+        encoded_params = urllib.parse.urlencode(query_params)
+        endpoint = f"/database/search?{encoded_params}"
         return Discogs.get_item_image_url(endpoint)
 
     @staticmethod

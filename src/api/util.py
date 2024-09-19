@@ -1,4 +1,5 @@
 import datetime
+import glob
 import requests
 from os import getenv
 from dotenv import load_dotenv
@@ -80,7 +81,7 @@ class Util:
             artist_name: str = None,
             label_name: str = None
     ):
-        img = img_type = None
+        img = img_type = img_url = None
         base_path = "./static/img"
         subdir = item_type
         try:
@@ -91,6 +92,9 @@ class Util:
 
         if item_type not in ['release', 'artist', 'label']:
             raise Exception(f'Unexpected item_type: {item_type}')
+
+        from .discogs import Discogs
+
         if mbid is not None and item_type == 'release':
             # Item is a release and MBID is populated; attempting to fetch image from CoverArtArchive
             from .musicbrainz import MusicBrainz
@@ -99,23 +103,25 @@ class Util:
                 # CoverArtArchive image found
                 # CAA returns the raw image data
                 img_type = Util.get_image_type_from_bytes(img)
+            else:
+                # Not found on CAA, checking Discogs
+                img_url = Discogs.get_release_image_url(
+                    name=release_name,
+                    artist=artist_name
+                )
         else:
             # Attempting to fetch image from Discogs
-            from .discogs import Discogs
-            img_url = None
-            if item_type == 'release':
-                img_url = Discogs.get_release_image_url(name=release_name,
-                                                        artist=artist_name)
-            elif item_type == 'artist':
+            if item_type == 'artist':
                 img_url = Discogs.get_artist_image_url(name=artist_name)
             elif item_type == 'label':
                 img_url = Discogs.get_label_image_url(name=label_name)
-            if img_url is not None:
-                response = requests.get(img_url, headers={
-                    "Accept": "application/json",
-                    "User-Agent": f"databass/{VERSION} (https://github.com/chunned/databass)"
-                })
-                img = response.content
+        if img_url is not None:
+            response = requests.get(img_url, headers={
+                "Accept": "application/json",
+                "User-Agent": f"databass/{VERSION} (https://github.com/chunned/databass)"
+            })
+            img = response.content
+            img_type = Util.get_image_type_from_bytes(img)
 
         if img is not None and img_type is not None:
             file_name = str(item_id) + img_type
@@ -125,3 +131,12 @@ class Util:
             return file_path
         else:
             print('img or img_type was blank; requires manual debug')
+
+    @staticmethod
+    def img_exists(item_id, item_type):
+        result = glob.glob(f'static/img/{item_type}/{item_id}.*')
+        if result:
+            url = '/' + result[0]
+            return url
+        else:
+            return result

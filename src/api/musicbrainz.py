@@ -1,4 +1,6 @@
 import musicbrainzngs as mbz
+import musicbrainzngs.musicbrainz
+
 from .util import Util
 from dateutil import parser as dateparser
 from dotenv import load_dotenv
@@ -230,11 +232,21 @@ class MusicBrainz:
     def get_image(mbid: str):
         """
         Search CoverArtArchive API for image candidates
-        :param mbid: MBID of the release group to check for existing images
+        :param mbid: MBID of the release/release group to check for existing images
         :return: List of available image URLs
         """
         try:
             return mbz.get_release_group_image_front(mbid, size='250')
+        except musicbrainzngs.musicbrainz.ResponseError:
+            try:
+                covers = mbz.get_image_list(mbid)
+                if covers:
+                    coverid = covers['images'][0]['id']
+                    return mbz.get_image(mbid, coverid=coverid, size='250')
+            except musicbrainzngs.musicbrainz.ResponseError:
+                return None
+            except Exception as e:
+                raise e
         except Exception as e:
             raise e
 

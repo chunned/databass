@@ -5,6 +5,7 @@ import api
 from stats import get_all as get_stats, get_homepage_releases as get_releases
 import db
 from datetime import datetime
+import time
 
 def register_routes(app):
     @app.route('/', methods=['GET'])
@@ -458,3 +459,66 @@ def register_routes(app):
                      metric=metric,
                      item_type=item_type,
                      item_property=item_property)
+
+    @app.route('/imgupdate/<item_type>/<item_id>')
+    def imgupdate(item_type, item_id):
+        item_id = int(item_id)
+        item = db.exists(item_type=item_type, item_id=item_id)
+        try:
+            img_path = '.' + api.Util.img_exists(item_id=item_id, item_type=item_type)
+        except TypeError:
+            # No local image exists, grab it
+            if item_type == 'release':
+                release_name = item.name
+                release_artist = db.exists(item_type='artist', item_id=item.artist_id)
+                artist_name = release_artist.name
+                img_path = api.Util.get_image(
+                    item_type=item_type,
+                    item_id=item_id,
+                    mbid=item.mbid,
+                    release_name=release_name,
+                    artist_name=artist_name
+                )
+            elif item_type == 'artist':
+                artist_name = item.name
+                img_path = api.Util.get_image(
+                    item_type=item_type,
+                    item_id=item_id,
+                    mbid=item.mbid,
+                    artist_name=artist_name
+                )
+            elif item_type == 'label':
+                label_name = item.name
+                img_path = api.Util.get_image(
+                    item_type=item_type,
+                    item_id=item_id,
+                    mbid=item.mbid,
+                    label_name=label_name
+                )
+        finally:
+            if item.image != img_path:
+                item.image = img_path
+                db.update(item)
+            # Define the mappings for the order of items. All releases are fixed 1 by 1, then artists, then labels
+            next_type = {
+                'release': 'artist',
+                'artist': 'label',
+                'label': None
+            }
+            next_item = db.exists(item_type=item_type, item_id=item_id+1)
+            if next_item:
+                return redirect(f'/imgupdate/{item_type}/{next_item.id}')
+            else:
+                # No next item; move onto next item type
+                next_item = next_type.get(item_type)
+                if next_item:
+                    return redirect(f'/imgupdate/{next_item}/0')
+                else:
+                    # Complete, redirect to home
+                    return redirect('/', code=302)
+
+
+    @app.route('/fix_images')
+    def fix_images():
+        # Starts the imgupdate process; imgupdate() will recursively call itself and update all images 1 by 1
+        return redirect('/imgupdate/release/1')
