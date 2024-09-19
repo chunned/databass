@@ -23,7 +23,7 @@ def register_routes(app):
             remaining = amount - current
             days_left = (end_goal - datetime.today()).days      
             progress = round((current / amount) * 100)
-            target = round(remaining / days_left, 2)
+            target = round((remaining / days_left), 2)
             goal_data.append({
                 "start_date": start_date,
                 "end_goal": end_goal,
