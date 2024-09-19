@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Integer, ForeignKey, DateTime, Date, func, UniqueConstraint
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from typing import Optional
 from datetime import datetime, date
 
@@ -30,6 +30,8 @@ class Release(app_db.Model):
     genre: Mapped[str] = mapped_column(String())
     tags: Mapped[Optional[str]] = mapped_column(String())
     image: Mapped[Optional[str]] = mapped_column(String())
+
+    tag_list = relationship("Tag", back_populates="release", cascade="all, delete-orphan")
     # Below is deprecated; can be removed, but need to deal with existing entries
     review: Mapped[Optional[str]] = mapped_column(String())
 
@@ -109,6 +111,8 @@ class Tag(app_db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
     name: Mapped[str] = mapped_column(String())
+
+    release = relationship("Release", back_populates="tag_list")
 
     __table_args__ = (
         # Make sure release can't have multiple of the same tag

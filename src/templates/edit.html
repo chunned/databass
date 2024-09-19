@@ -2,12 +2,15 @@
 {% block content %}
 <div>
     <form action="/edit_release" method="POST">
-        <input type="hidden" id="release_id" name="release_id" value="{{ release.id }}">
+        <input type="hidden" id="release_id" name="id" value="{{ release.id }}">
+        <input type="hidden" id="release_name" name="name" value="{{ release.name }}">
+        <input type="hidden" id="label_id" name="label_id" value="{{ release.label_id }}">
+        <input type="hidden" id="artist_id" name="artist_id" value="{{ release.artist_id }}">
     <table class="release-table">
         <thead>
         <tr>
             <th>
-                <img src="{{ release.image }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
+                <img src="{{ image }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
             </th>
             <th>
                 <h1><a href="/artist/{{ artist.id }}" class="link">{{ artist.name }}</a></h1>

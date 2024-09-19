@@ -196,7 +196,7 @@ def register_routes(app):
         }
         new_release = db.construct_item('release', release_data)
         release_id = db.insert(new_release)
-        api.Util.get_image(
+        image_filepath = api.Util.get_image(
             item_type='release',
             item_id=release_id,
             release_name=release_name,
@@ -204,7 +204,8 @@ def register_routes(app):
             label_name=label_name,
             mbid=release_group_mbid
         )
-
+        new_release.image = image_filepath
+        db.update(new_release)
         if tags is not None:
             for tag in tags.split(','):
                 tag_data = {"name": tag, "release_id": release_id}
@@ -298,9 +299,12 @@ def register_routes(app):
     #     # return flask.render_template('charts.html', data=data)
     #     return redirect('/', 302)
 
-    @app.route('/edit/<string:release_id>', methods=['GET'])
+    @app.route('/edit/<release_id>', methods=['GET'])
     def edit(release_id):
-        release_data = db.exists(item_type='release', item_id=release_id)
+        print(release_id)
+        release_data = db.exists(item_type='release', item_id=int(release_id))
+        release_image = release_data.image[1:]
+        print(release_image)
         label_id = release_data.label_id
         label_data = db.exists(item_type='label', item_id=label_id)
         artist_id = release_data.artist_id
@@ -308,11 +312,13 @@ def register_routes(app):
         return render_template('edit.html',
                                release=release_data,
                                artist=artist_data,
-                               label=label_data)
+                               label=label_data,
+                               image=release_image)
 
     @app.route('/edit_release', methods=['POST'])
     def edit_release():
         edit_data = request.form.to_dict()
+        print(edit_data)
         updated_release = db.construct_item('release', edit_data)
         db.update(updated_release)
         return redirect('/', 302)
