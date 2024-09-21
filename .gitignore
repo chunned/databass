@@ -10,3 +10,4 @@ pyrightconfig.json
 src/databass/static/img/*
 pg_data
 images*
+*backup*
