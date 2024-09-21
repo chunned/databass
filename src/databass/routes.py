@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect
 from flask_paginate import Pagination, get_page_parameter
 from .api import Util, MusicBrainz, Discogs
-#import util
+from .util import backup as bkp
 from .stats import get_all as get_stats, get_homepage_releases as get_releases
 from . import db
 from datetime import datetime
@@ -418,3 +418,8 @@ def register_routes(app):
     def fix_images():
         # Starts the imgupdate process; imgupdate() will recursively call itself and update all images 1 by 1
         return redirect('/imgupdate/release/1')
+
+    @app.route('/backup', methods=['GET'])
+    def backup():
+        bkp()
+        return redirect('/', code=302)

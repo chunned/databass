@@ -47,26 +47,32 @@ def average_rating():
 
 
 def average_runtime():
-    results = round(
-        (
+    try:
+        results = round(
             (
-                app_db.session.query(
-                    func.avg(Release.runtime)
-                ).scalar()) / 60000  # Convert ms to minutes
-        ), 2  # Round to 2 decimals
-    )
+                (
+                    app_db.session.query(
+                        func.avg(Release.runtime)
+                    ).scalar()) / 60000  # Convert ms to minutes
+            ), 2  # Round to 2 decimals
+        )
+    except TypeError:
+        results = 0
     return results
 
 
 def total_runtime():
-    results = round(
-        (
+    try:
+        results = round(
             (
-                app_db.session.query(func.sum(Release.runtime))
-                .scalar()
-            ) / 3600000  # Convert ms to hours
-        ), 2  # Round to 2 decimals
-    )
+                (
+                    app_db.session.query(func.sum(Release.runtime))
+                    .scalar()
+                ) / 3600000  # Convert ms to hours
+            ), 2  # Round to 2 decimals
+        )
+    except TypeError:
+        results = 0
     return results
 
 
@@ -123,7 +129,12 @@ def top_rated_entities(model: app_db.Model,
         for entity in entities:
             avg_sum += int(entity[2])
             len_sum += int(entity[3])
-        mean_avg = avg_sum / len(entities)
+        try:
+            mean_avg = avg_sum / len(entities)
+        except ZeroDivisionError:
+            # mean_avg ZeroDivisionError means len(entities) = None, meaning there are no releases in the db
+            return []
+
         mean_len = len_sum / len(entities)
         items = []
         for entity in entities:

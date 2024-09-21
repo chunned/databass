@@ -3,7 +3,12 @@ import os
 from sqlalchemy import text
 from sqlalchemy.exc import DataError
 import glob
+import gzip
+import subprocess
+from datetime import datetime
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def img_exists(item_id, item_type):
     result = glob.glob(f'static/img/{item_type}/{item_id}.*')
@@ -31,3 +36,23 @@ def update_sequence(app, app_db):
                 pass
 
 
+def backup():
+    backup_file = f'databass_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.gz'
+    db_name = os.getenv('DB_NAME')
+    db_user = os.getenv('PG_USER')
+
+    if os.getenv('DOCKER'):
+        pg_hostname = os.getenv('PG_HOSTNAME')
+        command = f'sudo docker exec {pg_hostname} pg_dump -U {db_user} {db_name}'
+    else:
+        command = f'pg_dump -U {db_user} {db_name}'
+
+    print(command)
+
+    with gzip.open(backup_file, 'wb') as bkp:
+        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, universal_newlines=True)
+        for line in iter(process.stdout.readline, ""):
+            bkp.write(line.encode('utf-8'))
+        process.stdout.close()
+        process.wait()
+    return backup_file
