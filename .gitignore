@@ -8,5 +8,7 @@ db.bat
 *.drawio*
 test*
 pyrightconfig.json
-src/static/img/
+*.png
+*.jpg
+*.jpeg
 pg_data
