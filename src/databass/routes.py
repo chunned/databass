@@ -358,10 +358,12 @@ def register_routes(app):
 
     @app.route('/imgupdate/<item_type>/<item_id>')
     def imgupdate(item_type, item_id):
+        print(f'Checking: {item_type} {item_id}')
         item_id = int(item_id)
         item = db.exists(item_type=item_type, item_id=item_id)
         try:
             img_path = '.' + Util.img_exists(item_id=item_id, item_type=item_type)
+            print(f'Local image already exists: {img_path}')
         except TypeError:
             # No local image exists, grab it
             if item_type == 'release':
@@ -394,6 +396,7 @@ def register_routes(app):
         finally:
             if item.image != img_path:
                 item.image = img_path
+                print(f'Updating database entry: {item_type}.image => {img_path}')
                 db.update(item)
             # Define the mappings for the order of items. All releases are fixed 1 by 1, then artists, then labels
             next_type = {
@@ -416,6 +419,7 @@ def register_routes(app):
 
     @app.route('/fix_images')
     def fix_images():
+        print('Fixing images.')
         # Starts the imgupdate process; imgupdate() will recursively call itself and update all images 1 by 1
         return redirect('/imgupdate/release/1')
 

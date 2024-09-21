@@ -7,15 +7,19 @@ from .routes import register_routes
 
 load_dotenv()
 VERSION = os.environ.get('VERSION')
-
+print(f'App version: {VERSION}')
 
 
 def create_app():
     app = Flask(__name__, instance_relative_config=False)
     app.config.from_object('config.Config')
+
     app_db.init_app(app)
+    print('Database initialized successfully.')
+
     with app.app_context():
         app_db.create_all()
+
         from .util import register_filters
         register_filters(app)
 
@@ -29,6 +33,7 @@ def create_app():
         app.register_blueprint(label_bp)
 
         register_routes(app)
+        print('Routes registered.')
 
         @app.before_request
         def before_request():
