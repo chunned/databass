@@ -1,4 +1,4 @@
-from models import app_db, Release, Artist, Label, Tag
+from .models import app_db, Release, Artist, Label, Tag
 from sqlalchemy import func, extract
 from datetime import datetime, date
 

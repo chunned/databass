@@ -4,7 +4,7 @@ from datetime import datetime
 import pytz
 from dotenv import load_dotenv
 from os import getenv
-from models import app_db, Release, Label, Artist, Goal, Review, Tag
+from .models import app_db, Release, Label, Artist, Goal, Review, Tag
 
 load_dotenv()
 TIMEZONE = getenv('TIMEZONE')

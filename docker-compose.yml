@@ -15,10 +15,12 @@ services:
       - PG_PASSWORD=${PG_PASSWORD}
       - PG_HOSTNAME=${PG_HOSTNAME}
       - DB_NAME=${DB_NAME}
-      - SQLITE_DB=${SQLITE_DB}
+      - PG_PORT=${PG_PORT}
+      - DB_FILENAME=${SQLITE_DB}
       - TIMEZONE=${TIMEZONE}           # e.g. America/New York
     volumes:
       - ./${SQLITE_DB}/:/databass/${SQLITE_DB}
+      - ./images:/databass/static/img
   postgres:
     image: postgres
     restart: always

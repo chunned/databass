@@ -1,9 +1,9 @@
 from flask import render_template, request, redirect
 from flask_paginate import Pagination, get_page_parameter
-import api
+from .api import Util, MusicBrainz, Discogs
 #import util
-from stats import get_all as get_stats, get_homepage_releases as get_releases
-import db
+from .stats import get_all as get_stats, get_homepage_releases as get_releases
+from . import db
 from datetime import datetime
 import time
 
@@ -22,7 +22,7 @@ def register_routes(app):
 
             current = goal.new_releases_since_start_date
             remaining = amount - current
-            days_left = (end_goal - datetime.today()).days      
+            days_left = (end_goal - datetime.today()).days
             progress = round((current / amount) * 100)
             target = round((remaining / days_left), 2)
             goal_data.append({
@@ -42,10 +42,10 @@ def register_routes(app):
             default=1
         )
         per_page = 5
-        start, end = api.Util.get_page_range(per_page, page)
-        
+        start, end = Util.get_page_range(per_page, page)
+
         paged_data = data[start:end]
-        
+
         flask_pagination = Pagination(
             page=page,
             total=len(data),
@@ -78,7 +78,7 @@ def register_routes(app):
             search_release = data["release"]
             search_artist = data["artist"]
             search_label = data["label"]
-            release_data = api.MusicBrainz.release_search(release=search_release,
+            release_data = MusicBrainz.release_search(release=search_release,
                                                           artist=search_artist,
                                                           label=search_label)
             data_length = len(release_data)
@@ -88,14 +88,14 @@ def register_routes(app):
                 default=1
             )
             per_page = 10
-            start, end = api.Util.get_page_range(per_page, page)
+            start, end = Util.get_page_range(per_page, page)
             paged_data = release_data[start:end]
         elif origin == 'page_button':
             page = data["next_page"]
             per_page = data["per_page"]
             release_data = data["data"]
             data_length = len(release_data)
-            start, end = api.Util.get_page_range(per_page, page)
+            start, end = Util.get_page_range(per_page, page)
             paged_data = release_data[start:end]
 
         if all(
@@ -133,7 +133,7 @@ def register_routes(app):
         tags = data["tags"]
         track_count = data["track_count"]
         country = data["country"]
-        runtime = api.MusicBrainz.get_release_length(release_mbid)
+        runtime = MusicBrainz.get_release_length(release_mbid)
 
         if label_mbid:
             # Check if label exists already
@@ -145,11 +145,11 @@ def register_routes(app):
                 label_id = label_exists.id
             else:
                 # Label does not exist; grab image, start/end date, type, and insert
-                label_search = api.MusicBrainz.label_search(label_name, label_mbid)
+                label_search = MusicBrainz.label_search(label_name, label_mbid)
                 # Construct and insert label
                 new_label = db.construct_item('label', label_search)
                 label_id = db.insert(new_label)
-                api.Util.get_image(
+                Util.get_image(
                     item_type='label',
                     item_id=label_id,
                     label_name=label_name
@@ -167,14 +167,14 @@ def register_routes(app):
                 artist_id = artist_exists.id
             else:
                 # Artist does not exist; grab image, start/end date, type, and insert
-                artist_search = api.MusicBrainz.artist_search(
+                artist_search = MusicBrainz.artist_search(
                     name=artist_name,
                     mbid=artist_mbid
                 )
                 # Construct and insert artist
                 new_artist = db.construct_item('artist', artist_search)
                 artist_id = db.insert(new_artist)
-                api.Util.get_image(
+                Util.get_image(
                     item_type='artist',
                     item_id=artist_id,
                     artist_name=artist_name
@@ -191,13 +191,13 @@ def register_routes(app):
             "genre": genre,
             "rating": rating,
             "runtime": runtime,
-            "listen_date": api.Util.today(),
+            "listen_date": Util.today(),
             "track_count": track_count,
             "country": country
         }
         new_release = db.construct_item('release', release_data)
         release_id = db.insert(new_release)
-        image_filepath = api.Util.get_image(
+        image_filepath = Util.get_image(
             item_type='release',
             item_id=release_id,
             release_name=release_name,
@@ -222,70 +222,6 @@ def register_routes(app):
                     db.update(goal)
         return redirect("/", code=302)
 
-    @app.route('/releases', methods=["GET"])
-    def releases():
-        genres = sorted(db.get_distinct_col(db.Release, 'genre'))
-        tags = sorted(db.get_distinct_col(db.Tag, 'name'))
-        countries = sorted(db.get_distinct_col(db.Release, 'country'))
-        all_labels = sorted(db.get_distinct_col(db.Label, 'name'))
-
-        all_artists = sorted(db.get_distinct_col(db.Artist, 'name'))
-        all_releases = sorted(db.get_distinct_col(db.Release, 'name'))
-        data = {
-            "genres": genres,
-            "tags": tags,
-            "countries": countries,
-            "labels": all_labels,
-            "releases": all_releases,
-            "artists": all_artists
-        }
-        return render_template(
-            'releases.html',
-            data=data,
-            active_page='releases'
-        )
-
-    @app.route('/artists', methods=["GET"])
-    def artists():
-        countries = db.get_distinct_col(db.Artist, 'country')
-        data = {"countries": countries}
-        return render_template('artists.html', data=data, active_page='artists')
-
-    @app.route('/labels', methods=["GET"])
-    def labels():
-        countries = db.get_distinct_col(db.Label, 'country')
-        types = db.get_distinct_col(db.Label, 'type')
-        data = {"countries": countries, "types": types}
-        return render_template('labels.html', data=data, active_page='labels')
-
-    @app.route('/release/<string:release_id>', methods=['GET'])
-    def release(release_id):
-        # Displays all info related to a particular release
-        release_data = db.exists('release', release_id)
-        artist_data = db.exists('artist', release_data.artist_id)
-        label_data = db.exists('label', release_data.label_id)
-        existing_reviews = db.get_release_reviews(release_id)
-        data = {"release": release_data,
-                "artist": artist_data,
-                "label": label_data,
-                "reviews": existing_reviews}
-        return render_template('release.html', data=data)
-
-    @app.route('/artist/<string:artist_id>', methods=['GET'])
-    def artist(artist_id):
-        # Displays all info related to a particular artist
-        artist_data = db.exists(item_type='artist', item_id=artist_id)
-        artist_releases = db.get_artist_releases(artist_id)
-        data = {"artist": artist_data, "releases": artist_releases}
-        return render_template('artist.html', data=data)
-
-    @app.route('/label/<string:label_id>', methods=['GET'])
-    def label(label_id):
-        label_data = db.exists(item_type='label', item_id=label_id)
-        label_releases = db.get_label_releases(label_id)
-        data = {"label": label_data, "releases": label_releases}
-        return render_template('label.html', data=data)
-
     # @app.route('/charts', methods=['GET'])
     # def charts():
     #     # Not implemented
@@ -299,46 +235,6 @@ def register_routes(app):
     #     # data = [n[0] for n in data]
     #     # return flask.render_template('charts.html', data=data)
     #     return redirect('/', 302)
-
-    @app.route('/edit/<release_id>', methods=['GET'])
-    def edit(release_id):
-        print(release_id)
-        release_data = db.exists(item_type='release', item_id=int(release_id))
-        release_image = release_data.image[1:]
-        print(release_image)
-        label_id = release_data.label_id
-        label_data = db.exists(item_type='label', item_id=label_id)
-        artist_id = release_data.artist_id
-        artist_data = db.exists(item_type='artist', item_id=artist_id)
-        return render_template('edit.html',
-                               release=release_data,
-                               artist=artist_data,
-                               label=label_data,
-                               image=release_image)
-
-    @app.route('/edit_release', methods=['POST'])
-    def edit_release():
-        edit_data = request.form.to_dict()
-        print(edit_data)
-        updated_release = db.construct_item('release', edit_data)
-        db.update(updated_release)
-        return redirect('/', 302)
-
-    @app.route('/delete', methods=['POST', 'GET'])
-    def delete():
-        data = request.get_json()
-        deletion_id = data['id']
-        deletion_type = data['type']
-        print(f'Deleting {deletion_type} {deletion_id}')
-        db.delete(item_type=deletion_type, item_id=deletion_id)
-        return redirect('/', 302)
-
-    @app.route('/add_review', methods=['POST'])
-    def add_review():
-        review_data = request.form.to_dict()
-        new_review = db.construct_item('review', review_data)
-        db.insert(new_review)
-        return redirect(request.referrer, 302)
 
     @app.route('/stats', methods=['GET'])
     def stats():
@@ -390,7 +286,7 @@ def register_routes(app):
                 full_data.append(temp)
             data_length = len(search_results)
             per_page = 14
-            start, end = api.Util.get_page_range(per_page, page)
+            start, end = Util.get_page_range(per_page, page)
 
             paged_data = full_data[start:end]
 
@@ -398,7 +294,7 @@ def register_routes(app):
             page = data["next_page"]
             per_page = data["per_page"]
             full_data = data["data"]
-            start, end = api.Util.get_page_range(per_page, page)
+            start, end = Util.get_page_range(per_page, page)
             data_length = len(full_data)
             paged_data = full_data[start:end]
             for item in paged_data:
@@ -436,7 +332,7 @@ def register_routes(app):
     def goals():
         existing_goals = db.get_incomplete_goals()
         data = {
-            "today": api.Util.today(),
+            "today": Util.today(),
             "existing_goals": existing_goals
         }
         return render_template('goals.html', active_page='goals', data=data)
@@ -465,14 +361,14 @@ def register_routes(app):
         item_id = int(item_id)
         item = db.exists(item_type=item_type, item_id=item_id)
         try:
-            img_path = '.' + api.Util.img_exists(item_id=item_id, item_type=item_type)
+            img_path = '.' + Util.img_exists(item_id=item_id, item_type=item_type)
         except TypeError:
             # No local image exists, grab it
             if item_type == 'release':
                 release_name = item.name
                 release_artist = db.exists(item_type='artist', item_id=item.artist_id)
                 artist_name = release_artist.name
-                img_path = api.Util.get_image(
+                img_path = Util.get_image(
                     item_type=item_type,
                     item_id=item_id,
                     mbid=item.mbid,
@@ -481,7 +377,7 @@ def register_routes(app):
                 )
             elif item_type == 'artist':
                 artist_name = item.name
-                img_path = api.Util.get_image(
+                img_path = Util.get_image(
                     item_type=item_type,
                     item_id=item_id,
                     mbid=item.mbid,
@@ -489,7 +385,7 @@ def register_routes(app):
                 )
             elif item_type == 'label':
                 label_name = item.name
-                img_path = api.Util.get_image(
+                img_path = Util.get_image(
                     item_type=item_type,
                     item_id=item_id,
                     mbid=item.mbid,

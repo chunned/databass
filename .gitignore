@@ -2,11 +2,11 @@ venv
 .idea
 __pycache__
 .env
-*ER Diagram.drawio*
 *.db
 db.bat
 *.drawio*
 test*
 pyrightconfig.json
-src/static/img/
+src/databass/static/img/*
 pg_data
+images*
