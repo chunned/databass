@@ -13,7 +13,7 @@ load_dotenv()
 def img_exists(item_id, item_type):
     result = glob.glob(f'static/img/{item_type}/{item_id}.*')
     if result:
-        url = '/' + result[0]
+        url = '/' + result[0].replace('databass/')
         return url
     else:
         return result
@@ -22,7 +22,13 @@ def img_exists(item_id, item_type):
 def register_filters(app):
     @app.template_filter('img_exists')
     def img_exists_filter(item_id, item_type):
-        return img_exists(item_id, item_type)
+        exists = img_exists(item_id, item_type)
+        if exists:
+            img_uri = exists.replace("./databass", "")
+            print(img_uri)
+            return img_uri
+        else:
+            return None
 
 
 def update_sequence(app, app_db):

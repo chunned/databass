@@ -3,17 +3,12 @@
 <div class="page-content">
     <div>
         <h1>{{ data.artist.name }}</h1>
-        {% set local_image = data.artist.id|string|img_exists(item_type="artist") %}
-        {% if local_image %}
-            {% set src = local_image %}
+        {% if data.artist.image %}
+            {% set src = data.artist.image %}
         {% else %}
-            {% if data.artist.image %}
-                {% set src = data.artist.image %}
-            {% else %}
-                {% set src = "/static/img/none.png" %}
-            {% endif %}
+            {% set src = "/static/img/none.png" %}
         {% endif %}
-        <img src="{{ src }}" alt="Artist icon" style="max-height: 75vh; max-width: 100%;">
+        <img src="../{{ src }}" alt="Artist icon" style="max-height: 75vh; max-width: 100%;">
     </div>
     <div>
         <div class="artist-table">
@@ -41,17 +36,12 @@
             {% for release in data.releases %}
             <div class="grid-cell" style="height: 350px; width: 250px; overflow: hidden; border-collapse: collapse;">
 
-                {% set local_image = release[0].id|string|img_exists(item_type="release") %}
-                {% if local_image %}
-                    {% set src = local_image %}
+                {% if release[0].image %}
+                    {% set src = release[0].image %}
                 {% else %}
-                    {% if release[0].image %}
-                        {% set src = release[0].image %}
-                    {% else %}
-                        {% set src = "/static/img/none.png" %}
-                    {% endif %}
+                    {% set src = "/static/img/none.png" %}
                 {% endif %}
-                <img src="{{ src }}" style="height:250px; width:250px;" alt="Album art">
+                <img src="../{{ src }}" style="height:250px; width:250px;" alt="Album art">
 
 
 

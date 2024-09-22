@@ -4,17 +4,12 @@
 <div class="page-content">
     <div>
     <h1>{{ data['label'].name }}</h1>
-    {% set local_image = data['label'].id|string|img_exists(item_type="label") %}
-    {% if local_image %}
-        {% set src = local_image %}
+    {% if data.label.image %}
+        {% set src = data.label.image %}
     {% else %}
-        {% if data['label'].image %}
-            {% set src = data['label'].image %}
-        {% else %}
-            {% set src = "/static/img/none.png" %}
-        {% endif %}
+        {% set src = "/static/img/none.png" %}
     {% endif %}
-    <img src="{{ src }}" style="max-height: 75vh; max-width: 100%;" alt="Label icon">
+    <img src="../{{ src }}" style="max-height: 75vh; max-width: 100%;" alt="Label icon">
     </div>
     <div>
         <table class="label-releases-table">

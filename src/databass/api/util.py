@@ -82,7 +82,7 @@ class Util:
             label_name: str = None
     ):
         img = img_type = img_url = None
-        base_path = "./static/img"
+        base_path = "./databass/static/img"
         subdir = item_type
         try:
             # Create image subdirectory
@@ -96,26 +96,28 @@ class Util:
         from .discogs import Discogs
 
         if mbid is not None and item_type == 'release':
-            # Item is a release and MBID is populated; attempting to fetch image from CoverArtArchive
+            print(f'Item is a release and MBID is populated; attempting to fetch image from CoverArtArchive: {mbid}')
             from .musicbrainz import MusicBrainz
             img = MusicBrainz.get_image(mbid)
             if img is not None:
-                # CoverArtArchive image found
+                print('CoverArtArchive image found')
                 # CAA returns the raw image data
                 img_type = Util.get_image_type_from_bytes(img)
             else:
-                # Not found on CAA, checking Discogs
+                print('Image not found on CAA, checking Discogs')
                 img_url = Discogs.get_release_image_url(
                     name=release_name,
                     artist=artist_name
                 )
         else:
-            # Attempting to fetch image from Discogs
+            print(f'Attempting to fetch {item_type} image from Discogs')
             if item_type == 'artist':
                 img_url = Discogs.get_artist_image_url(name=artist_name)
             elif item_type == 'label':
                 img_url = Discogs.get_label_image_url(name=label_name)
-        if img_url is not None:
+        response = ''
+        if img_url is not None and img_url is not False:
+            print(f'Discogs image URL: {img_url}')
             response = requests.get(img_url, headers={
                 "Accept": "application/json",
                 "User-Agent": f"databass/{VERSION} (https://github.com/chunned/databass)"
@@ -128,15 +130,17 @@ class Util:
             file_path = base_path + '/' + subdir + '/' + file_name
             with open(file_path, 'wb') as img_file:
                 img_file.write(img)
-            return file_path
+            print(f'Image saved to {file_path}')
+            return file_path.replace('databass/', '')
         else:
             print('img or img_type was blank; requires manual debug')
+            print(f'Discogs response: {response}')
 
     @staticmethod
     def img_exists(item_id, item_type):
-        result = glob.glob(f'static/img/{item_type}/{item_id}.*')
+        result = glob.glob(f'databass/static/img/{item_type}/{item_id}.*')
         if result:
-            url = '/' + result[0]
+            url = '/' + result[0].replace('databass/', "")
             return url
         else:
             return result

@@ -5,7 +5,6 @@ from .util import backup as bkp
 from .stats import get_all as get_stats, get_homepage_releases as get_releases
 from . import db
 from datetime import datetime
-import time
 
 def register_routes(app):
     @app.route('/', methods=['GET'])
@@ -365,6 +364,7 @@ def register_routes(app):
             img_path = '.' + Util.img_exists(item_id=item_id, item_type=item_type)
             print(f'Local image already exists: {img_path}')
         except TypeError:
+            print('Local image not found, attempting to grab from external sources.')
             # No local image exists, grab it
             if item_type == 'release':
                 release_name = item.name
@@ -404,7 +404,7 @@ def register_routes(app):
                 'artist': 'label',
                 'label': None
             }
-            next_item = db.exists(item_type=item_type, item_id=item_id+1)
+            next_item = db.next_item(item_type=item_type, prev_id=item_id)
             if next_item:
                 return redirect(f'/imgupdate/{item_type}/{next_item.id}')
             else:

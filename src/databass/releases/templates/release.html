@@ -5,17 +5,12 @@
         <thead>
             <tr>
                 <th>
-                    {% set local_image = data.release.id|string|img_exists(item_type="release") %}
-                    {% if local_image %}
-                        {% set src = local_image %}
+                    {% if data.release.image %}
+                        {% set src = data.release.image %}
                     {% else %}
-                        {% if data.release.image %}
-                            {% set src = data.release.image %}
-                        {% else %}
-                            {% set src = "/static/img/none.png" %}
-                        {% endif %}
+                        {% set src = "static/img/none.png" %}
                     {% endif %}
-                    <img src="{{ src }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
+                    <img src="../{{ src }}" style="max-height: 75vh; max-width: 100%;" alt="Album art">
                 </th>
                 <th>
                     <h1><a href="/artist/{{ data.artist.id }}" class="link">{{data.artist.name}}</a></h1>

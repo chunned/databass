@@ -90,6 +90,22 @@ def exists(item_type: str,
         return False
 
 
+def next_item(item_type: str,
+         prev_id: int):
+    """
+    Fetches the next entry in the database with an id greater than prev_id
+    :return: False if no entry exists; object for the entry otherwise
+    """
+    if item_type not in ['artist', 'release', 'label']:
+        raise ValueError(f'Invalid item_type: {item_type}')
+    else:
+        model = get_model(item_type)
+        query = model.query
+        item = query.filter(model.id > prev_id).first()
+        return item if item else False
+
+
+
 def get_artist_releases(artist_id: int):
     """
     Returns all releases related to the artist_id passed in
