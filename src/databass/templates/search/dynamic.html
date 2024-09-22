@@ -17,6 +17,7 @@
     </tr>
 </table>
 
+<div style="height: 72.5vh; overflow: hidden; overflow-y: auto;">
 <table class="dynamic-search-table">
 {% for i in range(items|length) %}
     {% if i % 7 == 0 %}
@@ -35,30 +36,27 @@
                     <p>{{ items[i].data }}</p>
                 {% endif %}
 
-                {% set local_image = id|string|img_exists(item_type=type) %}
-                {% if local_image %}
-                    {% set src = local_image %}
+                {% if type == 'release' %}
+                    <p>{{ items[i].name }} ({{ items[i].rating }}%)</p>
                 {% else %}
-                    {% if items[i].image %}
-                        {% set src = items[i].image %}
-                    {% else %}
-                        {% set src = "/static/img/none.png" %}
-                    {% endif %}
+                    <p>{{ items[i].name }}</p>
+                {% endif %}
+
+                {% if items[i].image %}
+                    {% set src = items[i].image %}
+                {% else %}
+                    {% set src = "/static/img/none.png" %}
                 {% endif %}
                 <img src="{{ src }}" alt="Image for {{ items[i] }}">
 
 
-                {% if type == 'release' %}
-                        <p>{{ items[i].name }} ({{ items[i].rating }}%)</p>
-                {% else %}
-                        <p>{{ items[i].name }}</p>
-                {% endif %}
+
                     </a>
             </td>
 {% endfor %}
         </tr>
 </table>
-
+</div>
 <p id="per_page" hidden>{{ per_page }}</p>
 <p id="data_full" hidden>{{ data_full }}</p>
 <p id="search_type" hidden>{{ type }}</p>

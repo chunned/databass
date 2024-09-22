@@ -1,7 +1,7 @@
 /* Font */
 @font-face {
     font-family: 'JetBrains Mono';
-    src: url('/static/JetBrainsMono-Regular.woff2') format('woff2');
+    src: url('JetBrainsMono-Regular.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
 }
@@ -276,10 +276,11 @@ button {
 }
 .dynamic-search-table td {
     text-align: center;
-    vertical-align: bottom;
+    vertical-align: top;
     white-space: nowrap;
     overflow: hidden;
     width: 100%;
+    border: 1px solid var(--color-grey)
 }
 
 /* Make sure search-bar inputs/selects don't get too wide - 11% vw ~= 1/9 of the screen */
