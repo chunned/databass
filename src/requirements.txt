@@ -9,3 +9,5 @@ flask-paginate
 python-dateutil~=2.9.0.post0
 psycopg2
 musicbrainzngs
+pytest
+pytest-mock
