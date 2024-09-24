@@ -1,3 +1,4 @@
+from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy
 from sqlalchemy import extract, func
 from datetime import datetime
@@ -10,20 +11,39 @@ load_dotenv()
 TIMEZONE = getenv('TIMEZONE')
 
 
+def get_model(model_name: str) -> SQLAlchemy.Model:
+    """
+    :param model_name: String corresponding to a database model class
+    :return: Instance of that model's class if it exists; None otherwise
+    """
+    model_name = model_name.lower()
+    model_name = model_name.capitalize()
+    return globals().get(model_name)
+
+
 def construct_item(model_name: str,
-                   data_dict: dict):
+                   data_dict: dict) -> SQLAlchemy.Model:
     """
     Construct an instance of a model from a dictionary
     :param model_name: String corresponding to SQLAlchemy model class from models.py
     :param data_dict: Dictionary containing keys corresponding to the database model class
     :return: The newly constructed instance of the model class.
     """
-    model = get_model(model_name)
-    item = model(**data_dict)
-    return item
+    valid_models = ['release', 'artist', 'label', 'goal', 'review', 'tag']
+    if model_name not in valid_models:
+        raise ValueError(f"Invalid model name: {model_name} - "
+                         f"Model name should be one of: {', '.join(valid_models)}")
+    else:
+        model = get_model(model_name)
+        if model is not None:
+            item = model(**data_dict)
+            return item
+        else:
+            raise NameError(f"No model with the name '{model_name}' found in globals()."
+                            "Ensure all valid models are imported and reflect existing models as defined in models.py")
 
 
-def insert(item: app_db.Model):
+def insert(item: SQLAlchemy.Model):
     """
     Insert an instance of a model class into the database
     :param item: Instance of SQLAlchemy model class from models.py
@@ -41,7 +61,7 @@ def insert(item: app_db.Model):
         print(f'Unexpected error: {err}')
 
 
-def update(item: app_db.Model):
+def update(item: SQLAlchemy.Model):
     """
     Update an existing database entry
     :param item: Instance of database model class to update
@@ -332,17 +352,8 @@ def dynamic_artist_or_label_query(item_type: app_db.Model, filters: dict):
     return query
 
 
-
-def get_model(model_name: str):
-    """
-    :param model_name: String corresponding to a database model class
-    :return: Instance of that model's class
-    """
-    return globals().get(model_name.capitalize())
-
-
 def apply_date_filter(query,
-                      model: app_db.Model,
+                      model: SQLAlchemy.Model,
                       key: str,
                       op: str,
                       value: str):
