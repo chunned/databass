@@ -3,15 +3,13 @@ from sqlalchemy import String, Integer, ForeignKey, DateTime, Date, func, Unique
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from typing import Optional
 from datetime import datetime, date
-
+from db.base import app_db
 
 class Base(DeclarativeBase):
     id: Mapped[int] = mapped_column(primary_key=True)
 
 
-app_db = SQLAlchemy(
-    model_class=Base
-)
+app_db.Model = Base
 
 
 class Release(app_db.Model):

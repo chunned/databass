@@ -1,102 +1,39 @@
-from flask_sqlalchemy import SQLAlchemy
-import sqlalchemy
-from sqlalchemy import extract, func
-from datetime import datetime
-import pytz
+from .base import app_db
+from .util import apply_date_filter, get_model
+from .operations import insert
+from ..models import Release, Label, Artist, Review, Tag, Goal
+from sqlalchemy import func, distinct
 from dotenv import load_dotenv
 from os import getenv
-from .models import app_db, Release, Label, Artist, Goal, Review, Tag
+from datetime import datetime
+from pytz import timezone
+from flask_sqlalchemy import SQLAlchemy
+from typing import Union
 
 load_dotenv()
 TIMEZONE = getenv('TIMEZONE')
 
 
-def get_model(model_name: str) -> SQLAlchemy.Model:
-    """
-    :param model_name: String corresponding to a database model class
-    :return: Instance of that model's class if it exists; None otherwise
-    """
-    model_name = model_name.lower()
-    model_name = model_name.capitalize()
-    return globals().get(model_name)
-
-
-def construct_item(model_name: str,
-                   data_dict: dict) -> SQLAlchemy.Model:
-    """
-    Construct an instance of a model from a dictionary
-    :param model_name: String corresponding to SQLAlchemy model class from models.py
-    :param data_dict: Dictionary containing keys corresponding to the database model class
-    :return: The newly constructed instance of the model class.
-    """
-    valid_models = ['release', 'artist', 'label', 'goal', 'review', 'tag']
-    if model_name not in valid_models:
-        raise ValueError(f"Invalid model name: {model_name} - "
-                         f"Model name should be one of: {', '.join(valid_models)}")
-    else:
-        model = get_model(model_name)
-        if model is not None:
-            item = model(**data_dict)
-            return item
-        else:
-            raise NameError(f"No model with the name '{model_name}' found in globals()."
-                            "Ensure all valid models are imported and reflect existing models as defined in models.py")
-
-
-def insert(item: SQLAlchemy.Model):
-    """
-    Insert an instance of a model class into the database
-    :param item: Instance of SQLAlchemy model class from models.py
-    :return: ID of the newly inserted item on success; -1 on failure
-    """
-    try:
-        app_db.session.add(item)
-        app_db.session.commit()
-        return item.id
-    except sqlalchemy.exc.IntegrityError as err:
-        app_db.session.rollback()
-        print(f'SQLite Integrity Error: \n{err}\n')
-    except Exception as err:
-        app_db.session.rollback()
-        print(f'Unexpected error: {err}')
-
-
-def update(item: SQLAlchemy.Model):
-    """
-    Update an existing database entry
-    :param item: Instance of database model class to update
-    """
-    app_db.session.merge(item)
-    app_db.session.commit()
-
-
-def delete(item_type: str, item_id: str):
-    """
-    Delete an existing entry from the database
-    :param item_type: String corresponding to a database model class
-    :param item_id: The ID of the item to delete
-    """
-    model = get_model(item_type)
-    to_delete = app_db.session.query(model).where(model.id == item_id).one()
-    app_db.session.delete(to_delete)
-    app_db.session.commit()
-
-
 def exists(item_type: str,
            item_id: int = -1,
            mbid: str = '',
-           name: str = ''):
+           name: str = '') -> Union[SQLAlchemy.Model, bool]:
     """
-    Check if an entry exists in the database matching a mbid or name
-    :param item_type: Item's type, corresponding to a database model class
+    Check if an entry exists in the database matching a given MusicBrainzID or name
+    :param item_type: Item's type, corresponding to a database model class from models.py
     :param item_id: Optional - item's ID
-    :param mbid: Optional - item's MBID
+    :param mbid: Optional - item's MusicBrainzID
     :param name: Optional - item's name
     :return: Item object if item exists, False otherwise
     """
+    if item_id == -1 and mbid == '' and name == '':
+        raise ValueError("No identifying information provided. At least one of item_id, mbid or name is required.")
+
     model = get_model(item_type)
+    if not model:
+        raise Exception(f'No database model found with the name {item_type}.')
     query = model.query
-    if int(item_id) > -1:
+    if item_id > -1:
         query = query.filter(model.id == item_id)
     if mbid:
         query = query.filter(model.mbid == mbid)
@@ -110,94 +47,109 @@ def exists(item_type: str,
         return False
 
 
-def next_item(item_type: str,
-         prev_id: int):
-    """
-    Fetches the next entry in the database with an id greater than prev_id
-    :return: False if no entry exists; object for the entry otherwise
-    """
-    if item_type not in ['artist', 'release', 'label']:
-        raise ValueError(f'Invalid item_type: {item_type}')
-    else:
-        model = get_model(item_type)
-        query = model.query
-        item = query.filter(model.id > prev_id).first()
-        return item if item else False
-
-
-
-def get_artist_releases(artist_id: int):
+def get_artist_releases(artist_id: int) -> Union[list, None]:
     """
     Returns all releases related to the artist_id passed in
     :param artist_id: The ID of an Artist
     :return: All releases associated with this ID
     """
+    if not isinstance(artist_id, int):
+        raise TypeError(f'artist_id should be an integer, got a {type(artist_id)}: {artist_id}')
     releases = (
         app_db.session.query(Release, Label.name)
         .join(Label, Release.label_id == Label.id)
         .join(Artist, Artist.id == Release.artist_id)
         .where(Artist.id == artist_id)
     ).all()
-    return releases
+    if releases:
+        return releases
+    else:
+        return None
 
-
-def get_label_releases(label_id: int):
+def get_label_releases(label_id: int) -> Union[list, None]:
     """
     :param label_id: The ID of a Label
     :return: All releases associated with this ID
     """
+    if not isinstance(label_id, int):
+        raise TypeError(f'label_id should be an integer, got a {type(label_id)}: {label_id}')
     releases = (
         app_db.session.query(Release, Artist)
         .join(Artist, Artist.id == Release.artist_id)
         .where(Release.label_id == label_id)
     ).all()
-    return releases
+    if releases:
+        return releases
+    else:
+        return None
 
 
-def get_release_reviews(release_id: int):
+def get_release_reviews(release_id: int) -> Union[list, None]:
     """
     :param release_id: ID of the release to filter by
     :return: All reviews for the release ID
     """
+    if not isinstance(release_id, int):
+        raise TypeError(f'release_id should be an integer, got a {type(release_id)}: {release_id}')
     reviews = (
         app_db.session.query(
             func.to_char(Review.timestamp, 'YYYY-MM-DD HH24:MI').label('timestamp'),
             Review.text
         ).where(Review.release_id == release_id)
     ).all()
-    return reviews
+    if reviews:
+        return reviews
+    else:
+        return None
 
 
-def get_all(item_type: str):
+def get_all(item_type: str) -> Union[list, None]:
     """
     Get all entries of a given SQLAlchemy model class
     :param item_type: String corresponding to database model class
     :return: All entries for that class
     """
     model = get_model(item_type)
-    return model.query.all()
-
+    if model:
+        results = model.query.all()
+        if results:
+            return results
+        else:
+            return None
+    else:
+        raise NameError(f'No database model found with the name {item_type}.')
 
 def get_distinct_col(table: app_db.Model,
-                     col: str):
+                     col: str) -> list:
     """
     Get distinct values of a non-unique column from the database
     :param table: Model class to query against
     :param col: Column for which unique values are to be retrieved
     :return: Distinct values for the column
     """
-    if not hasattr(table, col):
-        raise ValueError('Model class does not have a matching column')
+    try:
+        attribute = hasattr(table, col)
+        if attribute:
+            query = app_db.session.query(
+                distinct(attribute)
+            )
+            result = query.all()
+            if result:
+                distinct_values = [val[0] for val in query.all()]
+                return distinct_values
+            else:
+                # TODO: figure out proper exception type for nothing found by query
+                pass
+        else:
+            raise AttributeError
+    except AttributeError:
+        raise AttributeError('Model class does not have a matching column')
 
-    column = getattr(table, col)
-    query = app_db.session.query(
-        sqlalchemy.distinct(column)
-    )
-    distinct_values = [val[0] for val in query.all()]
-    return distinct_values
 
 
-def get_all_id_and_img():
+def get_all_id_and_img() -> dict:
+    # TODO: look into where this is used, if it's not used by search functions (i.e. dynamic_search()) then move to util.py
+    # Because the only place I can think of off the top of my head that it's used is in /fix_images
     """
     Retrieve all IDs and images from the database
     :return: Dictionary containing all IDs and images
@@ -352,28 +304,6 @@ def dynamic_artist_or_label_query(item_type: app_db.Model, filters: dict):
     return query
 
 
-def apply_date_filter(query,
-                      model: SQLAlchemy.Model,
-                      key: str,
-                      op: str,
-                      value: str):
-    """
-    Used by dynamic_(artist|label)_search to perform comparisons on begin_date and end_date
-    :param query: An instance of a database model query class
-    :param model: The database model class to filter on
-    :param key: The column to filter on - begin_date or end_date
-    :param op: Denotes the comparison to perform; -1 = lt, 0 = eq, 1 = gt
-    :param value: The value to compare against
-    :return: Newly constructed query
-    """
-    if op == '-1':
-        query = query.filter(extract('year', getattr(model, key)) < int(value))
-    elif op == '0':
-        query = query.filter(extract('year', getattr(model, key)) == int(value))
-    elif op == '1':
-        query = query.filter(extract('year', getattr(model, key)) > int(value))
-    return query
-
 
 def submit_manual(data):
     print(data)
@@ -395,7 +325,7 @@ def submit_manual(data):
         artist.name = artist_name
         artist_id = insert(artist)
 
-    local_timezone = pytz.timezone(TIMEZONE)
+    local_timezone = timezone(TIMEZONE)
 
     release = Release()
     release.name = data["name"]
@@ -410,6 +340,14 @@ def submit_manual(data):
     insert(release)
 
 
-def get_incomplete_goals():
+def get_incomplete_goals() -> Union[list, None]:
+    """
+    Query database for goals without an end_actual date, meaning they have not been completed
+    Returns a list of the goals if found; none otherwise
+    """
     query = Goal.query.where(Goal.end_actual.is_(None))
-    return query.all()
+    results = query.all()
+    if results:
+        return results
+    else:
+        return None

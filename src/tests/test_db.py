@@ -1,7 +1,6 @@
 import pytest
 from databass import db, models
 
-# TODO: refactor db.py into a module
 
 
 class TestConstructItem:
