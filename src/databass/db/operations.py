@@ -1,10 +1,18 @@
 from .base import app_db
 from .util import get_model
+from .models import Artist, Label, Release
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
+from dotenv import load_dotenv
+from os import getenv
+from pytz import timezone
+from datetime import datetime
+
+load_dotenv()
+TIMEZONE = getenv('TIMEZONE')
 
 
-def insert(item: SQLAlchemy.Model) -> int:
+def insert(item: app_db.Model) -> int:
     """
     Insert an instance of a model class into the database
     :param item: Instance of SQLAlchemy model class from models.py
@@ -23,7 +31,7 @@ def insert(item: SQLAlchemy.Model) -> int:
         raise Exception(f'Unexpected error: {err}')
 
 
-def update(item: SQLAlchemy.Model) -> None:
+def update(item: app_db.Model) -> None:
     """
     Update an existing database entry
     :param item: Instance of database model class to update
@@ -58,3 +66,40 @@ def delete(item_type: str,
     except Exception as err:
         app_db.session.rollback()
         raise Exception(f'Unexpected error: {err}')
+
+
+def submit_manual(data):
+    print(data)
+    label_name = data["label"]
+    existing_label = Label.exists_by_name(name=label_name)
+    # existing_label = exists(item_type='label', name=label_name)
+    if existing_label is not None:
+        label_id = existing_label.id
+    else:
+        label = Label()
+        label.name = label_name
+        label_id = insert(label)
+
+    artist_name = data["artist"]
+    existing_artist = Artist.exists_by_name(name=artist_name)
+    # existing_artist = exists(item_type='artist', name=artist_name)
+    if existing_artist is not None:
+        artist_id = existing_artist.id
+    else:
+        artist = Artist()
+        artist.name = artist_name
+        artist_id = insert(artist)
+
+    local_timezone = timezone(TIMEZONE)
+
+    release = Release()
+    release.name = data["name"]
+    release.artist_id = artist_id
+    release.label_id = label_id
+    release.release_year = data["release_year"]
+    release.rating = data["rating"]
+    release.genre = data["genre"]
+    release.tags = data["tags"]
+    release.image = data["image"]
+    release.listen_date = datetime.now(local_timezone).strftime("%Y-%m-%d")
+    insert(release)

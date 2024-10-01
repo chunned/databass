@@ -1,7 +1,7 @@
 from flask import Flask, g
 import os
 from dotenv import load_dotenv
-from .models import app_db
+from .db.base import app_db
 from .routes import register_routes
 
 
@@ -33,7 +33,6 @@ def create_app():
         app.register_blueprint(label_bp)
 
         register_routes(app)
-        print('Routes registered.')
 
         @app.before_request
         def before_request():

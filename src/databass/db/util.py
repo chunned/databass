@@ -1,8 +1,10 @@
 from .base import app_db
-from flask_sqlalchemy import SQLAlchemy
+from .models import Artist, Release, Label, MusicBrainzEntity, Base
 from sqlalchemy import extract
+from sqlalchemy.orm import query as sql_query
+from sqlalchemy.engine.row import Row
 
-def get_model(model_name: str) -> SQLAlchemy.Model:
+def get_model(model_name: str) -> Base | None:
     """
     :param model_name: String corresponding to a database model class
     :return: Instance of that model's class if it exists; None otherwise
@@ -21,7 +23,7 @@ def get_model(model_name: str) -> SQLAlchemy.Model:
 
 
 def construct_item(model_name: str,
-                   data_dict: dict) -> SQLAlchemy.Model:
+                   data_dict: dict) -> Base:
     """
     Construct an instance of a model from a dictionary
     :param model_name: String corresponding to SQLAlchemy model class from models.py
@@ -43,7 +45,7 @@ def construct_item(model_name: str,
 
 
 def next_item(item_type: str,
-         prev_id: int):
+         prev_id: int) -> Base:
     """
     Fetches the next entry in the database with an id greater than prev_id
     :return: False if no entry exists; object for the entry otherwise
@@ -56,21 +58,20 @@ def next_item(item_type: str,
         item = query.filter(model.id > prev_id).first()
         return item if item else False
 
-def apply_date_filter(query: SQLAlchemy.Model.query,
-                      model: SQLAlchemy.Model,
+def apply_comparison_filter(query,
+                      model: MusicBrainzEntity,
                       key: str,
-                      op: str,
-                      value: str):
+                      operator: str,
+                      value: str) -> sql_query:
     """
-    Used by dynamic_(artist|label)_search to perform comparisons on begin_date and end_date
-    :param query: An instance of a database model query class
+    Used by dynamic_search to perform comparisons on begin_date, end_date, year, or rating
+    :param query: An SQLAlchemy query class
     :param model: The database model class to filter on
     :param key: The column to filter on - begin_date or end_date
-    :param op: Denotes the comparison to perform; -1 = lt, 0 = eq, 1 = gt
+    :param operator: Denotes the comparison to perform; -1 = lt, 0 = eq, 1 = gt
     :param value: The value to compare against
     :return: Newly constructed query
     """
-
     attribute = getattr(model, key)
     if not attribute:
         raise NameError(f"No attribute '{key}' found in model {model}")
@@ -79,14 +80,82 @@ def apply_date_filter(query: SQLAlchemy.Model.query,
     except TypeError:
         raise TypeError(f"Value must be an integer, got {type(value)}: {value}")
 
-    if op == '-1':
-        query = query.filter(extract('year', attribute) < val)
-    elif op == '0':
-        query = query.filter(extract('year', attribute) == val)
-    elif op == '1':
-        query = query.filter(extract('year', attribute) > val)
-    else:
-        raise ValueError(f'Invalid op: {op}')
+    if operator not in ['-1', '0', '1']:
+        raise ValueError(f"Unrecognized operator value for year_comparison: {operator}")
+
+    if key == 'begin_date' or key == 'end_date':
+        if operator == '-1':
+            query = query.filter(extract('year', attribute) < val)
+        elif operator == '0':
+            query = query.filter(extract('year', attribute) == val)
+        elif operator == '1':
+            query = query.filter(extract('year', attribute) > val)
+    elif key == 'rating':
+        if operator == '-1':
+            query = query.filter(Release.rating < value)
+        elif operator == '0':
+            query = query.filter(Release.rating == value)
+        elif operator == '1':
+            query = query.filter(Release.rating > value)
+    elif key == 'year':
+        if operator == '-1':
+            query = query.filter(Release.release_year < value)
+        elif operator == '0':
+            query = query.filter(Release.release_year == value)
+        elif operator == '1':
+            query = query.filter(Release.release_year > value)
+
     return query
 
 
+def get_all_id_and_img() -> dict:
+    """
+    Retrieve all IDs and images from the database
+    :return: Dictionary containing all IDs and images
+    """
+    releases = app_db.session.query(
+        Release.id, Release.image
+    ).all()
+    artists = app_db.session.query(
+        Artist.id, Artist.image
+    ).all()
+    labels = app_db.session.query(
+        Label.id, Label.image
+    ).all()
+    data = {
+        "releases": releases,
+        "artists": artists,
+        "labels": labels
+    }
+    return data
+
+# Utility function to calculate the mean average rating and total release count for releases associated with a specific Label/Artist
+def mean_avg_and_count(entities: list[Row]) -> (int, int):
+    """
+    :param entities: List of SQLAlchemy Rows; returned from average_ratings_and_total_counts()
+    :return: A tuple representing the mean average release rating and mean release count
+    """
+    avg = count = 0
+    total = len(entities)
+    for item in entities:
+        avg += int(item.average_rating)
+        count += int(item.release_count)
+    mean_avg = avg / total
+    mean_count = count / total
+    return mean_avg, mean_count
+
+
+# Utility function used to calculate Bayesian average
+def bayesian_avg(
+        item_weight: float,
+        item_avg: float,
+        mean_avg: float
+) -> float:
+    """
+    Calculates the Bayesian average rating for a given item weight and average
+    :param item_weight: Float representing the item's weight for the formula; calculated as: count / (count + mean count)
+    :param item_avg: Item's average rating
+    :param mean_avg: Mean average release rating for all database entries
+    :return: Float representing the Bayesian average rating for releases associated with this item
+    """
+    return item_weight * item_avg + (1 - item_weight) * mean_avg

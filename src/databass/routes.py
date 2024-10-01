@@ -1,9 +1,9 @@
-from flask import render_template, request, redirect
+from flask import render_template, request, redirect, abort
 from flask_paginate import Pagination, get_page_parameter
 from .api import Util, MusicBrainz, Discogs
-from .util import backup as bkp
-from .stats import get_all as get_stats, get_homepage_releases as get_releases
+from .util import backup as bkp, get_stats
 from . import db
+from .db import models
 from datetime import datetime
 
 def register_routes(app):
@@ -11,7 +11,8 @@ def register_routes(app):
     @app.route('/home', methods=['GET'])
     def home():
         stats_data = get_stats()
-        active_goals = db.get_incomplete_goals()
+        active_goals = models.Goal.get_incomplete()
+
         goal_data = []
         for goal in active_goals:
             start_date = goal.start_date
@@ -33,8 +34,7 @@ def register_routes(app):
                 "target": target,
                 "current": current
             })
-
-        data = get_releases()
+        data = models.Release.home_data()
         page = request.args.get(
             get_page_parameter(),
             type=int,
@@ -136,10 +136,7 @@ def register_routes(app):
 
         if label_mbid:
             # Check if label exists already
-            label_exists = db.exists(
-                item_type='label',
-                mbid=label_mbid
-            )
+            label_exists = models.Label.exists_by_mbid(label_mbid)
             if label_exists:
                 label_id = label_exists.id
             else:
@@ -158,10 +155,7 @@ def register_routes(app):
 
         if artist_mbid:
             # Check if release exists
-            artist_exists = db.exists(
-                item_type='artist',
-                mbid=artist_mbid
-            )
+            artist_exists = models.Artist.exists_by_mbid(artist_mbid)
             if artist_exists:
                 artist_id = artist_exists.id
             else:
@@ -212,7 +206,7 @@ def register_routes(app):
                 tag_obj = db.construct_item('tag', tag_data)
                 db.insert(tag_obj)
 
-        active_goals = db.get_incomplete_goals()
+        active_goals = models.Goal.get_incomplete()
         if active_goals is not None:
             for goal in active_goals:
                 goal.check_and_update_goal()
@@ -238,10 +232,12 @@ def register_routes(app):
     @app.route('/stats', methods=['GET'])
     def stats():
         statistics = get_stats()
+        print(statistics['top_rated_artists'])
         return render_template('stats.html', data=statistics, active_page='stats')
 
     @app.route('/dynamic_search', methods=['POST'])
     def dynamic_search():
+        # TODO: make a unique dynamic_search() in the routes.py for each entity (/release, /artist, /label)
         data = request.get_json()
         origin = data["referrer"]
         del data["referrer"]
@@ -324,12 +320,14 @@ def register_routes(app):
     @app.route('/submit_manual', methods=['POST'])
     def submit_manual():
         data = request.form.to_dict()
-        db.submit_manual(data)
+        db.operations.submit_manual(data)
         return redirect('/', 302)
 
     @app.route('/goals', methods=['GET'])
     def goals():
-        existing_goals = db.get_incomplete_goals()
+        if request.method != 'GET':
+            abort(405)
+        existing_goals = models.Goal.get_incomplete()
         data = {
             "today": Util.today(),
             "existing_goals": existing_goals
@@ -359,7 +357,14 @@ def register_routes(app):
     def imgupdate(item_type, item_id):
         print(f'Checking: {item_type} {item_id}')
         item_id = int(item_id)
-        item = db.exists(item_type=item_type, item_id=item_id)
+        if item_type == 'release':
+            item = models.Release.exists_by_id(item_id)
+        elif item_type == 'artist':
+            item = models.Artist.exists_by_id(item_id)
+        elif item_type == 'label':
+            item = models.Label.exists_by_id(item_id)
+        else:
+            raise ValueError(f"Unexpected item_type: {item_type}")
         try:
             img_path = '.' + Util.img_exists(item_id=item_id, item_type=item_type)
             print(f'Local image already exists: {img_path}')
@@ -368,7 +373,7 @@ def register_routes(app):
             # No local image exists, grab it
             if item_type == 'release':
                 release_name = item.name
-                release_artist = db.exists(item_type='artist', item_id=item.artist_id)
+                release_artist = models.Artist.exists_by_id(item.artist_id)
                 artist_name = release_artist.name
                 img_path = Util.get_image(
                     item_type=item_type,
@@ -404,7 +409,7 @@ def register_routes(app):
                 'artist': 'label',
                 'label': None
             }
-            next_item = db.next_item(item_type=item_type, prev_id=item_id)
+            next_item = db.util.next_item(item_type=item_type, prev_id=item_id)
             if next_item:
                 return redirect(f'/imgupdate/{item_type}/{next_item.id}')
             else:
@@ -427,3 +432,8 @@ def register_routes(app):
     def backup():
         bkp()
         return redirect('/', code=302)
+
+    @app.errorhandler(405)
+    def method_not_allowed(e):
+        # TODO: make an error page
+        return e

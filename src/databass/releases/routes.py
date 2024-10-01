@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect
 from .. import db
+from ..db import models
 
 release_bp = Blueprint(
     'release_bp', __name__,
@@ -9,13 +10,12 @@ release_bp = Blueprint(
 
 @release_bp.route('/releases', methods=["GET"])
 def releases():
-    genres = sorted(db.get_distinct_col(db.Release, 'genre'))
-    tags = sorted(db.get_distinct_col(db.Tag, 'name'))
-    countries = sorted(db.get_distinct_col(db.Release, 'country'))
-    all_labels = sorted(db.get_distinct_col(db.Label, 'name'))
-
-    all_artists = sorted(db.get_distinct_col(db.Artist, 'name'))
-    all_releases = sorted(db.get_distinct_col(db.Release, 'name'))
+    genres = sorted(models.Release.get_distinct_column_values('genre'))
+    tags = sorted(models.Tag.get_distinct_column_values('name'))
+    countries = sorted(models.Release.get_distinct_column_values('country'))
+    all_labels = sorted(models.Label.get_distinct_column_values('name'))
+    all_artists = sorted(models.Artist.get_distinct_column_values('name'))
+    all_releases = sorted(models.Release.get_distinct_column_values('name'))
     data = {
         "genres": genres,
         "tags": tags,
@@ -33,10 +33,10 @@ def releases():
 @release_bp.route('/release/<string:release_id>', methods=['GET'])
 def release(release_id):
     # Displays all info related to a particular release
-    release_data = db.exists('release', release_id)
-    artist_data = db.exists('artist', release_data.artist_id)
-    label_data = db.exists('label', release_data.label_id)
-    existing_reviews = db.get_release_reviews(release_id)
+    release_data = models.Release.exists_by_id(release_id)
+    artist_data = models.Artist.exists_by_id(release_data.artist_id)
+    label_data = models.Label.exists_by_id(release_data.label_id)
+    existing_reviews = models.Release.get_reviews(release_id)
     data = {"release": release_data,
             "artist": artist_data,
             "label": label_data,
@@ -46,12 +46,10 @@ def release(release_id):
 
 @release_bp.route('/edit/<string:release_id>', methods=['GET'])
 def edit(release_id):
-    release_data = db.exists(item_type='release', item_id=int(release_id))
+    release_data = models.Release.exists_by_id(int(release_id))
     release_image = release_data.image[1:]
-    label_id = release_data.label_id
-    label_data = db.exists(item_type='label', item_id=label_id)
-    artist_id = release_data.artist_id
-    artist_data = db.exists(item_type='artist', item_id=artist_id)
+    label_data = models.Label.exists_by_id(release_data.label_id)
+    artist_data = models.Artist.exists_by_id(release_data.artist_id)
     return render_template('edit.html',
                            release=release_data,
                            artist=artist_data,

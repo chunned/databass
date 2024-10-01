@@ -36,11 +36,10 @@
             {% for item in data %}
             <tr>
                 <td class="col1">
-                {% set local_image = item.id|string|img_exists(item_type="release") %}
-                {% if local_image %}
-                    <img src="{{ local_image }}" class="homepage_covers" alt="Album art">
-                {% else %}
+                {% if item.image %}
                     <img src="{{ item.image }}" class="homepage_covers col1" alt="Album art">
+                {% else %}
+                    <img class="homepage_covers col1" alt="Album art" src="">
                 {% endif %}
                 </td>
                 <td class="col2">

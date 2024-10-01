@@ -56,6 +56,9 @@
                 <td>value (goal)</td>
                 <td>value (actual)</td>
             </tr>
+            {% if data.existing_goals|length == 0 %}
+                <p>No existing goals</p>
+            {% endif %}
             {% for goal in data.existing_goals %}
             <tr>
                 <td>
