@@ -69,7 +69,12 @@ class Discogs:
 
         res = Discogs.request(endpoint)
         try:
-            item_id = res["results"][0]["id"]
+            for result in res["results"]:
+                if "Blu-ray" not in result["format"]:
+                    item_id = result["id"]
+                    break
+                else:
+                    pass    # Skip bluray releases
         except IndexError:
             return False
         if item_id:

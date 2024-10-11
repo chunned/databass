@@ -98,17 +98,24 @@ class Util:
         if mbid is not None and item_type == 'release':
             print(f'Item is a release and MBID is populated; attempting to fetch image from CoverArtArchive: {mbid}')
             from .musicbrainz import MusicBrainz
-            img = MusicBrainz.get_image(mbid)
-            if img is not None:
-                print('CoverArtArchive image found')
-                # CAA returns the raw image data
-                img_type = Util.get_image_type_from_bytes(img)
-            else:
+            try:
+                img = MusicBrainz.get_image(mbid)
+                if img is not None:
+                    print('CoverArtArchive image found')
+                    # CAA returns the raw image data
+                    img_type = Util.get_image_type_from_bytes(img)
+                else:
+                    raise ValueError('No image returned by CoverArtArchive, or an error was encountered when fetching the image.')
+            except Exception:
                 print('Image not found on CAA, checking Discogs')
-                img_url = Discogs.get_release_image_url(
-                    name=release_name,
-                    artist=artist_name
-                )
+                try:
+                    img_url = Discogs.get_release_image_url(
+                        name=release_name,
+                        artist=artist_name
+                    )
+                except Exception as e:
+                    print(f'Got an exception from Discogs: {e}')
+
         else:
             print(f'Attempting to fetch {item_type} image from Discogs')
             if item_type == 'artist':
