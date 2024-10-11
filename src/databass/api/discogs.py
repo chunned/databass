@@ -68,6 +68,7 @@ class Discogs:
         print(f'Search endpoint: {endpoint}')
 
         res = Discogs.request(endpoint)
+        item_id = None
         try:
             for result in res["results"]:
                 if "Blu-ray" not in result["format"]:
@@ -75,7 +76,7 @@ class Discogs:
                     break
                 else:
                     pass    # Skip bluray releases
-        except IndexError:
+        except IndexError | KeyError:
             return False
         if item_id:
             print(f'ID for {item_type} {name}: {item_id}')
