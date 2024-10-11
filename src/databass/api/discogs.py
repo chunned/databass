@@ -76,7 +76,9 @@ class Discogs:
                     break
                 else:
                     pass    # Skip bluray releases
-        except IndexError | KeyError:
+        except IndexError:
+            return False
+        except KeyError:
             return False
         if item_id:
             print(f'ID for {item_type} {name}: {item_id}')
