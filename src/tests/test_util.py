@@ -146,3 +146,5 @@ class TestBackup:
         backup_file = f'databass_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.gz'
         result = util.backup()
         assert result == backup_file
+
+# TODO: add tests for new functions in util.py
