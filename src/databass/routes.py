@@ -464,6 +464,15 @@ def register_routes(app):
             "error_full": e.description,
             "valid_methods": e.valid_methods
         }
-
         return render_template('errors/405.html', data=data), 405
 
+    @app.errorhandler(404)
+    def not_found(e):
+        data = {
+            "method": request.method,
+            "arguments": request.args,
+            "url": request.url,
+            "data": request.data,
+            "error_full": e.description,
+        }
+        return render_template('errors/404.html', data=data), 404
