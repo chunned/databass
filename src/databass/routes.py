@@ -476,3 +476,14 @@ def register_routes(app):
             "error_full": e.description,
         }
         return render_template('errors/404.html', data=data), 404
+
+    @app.errorhandler(415)
+    def unsupported_media_type(e):
+        data = {
+            "method": request.method,
+            "arguments": request.args,
+            "url": request.url,
+            "data": request.data,
+            "error_full": e.description,
+        }
+        return render_template('errors/415.html', data=data), 415

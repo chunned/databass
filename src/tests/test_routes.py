@@ -118,6 +118,14 @@ class TestSearch:
             assert b"prev_page\" value=\"1" in response.data
             assert b"next_page\" value=\"3" in response.data
 
+    def test_search_non_json(self, client):
+        """
+        Test for successful handling of a request missing JSON data
+        """
+        response = client.post("/search")
+        assert response.status_code == 200
+        assert b"Application Error" in response.data
+        assert b"Request missing one of the expected keys" in response.data
 
 
 
