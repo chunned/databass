@@ -31,6 +31,8 @@ class MusicBrainz:
         :return: Dictionary containing data from API
         """
         if MusicBrainz.init:
+            if all(search_term is None for search_term in (release, artist, label)):
+                return ValueError("At least one query term is required")
             results = mbz.search_releases(artist=artist,
                                           label=label,
                                           release=release)

@@ -40,6 +40,88 @@ class TestNew:
         assert response.status_code == 405
         assert b"Error 405: Method not allowed" in response.data
 
+class TestSearch:
+    # Tests for /search
+    def test_search_page_load_success(self, client, mocker):
+        """
+        Test for successful page load
+        """
+        with mocker.patch(
+                'databass.api.MusicBrainz.release_search',
+                return_value=[{
+                    'release': {'name': 'name'},
+                    'artist': {'name': 'name'},
+                    'label': {'name': 'name'}
+                }]):
+            response = client.post("/search", json={'referrer': 'search', 'release': 'search', 'artist': '', 'label': ''})
+            assert response.status_code == 200
+            assert b"table class=\"pagination\"" in response.data
+
+    def test_search_page_load_success_no_results(self, client, mocker):
+        """
+        Test for successful page load when no search results are found
+        """
+        with mocker.patch('databass.api.MusicBrainz.release_search', return_value=[]):
+            response = client.post("/search", json={'referrer': 'search', 'release': 'search', 'artist': '', 'label': ''})
+            assert response.status_code == 200
+            assert b"No search results" in response.data
+
+    def test_search_malformed_request_no_search_terms(self, client):
+        """
+        Test for successful page load
+        """
+        response = client.post("/search", json={'referrer': 'search', 'release': '', 'artist': '', 'label': ''})
+        assert response.status_code == 200
+        assert b"Search requires at least one search term" in response.data
+
+    def test_search_malformed_request_missing_key(self, client):
+        """
+        Test for successful handling of a request missing one of the required keys
+        """
+        response = client.post("/search", json={'referrer': 'search'})
+        assert response.status_code == 200
+        assert b"Application Error" in response.data
+        assert b"Request missing one of the expected keys" in response.data
+
+    def test_search_missing_referrer(self, client):
+        """
+        Test for proper handling of requests without a referrer
+        """
+        response = client.post("/search", json={})
+        assert response.status_code == 200
+        assert b"Request referrer missing" in response.data
+
+    def test_search_method_not_allowed(self, client):
+        """
+        Test for successful handling of unsupported method
+        """
+        response = client.get("/search")
+        assert response.status_code == 405
+        assert b"Error 405: Method not allowed" in response.data
+
+    def test_search_pagination(self, client, mocker):
+        """
+        Test for successful handling of pagination requests
+        """
+        data_dict = {
+                    'release': {'name': 'name'},
+                    'artist': {'name': 'name'},
+                    'label': {'name': 'name'}
+                }
+        with mocker.patch(
+                'databass.api.MusicBrainz.release_search',
+                return_value=[data_dict]):
+            current_page = 2
+            response = client.post("/search", json={'referrer': 'page_button', 'next_page': current_page, 'per_page': 10, 'data': [data_dict.copy() for i in range(30)]})
+            assert response.status_code == 200
+            assert b"table class=\"pagination\"" in response.data
+            assert b"prev_page\" value=\"1" in response.data
+            assert b"next_page\" value=\"3" in response.data
+
+
+
+
+
 class TestGoals:
     # Tests for /goals route
     def test_goals_page_load_success(self, client):

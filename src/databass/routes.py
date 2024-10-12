@@ -72,11 +72,22 @@ def register_routes(app):
         page = data_length = paged_data = release_data = per_page = None
 
         data = request.get_json()
-        origin = data["referrer"]
+        try:
+            origin = data["referrer"]
+        except KeyError:
+            error = "Request referrer missing. You should only be coming to this page from /new or from the pagination buttons."
+            return render_template('errors/error.html', error=error)
         if origin == 'search':
-            search_release = data["release"]
-            search_artist = data["artist"]
-            search_label = data["label"]
+            try:
+                search_release = data["release"]
+                search_artist = data["artist"]
+                search_label = data["label"]
+            except KeyError:
+                error = "Request missing one of the expected keys"
+                return render_template('errors/error.html', error=error, back='/new')
+            if not search_release and not search_artist and not search_label:
+                error = "Search requires at least one search term"
+                return render_template('errors/error.html', error=error, back='/new')
             release_data = MusicBrainz.release_search(release=search_release,
                                                           artist=search_artist,
                                                           label=search_label)
@@ -100,6 +111,7 @@ def register_routes(app):
         if all(
             var is not None for var in [page, data_length, paged_data, release_data, per_page]
         ):
+            # TODO: make generic pagination handler function
             flask_pagination = Pagination(
                 page=page,
                 total=data_length,
