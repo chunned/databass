@@ -454,6 +454,7 @@ def register_routes(app):
         bkp()
         return redirect('/', code=302)
 
+    # TODO: make error handlers use the generic error.html template
     @app.errorhandler(405)
     def method_not_allowed(e):
         data = {

@@ -19,9 +19,6 @@ def create_app():
     with app.app_context():
         app_db.create_all()
 
-        from .util import register_filters
-        register_filters(app)
-
         from .releases.routes import release_bp
         app.register_blueprint(release_bp)
 
