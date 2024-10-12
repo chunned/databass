@@ -15,7 +15,6 @@ def create_app():
     app.config.from_object('config.Config')
     app.static_folder = 'static'
     app_db.init_app(app)
-    print('Database initialized successfully.')
 
     with app.app_context():
         app_db.create_all()

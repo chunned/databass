@@ -337,7 +337,16 @@ def register_routes(app):
     @app.route('/add_goal', methods=['POST'])
     def add_goal():
         data = request.form.to_dict()
-        goal = db.construct_item(model_name='goal', data_dict=data)
+        if not data:
+            err = "/add_goal received an empty payload"
+            return render_template('errors/error.html', error=err, back="/goals")
+        try:
+            goal = db.construct_item(model_name='goal', data_dict=data)
+            if not goal:
+                raise NameError("Construction of Goal object failed")
+        except Exception as e:
+            return render_template('errors/error.html', error=e, back="/goals")
+
         db.insert(goal)
         return redirect('/goals', 302)
 
@@ -435,5 +444,14 @@ def register_routes(app):
 
     @app.errorhandler(405)
     def method_not_allowed(e):
-        # TODO: make an error page
-        return e
+        data = {
+            "method": request.method,
+            "arguments": request.args,
+            "url": request.url,
+            "data": request.data,
+            "error_full": e.description,
+            "valid_methods": e.valid_methods
+        }
+
+        return render_template('errors/405.html', data=data), 405
+

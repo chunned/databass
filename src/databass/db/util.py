@@ -1,5 +1,5 @@
 from .base import app_db
-from .models import Artist, Release, Label, MusicBrainzEntity, Base
+from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Tag, Review
 from sqlalchemy import extract
 from sqlalchemy.orm import query as sql_query
 from sqlalchemy.engine.row import Row
@@ -17,7 +17,7 @@ def get_model(model_name: str) -> Base | None:
         instance = globals().get(model_name)
         if not instance:
             raise NameError(f"No model with the name '{model_name}' found in globals()."
-                            "Ensure all valid models are imported and reflect existing models as defined in models.py")
+                            "Ensure all valid models are imported in databass.db.util.py and reflect existing models as defined in models.py")
         else:
             return instance
 
