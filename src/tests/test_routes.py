@@ -25,6 +25,20 @@ class TestHome:
         assert response.status_code == 405
         assert b"Error 405: Method not allowed" in response.data
 
+class TestNew:
+    # Tests for /new
+    def test_new_page_load_success(self, client):
+        response = client.get("/new")
+        assert response.status_code == 200
+        assert b"new-release" in response.data
+
+    def test_new_method_not_allowed(self, client):
+        """
+        Test for successful handling of unsupported method
+        """
+        response = client.post("/new")
+        assert response.status_code == 405
+        assert b"Error 405: Method not allowed" in response.data
 
 class TestGoals:
     # Tests for /goals route
