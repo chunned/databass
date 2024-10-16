@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, abort
 from flask_paginate import Pagination, get_page_parameter
 from .api import Util, MusicBrainz, Discogs
-from .util import backup as bkp, get_stats
+from .util import backup as bkp, get_stats, handle_submit_data
 from . import db
 from .db import models
 from datetime import datetime
@@ -130,121 +130,36 @@ def register_routes(app):
     @app.route("/submit", methods=["POST"])
     def submit():
         data = request.form.to_dict()
-        # Grab variables from request
-        release_group_mbid = data["release_group_id"]
-        release_name = data["release_name"]
-        release_mbid = data["release_mbid"]
-        artist_name = data["artist"]
-        artist_mbid = data["artist_mbid"]
-        label_name = data["label"]
-        label_mbid = data["label_mbid"]
-        year = int(data["release_year"])
-        genre = data["genre"]
-        rating = int(data["rating"])
-        tags = data["tags"]
-        track_count = data["track_count"]
-        country = data["country"]
-        runtime = MusicBrainz.get_release_length(release_mbid)
+        try:
+            # Grab variables from request
+            release_data = {
+                "release_group_mbid": data["release_group_id"],
+                "name": data["release_name"],
+                "mbid": data["release_mbid"],
+                "artist_name": data["artist"],
+                "artist_mbid": data["artist_mbid"],
+                "label_name": data["label"],
+                "label_mbid": data["label_mbid"],
+                "release_year": int(data["release_year"]),
+                "genre": data["genre"],
+                "rating": int(data["rating"]),
+                "track_count": data["track_count"],
+                "listen_date": Util.today(),
+                "country": data["country"],
+                "tags": data["tags"]
+            }
+        except KeyError:
+            error = "Request missing one of the expected keys"
+            return render_template('errors/error.html', error=error, back='/new', data=data)
 
-        if label_mbid:
-            # Check if label exists already
-            label_exists = models.Label.exists_by_mbid(label_mbid)
-            if label_exists:
-                label_id = label_exists.id
-            else:
-                # Label does not exist; grab image, start/end date, type, and insert
-                label_search = MusicBrainz.label_search(label_name, label_mbid)
-                # Construct and insert label
-                new_label = db.construct_item('label', label_search)
-                label_id = db.insert(new_label)
-                Util.get_image(
-                    item_type='label',
-                    item_id=label_id,
-                    label_name=label_name
-                )
-        else:
-            label_id = 0
+        handle_submit_data(release_data)
 
-        if artist_mbid:
-            # Check if release exists
-            artist_exists = models.Artist.exists_by_mbid(artist_mbid)
-            if artist_exists:
-                artist_id = artist_exists.id
-            else:
-                # Artist does not exist; grab image, start/end date, type, and insert
-                artist_search = MusicBrainz.artist_search(
-                    name=artist_name,
-                    mbid=artist_mbid
-                )
-                # Construct and insert artist
-                new_artist = db.construct_item('artist', artist_search)
-                artist_id = db.insert(new_artist)
-                Util.get_image(
-                    item_type='artist',
-                    item_id=artist_id,
-                    artist_name=artist_name
-                )
-        else:
-            artist_id = 0
 
-        release_data = {
-            "name": release_name,
-            "mbid": release_mbid,
-            "artist_id": artist_id,
-            "label_id": label_id,
-            "release_year": year,
-            "genre": genre,
-            "rating": rating,
-            "runtime": runtime,
-            "listen_date": Util.today(),
-            "track_count": track_count,
-            "country": country
-        }
-        new_release = db.construct_item('release', release_data)
-        release_id = db.insert(new_release)
-        image_filepath = Util.get_image(
-            item_type='release',
-            item_id=release_id,
-            release_name=release_name,
-            artist_name=artist_name,
-            label_name=label_name,
-            mbid=release_group_mbid
-        )
-        new_release.image = image_filepath
-        db.update(new_release)
-        if tags is not None:
-            for tag in tags.split(','):
-                tag_data = {"name": tag, "release_id": release_id}
-                tag_obj = db.construct_item('tag', tag_data)
-                db.insert(tag_obj)
-
-        active_goals = models.Goal.get_incomplete()
-        if active_goals is not None:
-            for goal in active_goals:
-                goal.check_and_update_goal()
-                if goal.end_actual:
-                    # Goal is complete; updating db entry
-                    db.update(goal)
         return redirect("/", code=302)
-
-    # @app.route('/charts', methods=['GET'])
-    # def charts():
-    #     # Not implemented
-    #     # con = db.create_connection('music.db')
-    #     # cur = db.create_cursor(con)
-    #     #
-    #     # query = "SELECT rating FROM release"
-    #     # cur.execute(query)
-    #     # data = cur.fetchall()
-    #     #
-    #     # data = [n[0] for n in data]
-    #     # return flask.render_template('charts.html', data=data)
-    #     return redirect('/', 302)
 
     @app.route('/stats', methods=['GET'])
     def stats():
         statistics = get_stats()
-        print(statistics['top_rated_artists'])
         return render_template('stats.html', data=statistics, active_page='stats')
 
     @app.route('/dynamic_search', methods=['POST'])
@@ -362,6 +277,7 @@ def register_routes(app):
         db.insert(goal)
         return redirect('/goals', 302)
 
+    # TODO: see if still needed
     @app.route('/stats_search', methods=['GET'])
     def stats_search():
         data = request.get_json()
@@ -374,6 +290,7 @@ def register_routes(app):
                      item_type=item_type,
                      item_property=item_property)
 
+    # TODO: see if still needed
     @app.route('/imgupdate/<item_type>/<item_id>')
     def imgupdate(item_type, item_id):
         print(f'Checking: {item_type} {item_id}')
@@ -442,19 +359,21 @@ def register_routes(app):
                     # Complete, redirect to home
                     return redirect('/', code=302)
 
-
+    # TODO: see if still needed
     @app.route('/fix_images')
     def fix_images():
         print('Fixing images.')
         # Starts the imgupdate process; imgupdate() will recursively call itself and update all images 1 by 1
         return redirect('/imgupdate/release/1')
 
+    # TODO: see if still needed
     @app.route('/backup', methods=['GET'])
     def backup():
         bkp()
         return redirect('/', code=302)
 
     # TODO: make error handlers use the generic error.html template
+    # TODO: move these to their own routes.py
     @app.errorhandler(405)
     def method_not_allowed(e):
         data = {

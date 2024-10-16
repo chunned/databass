@@ -127,6 +127,30 @@ class TestSearch:
         assert b"Application Error" in response.data
         assert b"Request missing one of the expected keys" in response.data
 
+class TestSubmit:
+    # Tests for /submit
+    def test_submit_malformed_request(self, client):
+        response = client.post("/submit")
+        assert b"Application Error" in response.data
+        assert b"Request missing one of the expected keys" in response.data
+
+    def test_submit_successful_page_load(self, client, mocker):
+        # do a debug trace of a real request and see what the form data should look like
+
+class TestStats:
+    # Tests for /stats
+    def test_home_page_load_success(self, client):
+        response = client.get("/stats")
+        assert response.status_code == 200
+        assert b"stats" in response.data
+
+    def test_home_method_not_allowed(self, client):
+        """
+        Test for successful handling of unsupported method
+        """
+        response = client.post("/stats")
+        assert response.status_code == 405
+        assert b"Error 405: Method not allowed" in response.data
 
 
 
