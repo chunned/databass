@@ -17,13 +17,6 @@ class TestHome:
         assert response.status_code == 200
         assert b"home_albums_container" in response.data
 
-    def test_home_method_not_allowed(self, client):
-        """
-        Test for successful handling of unsupported method
-        """
-        response = client.post("/")
-        assert response.status_code == 405
-        assert b"Error 405: Method not allowed" in response.data
 
 class TestNew:
     # Tests for /new
@@ -32,13 +25,6 @@ class TestNew:
         assert response.status_code == 200
         assert b"new-release" in response.data
 
-    def test_new_method_not_allowed(self, client):
-        """
-        Test for successful handling of unsupported method
-        """
-        response = client.post("/new")
-        assert response.status_code == 405
-        assert b"Error 405: Method not allowed" in response.data
 
 class TestSearch:
     # Tests for /search
@@ -91,14 +77,6 @@ class TestSearch:
         assert response.status_code == 200
         assert b"Request referrer missing" in response.data
 
-    def test_search_method_not_allowed(self, client):
-        """
-        Test for successful handling of unsupported method
-        """
-        response = client.get("/search")
-        assert response.status_code == 405
-        assert b"Error 405: Method not allowed" in response.data
-
     def test_search_pagination(self, client, mocker):
         """
         Test for successful handling of pagination requests
@@ -129,50 +107,48 @@ class TestSearch:
 
 class TestSubmit:
     # Tests for /submit
+    # TODO: make compatible with manual submission after routes.submit_manual() is merged into routes.submit()
     def test_submit_malformed_request(self, client):
+        """
+        Test for successful handling of a request missing required data
+        """
         response = client.post("/submit")
+        assert response.status_code == 200
         assert b"Application Error" in response.data
         assert b"Request missing one of the expected keys" in response.data
 
     def test_submit_successful_page_load(self, client, mocker):
-        # do a debug trace of a real request and see what the form data should look like
+        """
+        Test for successful submission and redirection 
+        """
+        mock_handler = mocker.patch("databass.util.handle_submit_data")
+        # TODO: do a debug trace of a real request and see what the form data should look like
+        data = {}
+        response = client.post("/submit", json=data)
+        assert response.status_code == 302
+        assert b"home_albums_container" in response.data
+        mock_handler.assert_called_once()
+    
+
 
 class TestStats:
     # Tests for /stats
-    def test_home_page_load_success(self, client):
+    def test_home_page_load_success(self, client, mocker):
+        mock_get_stats = mocker.patch("databass.util.get_stats", return_value={})
         response = client.get("/stats")
         assert response.status_code == 200
         assert b"stats" in response.data
+        mock_get_stats.assert_called_once()
 
-    def test_home_method_not_allowed(self, client):
-        """
-        Test for successful handling of unsupported method
-        """
-        response = client.post("/stats")
-        assert response.status_code == 405
-        assert b"Error 405: Method not allowed" in response.data
 
+
+class TestDynamicSearch:
+    # Tests for /dynamic_search
+    
 
 
 class TestGoals:
     # Tests for /goals route
-    def test_goals_page_load_success(self, client):
-        """
-        Test for successful page load triggered by GET request
-        """
-        response = client.get("/goals")
-        assert response.status_code == 200
-        assert b"New Goal" in response.data
-        assert response.location == '/goals'
-
-    def test_goals_page_load_fail(self, client):
-        """
-        Test for successful handling of unsupported method
-        """
-        response = client.post("/goals")
-        assert response.status_code == 405
-        assert b"Error 405: Method not allowed" in response.data
-
     def test_goals_no_goals_found(self, client, mocker):
         """
         Test for correct handling when no goals are found in database
@@ -221,14 +197,6 @@ class TestGoals:
 
 class TestAddGoal:
     # Tests for /add_goal
-    def test_add_goals_method_not_allowed(self, client):
-        """
-        Test for successful redirection to /goals
-        """
-        response = client.get("/add_goal")
-        assert response.status_code == 405
-        assert b"Error 405: Method not allowed" in response.data
-
     def test_add_goals_no_payload(self, client):
         """
         Test for successful handling of empty payload

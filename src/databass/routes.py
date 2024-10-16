@@ -151,10 +151,7 @@ def register_routes(app):
         except KeyError:
             error = "Request missing one of the expected keys"
             return render_template('errors/error.html', error=error, back='/new', data=data)
-
         handle_submit_data(release_data)
-
-
         return redirect("/", code=302)
 
     @app.route('/stats', methods=['GET'])
@@ -164,7 +161,8 @@ def register_routes(app):
 
     @app.route('/dynamic_search', methods=['POST'])
     def dynamic_search():
-        # TODO: make a unique dynamic_search() in the routes.py for each entity (/release, /artist, /label)
+        # TODO: make a unique dynamic_search() in the routes.py for each entity (/release, /artist, /label); also simplify implementation
+
         data = request.get_json()
         origin = data["referrer"]
         del data["referrer"]
@@ -246,6 +244,7 @@ def register_routes(app):
 
     @app.route('/submit_manual', methods=['POST'])
     def submit_manual():
+        # TODO: merge with /submit; need to look at what the form dict looks like 
         data = request.form.to_dict()
         db.operations.submit_manual(data)
         return redirect('/', 302)
