@@ -9,21 +9,34 @@ def client():
     with app.test_client() as client:
         yield client
 
-class Artists:
+class TestArtists:
     # Tests for /artists
-    def test_artists_successful_page_load(self, client):
-        response = client.get("/artists")
-        assert response.status_code == 200
-        assert b"search-bar" in response.data
+    def test_artists_successful_page_load(self, client, mocker):
+        pass
 
 class TestArtist:
     # Tests for /artist
     def test_artist_successful_page_load(self, client, mocker):
-        pass
+        import datetime
+        mock_artist_data = mocker.MagicMock()
+        mock_artist_data.begin_date = datetime.date(1986, 10, 26)
+        mock_artist_data.country = None
+        mock_artist_data.end_date = datetime.date(9999, 12, 31)
+        mock_artist_data.id = 1
+        mock_artist_data.image = "./static/img/artist/1.jpg"
+        mock_artist_data.mbid = 'bce6d667-cde8-485e-b078-c0a05adea36d'
+        mock_artist_data.name = "ScHoolboy Q"
+        mock_artist_data.type = "Person"
+
+        mock_artist_releases = mocker.patch('databass.db.models.Artist.get_releases', return_value=[])
+
+        response = client.get("/artists")
+        assert response.status_code == 200
+        assert b"search-bar" in response.data
 
     def test_artist_not_found(self, client, mocker):
         mock_artist_data = mocker.patch("databass.db.models.Artist.exists_by_id", return_value=False)
-        response = client.get("/artist/99999999999999999999")
+        response = client.get("/artist/999")
         assert response.status_code == 302
         assert b"You should be redirected automatically" in response.data
 
