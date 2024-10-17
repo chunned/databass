@@ -143,10 +143,30 @@ class Util:
             print(f'Discogs response: {response}')
 
     @staticmethod
-    def img_exists(item_id, item_type):
-        result = glob.glob(f'databass/static/img/{item_type}/{item_id}.*')
+    def img_exists(
+            item_id: int,
+            item_type: str
+    ) -> str | bool:
+        """
+        Checks if a local image has already been downloaded for the given entity
+        Returns a string of the image's path if it exists
+        Returns False if the image does not exist
+        """
+
+        if not isinstance(item_id, int):
+            raise TypeError("item_id must be an integer.")
+        if not isinstance(item_type, str):
+            raise TypeError("item_type must be a string.")
+
+        item_type = item_type.lower()
+        valid_types = ["release", "artist", "label"]
+        if item_type not in valid_types:
+            raise ValueError(f"Invalid item_type: {item_type}. "
+                             f"Must be one of the following strings: {', '.join(valid_types)}")
+
+        result = glob.glob(f'static/img/{item_type}/{item_id}.*')
         if result:
-            url = '/' + result[0].replace('databass/', "")
+            url = '/' + result[0].replace('databass/', '')
             return url
         else:
-            return result
+            return False

@@ -6,6 +6,7 @@ from datetime import datetime
 
 class TestImgExists:
     # Tests for img_exists()
+    # TODO: move this into the tests for api/util.py Util class
 
     @pytest.fixture
     def mock_glob(self, mocker):
