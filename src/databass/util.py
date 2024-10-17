@@ -45,100 +45,17 @@ def backup():
     return backup_file
 
 
-def create_if_not_exist(mbid: str, name: str, item_type: str) -> int:
-    """
-    Check if an item exists in the database, create the item if it does not exist
-    :param mbid: MusicBrainzID of the item
-    :param name: Item name
-    :param item_type: "label" or "artist"
-    :return: Database ID of the item
-    """
-    # Check if item exists already
-    if item_type == 'label':
-        item_exists = Label.exists_by_mbid(mbid)
-    elif item_type == 'release':
-        item_exists = Artist.exists_by_mbid(mbid)
-    else:
-        raise ValueError(f"Unsupported item_type: {item_type}")
-
-    if item_exists:
-        item_id = item_exists.id
-    else:
-        # Item does not exist; grab image, start/end date, type, and insert
-        if item_type == 'label':
-            item_search = MusicBrainz.label_search(name=name, mbid=mbid)
-        elif item_type == 'release':
-            item_search = MusicBrainz.artist_search(name=name, mbid=mbid)
-
-        # Construct and insert label
-        new_item = construct_item(item_type, item_search)
-        item_id = insert(new_item)
-        # TODO: see if Util.get_image() can be refactored; instead of label_name and artist_name use item_name
-        if item_type == 'label':
-            Util.get_image(
-                item_type=item_type,
-                item_id=item_id,
-                label_name=name
-            )
-        elif item_type == 'release':
-            Util.get_image(
-                item_type=item_type,
-                item_id=item_id,
-                artist_name=name
-            )
-        # TODO: figure out a way to call Util.get_image() upon any insertion so it doesn't need to be manually called
-    return item_id
-
-
-def create_release(data: dict) -> int:
-    """
-
-    :param data:
-    :return:
-    """
-    new_release = construct_item('release', data)
-    release_id = insert(new_release)
-    image_filepath = Util.get_image(
-        item_type='release',
-        item_id=release_id,
-        release_name=data["name"],
-        artist_name=data["artist_name"],
-        label_name=data["label_name"],
-        mbid=data["release_group_mbid"]
-    )
-    # TODO: see if the image field is still needed anywhere;
-    new_release.image = image_filepath
-    update(new_release)
-    return new_release.id
-
-
-def create_tags(tags: str, release_id: int) -> None:
-    for tag in tags.split(','):
-        tag_data = {"name": tag, "release_id": release_id}
-        tag_obj = construct_item('tag', tag_data)
-        insert(tag_obj)
-
-
-def check_goals() -> None:
-    active_goals = Goal.get_incomplete()
-    if active_goals is not None:
-        for goal in active_goals:
-            goal.check_and_update_goal()
-            if goal.end_actual:
-                # Goal is complete; updating db entry
-                update(goal)
-
-
 def handle_submit_data(submit_data: dict) -> None:
+    # TODO: figure out a better place for this function to live
+    from db.models import Goal, Tag, Release, Artist, Label
     runtime = MusicBrainz.get_release_length(submit_data["mbid"])
 
     submit_data["runtime"] = runtime
 
     if submit_data["label_mbid"]:
-        label_id = create_if_not_exist(
+        label_id = Label.create_if_not_exist(
             mbid=submit_data["label_mbid"],
             name=submit_data["label_name"],
-            item_type='label'
         )
     else:
         label_id = 0
@@ -146,18 +63,16 @@ def handle_submit_data(submit_data: dict) -> None:
     submit_data["label_id"] = label_id
 
     if submit_data["artist_mbid"]:
-        artist_id = create_if_not_exist(
+        artist_id = Artist.create_if_not_exist(
             mbid=submit_data["artist_mbid"],
             name=submit_data["artist_name"],
-            item_type='artist'
         )
     else:
         artist_id = 0
 
     submit_data["artist_id"] = artist_id
-    release_id = create_release(submit_data)
+    release_id = Release.create_new(submit_data)
 
     if submit_data["tags"] is not None:
-        create_tags(submit_data["tags"], release_id)
-
-    check_goals()
+        Tag.create_tags(submit_data["tags"], release_id)
+    Goal.check_goals()

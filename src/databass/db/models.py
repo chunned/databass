@@ -352,6 +352,25 @@ class Release(MusicBrainzEntity):
         ).all()
         return reviews
 
+    @staticmethod
+    def create_new(data: dict) -> int:
+        from .util import construct_item
+        from .operations import insert, update
+        from ..api import Util
+        new_release = construct_item('release', data)
+        release_id = insert(new_release)
+
+        image_filepath = Util.get_image(
+            item_type='release',
+            item_id=release_id,
+            release_name=data["name"],
+            artist_name=data["artist_name"],
+            label_name=data["label_name"],
+            mbid=data["release_group_mbid"]
+        )
+        new_release.image = image_filepath
+        update(new_release)
+        return new_release.id
 
 class ArtistOrLabel(MusicBrainzEntity):
     # Artist and Label tables are both built from this prototype
@@ -588,6 +607,43 @@ class ArtistOrLabel(MusicBrainzEntity):
         ).all()
         return results
 
+    @classmethod
+    def create_if_not_exist(cls, mbid: str, name: str) -> int:
+        from ..api import MusicBrainz, Util
+        from .util import construct_item
+        from .operations import insert
+        item_exists = cls.exists_by_mbid(mbid)
+        if item_exists:
+            item_id = item_exists.id
+        else:
+            # Grab image, start/end date, type, and insert
+            if cls.__name__ == 'Label':
+                item_search = MusicBrainz.label_search(name=name, mbid=mbid)
+                new_item = construct_item(model_name='label', data_dict=item_search)
+            elif cls.__name__ == 'Artist':
+                item_search = MusicBrainz.artist_search(name=name, mbid=mbid)
+                new_item = construct_item(model_name='artist', data_dict=item_search)
+            else:
+                raise ValueError(f"Unsupported class: {cls} - supported classes are Label and Artist")
+
+            item_id = insert(new_item)
+            # TODO: see if Util.get_image() can be refactored; instead of label_name and artist_name use item_name
+            if cls.__name__ == 'Label':
+                Util.get_image(
+                    item_type='label',
+                    item_id=item_id,
+                    label_name=name
+            )
+            elif cls.__name__ == 'Artist':
+                Util.get_image(
+                    item_type='artist',
+                    item_id=item_id,
+                    artist_name=name
+                )
+            # TODO: figure out a way to call Util.get_image() upon any insertion so it doesn't need to be manually called
+        return item_id
+
+
 
 class Label(ArtistOrLabel):
     __tablename__ = "label"
@@ -650,7 +706,7 @@ class Goal(app_db.Model):
             .scalar()
         )
 
-    def check_and_update_goal(self):
+    def update_goal(self):
         print(f'Target amount: {self.amount} - Actual amount: {self.new_releases_since_start_date}')
         if self.type == 'release':
             if self.new_releases_since_start_date >= self.amount:
@@ -675,6 +731,17 @@ class Goal(app_db.Model):
         else:
             return None
 
+    @classmethod
+    def check_goals(cls) -> None:
+        active_goals = cls.get_incomplete()
+        if active_goals is not None:
+            for goal in active_goals:
+                goal.update_goal()
+                if goal.end_actual:
+                    # Goal is complete; updating db entry
+                    from .operations import update
+                    update(goal)
+
 
 class Review(app_db.Model):
     __tablename__ = "review"
@@ -696,6 +763,16 @@ class Tag(app_db.Model):
         # Make sure release can't have multiple of the same tag
         UniqueConstraint('release_id', 'name', name='unique_release_tag'),
     )
+
+    @staticmethod
+    def create_tags(tags: str, release_id: int) -> None:
+        from .util import construct_item
+        from .operations import insert
+        for tag in tags.split(','):
+            tag_data = {"name": tag, "release_id": release_id}
+            tag_obj = construct_item('tag', tag_data)
+            insert(tag_obj)
+
 
 
 
