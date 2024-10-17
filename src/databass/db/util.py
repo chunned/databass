@@ -179,3 +179,36 @@ def get_all_stats():
         "top_frequent_artists": Artist.frequency_highest()[0:10]
     }
     return stats
+
+
+def handle_submit_data(submit_data: dict) -> None:
+    from ..api import MusicBrainz
+    from .models import Goal, Tag, Release, Artist, Label
+    runtime = MusicBrainz.get_release_length(submit_data["mbid"])
+
+    submit_data["runtime"] = runtime
+
+    if submit_data["label_mbid"]:
+        label_id = Label.create_if_not_exist(
+            mbid=submit_data["label_mbid"],
+            name=submit_data["label_name"],
+        )
+    else:
+        label_id = 0
+
+    submit_data["label_id"] = label_id
+
+    if submit_data["artist_mbid"]:
+        artist_id = Artist.create_if_not_exist(
+            mbid=submit_data["artist_mbid"],
+            name=submit_data["artist_name"],
+        )
+    else:
+        artist_id = 0
+
+    submit_data["artist_id"] = artist_id
+    release_id = Release.create_new(submit_data)
+
+    if submit_data["tags"] is not None:
+        Tag.create_tags(submit_data["tags"], release_id)
+    Goal.check_goals()
