@@ -6,7 +6,7 @@ from databass import create_app
 def client():
     app = create_app()
     app.config.update({"TESTING": True})
-    with ap.test_client() as client:
+    with app.test_client() as client:
         yield client
 
 class TestReleases:
