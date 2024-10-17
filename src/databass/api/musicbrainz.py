@@ -221,7 +221,7 @@ class MusicBrainz:
                 try:
                     for track in tracks:
                         length += track["length"]
-                except TypeError or KeyError:
+                except KeyError | TypeError as e:
                     length = 0
             except Exception as e:
                 raise e
