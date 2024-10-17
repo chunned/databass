@@ -772,7 +772,3 @@ class Tag(app_db.Model):
             tag_data = {"name": tag, "release_id": release_id}
             tag_obj = construct_item('tag', tag_data)
             insert(tag_obj)
-
-
-
-
