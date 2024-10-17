@@ -131,27 +131,42 @@ def register_routes(app):
     def submit():
         data = request.form.to_dict()
         try:
-            # Grab variables from request
-            release_data = {
-                "release_group_mbid": data["release_group_id"],
-                "name": data["release_name"],
-                "mbid": data["release_mbid"],
-                "artist_name": data["artist"],
-                "artist_mbid": data["artist_mbid"],
-                "label_name": data["label"],
-                "label_mbid": data["label_mbid"],
-                "release_year": int(data["release_year"]),
-                "genre": data["genre"],
-                "rating": int(data["rating"]),
-                "track_count": data["track_count"],
-                "listen_date": Util.today(),
-                "country": data["country"],
-                "tags": data["tags"]
-            }
+            # Check if this is a manual submission (i.e. manually entered data, no results found from MusicBrainz)
+            if data["manual_submit"] == "true":
+                release_data = {
+                    "name": data["name"],
+                    "artist_name": data["artist"],
+                    "label_name": data["label"],
+                    "release_year": data["release_year"],
+                    "genre": data["genre"],
+                    "rating": data["rating"],
+                    "tags": data["tags"],
+                    "listen_date": Util.today()
+                }
+                # TODO: improve manual submission; check Discogs for Artist/Label images, let user provide release image URL and auto-fetch it
+                db.operations.submit_manual(release_data)
+            elif data["manual_submit"] == "false":
+                # Grab variables from request
+                release_data = {
+                    "release_group_mbid": data["release_group_id"],
+                    "name": data["release_name"],
+                    "mbid": data["release_mbid"],
+                    "artist_name": data["artist"],
+                    "artist_mbid": data["artist_mbid"],
+                    "label_name": data["label"],
+                    "label_mbid": data["label_mbid"],
+                    "release_year": int(data["release_year"]),
+                    "genre": data["genre"],
+                    "rating": int(data["rating"]),
+                    "track_count": data["track_count"],
+                    "listen_date": Util.today(),
+                    "country": data["country"],
+                    "tags": data["tags"]
+                }
+                handle_submit_data(release_data)
         except KeyError:
             error = "Request missing one of the expected keys"
             return render_template('errors/error.html', error=error, back='/new', data=data)
-        handle_submit_data(release_data)
         return redirect("/", code=302)
 
     @app.route('/stats', methods=['GET'])
@@ -241,13 +256,6 @@ def register_routes(app):
             type=search_type,
             per_page=per_page
         )
-
-    @app.route('/submit_manual', methods=['POST'])
-    def submit_manual():
-        # TODO: merge with /submit; need to look at what the form dict looks like 
-        data = request.form.to_dict()
-        db.operations.submit_manual(data)
-        return redirect('/', 302)
 
     @app.route('/goals', methods=['GET'])
     def goals():

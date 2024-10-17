@@ -69,8 +69,8 @@ def delete(item_type: str,
 
 
 def submit_manual(data):
-    print(data)
-    label_name = data["label"]
+    # TODO: evaluate whether this can be removed and just use insert(); need to compare with util.handle_submit_data()
+    label_name = data["label_name"]
     existing_label = Label.exists_by_name(name=label_name)
     # existing_label = exists(item_type='label', name=label_name)
     if existing_label is not None:
@@ -80,7 +80,7 @@ def submit_manual(data):
         label.name = label_name
         label_id = insert(label)
 
-    artist_name = data["artist"]
+    artist_name = data["artist_name"]
     existing_artist = Artist.exists_by_name(name=artist_name)
     # existing_artist = exists(item_type='artist', name=artist_name)
     if existing_artist is not None:

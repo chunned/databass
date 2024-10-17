@@ -57,7 +57,7 @@
 
 <h3>No search results. Either search again or manually enter data below.</h3>
 <p>* optional</p>
-<form action="/submit_manual" method="POST">
+<form action="/submit" method="POST">
     <table class="manual-release-table">
         <thead>
             <tr>
@@ -116,6 +116,7 @@
             </tr>
             <tr>
                 <td colspan="8">
+                    <input name="manual_submit" value="true" type="text" hidden>
                     <button type="submit" id="manual-submit-button" class="search-btn">submit</button>
                 </td>
             </tr>

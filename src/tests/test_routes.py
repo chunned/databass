@@ -117,19 +117,26 @@ class TestSubmit:
         assert b"Application Error" in response.data
         assert b"Request missing one of the expected keys" in response.data
 
-    def test_submit_successful_page_load(self, client, mocker):
+    @pytest.mark.parametrize(
+        'data_dict',
+        [
+            {'manual_submit': 'false', 'artist': 'Silly Goose', 'artist_mbid': 'da677401-713b-4b4a-969f-a0a6655fe2d3', 'country': '', 'genre': 'a', 'label': 'Rap Rock Records', 'label_mbid': '16a5347b-2d21-4ea6-b2b1-340374587cc8', 'rating': '5', 'release_group_id': '15332fc6-a448-49c0-b057-2596bf0d96a8', 'release_mbid': '52feb9b9-98f5-46af-a108-b5f01540419c', 'release_name': 'King Of The Hill', 'release_year': '3452', 'tags': '', 'track_count': '1'},
+            {'art': '', 'artist': 'asfd', 'genre': 'asdf', 'label': 'asdf', 'manual_submit': 'true', 'name': 'asdf', 'rating': '50', 'release_year': '2100', 'tags': 'asdf'}
+        ]
+    )
+    def test_submit_successful_page_load(self, client, mocker, data_dict):
         """
         Test for successful submission and redirection 
         """
-        mock_handler = mocker.patch("databass.util.handle_submit_data")
-        # TODO: do a debug trace of a real request and see what the form data should look like
-        data = {}
-        response = client.post("/submit", json=data)
+        mock_handler = mocker.patch("databass.routes.handle_submit_data")
+        mock_submitter = mocker.patch("databass.db.operations.submit_manual")
+        response = client.post("/submit", data=data_dict)
+        assert b"redirected" in response.data
         assert response.status_code == 302
-        assert b"home_albums_container" in response.data
-        mock_handler.assert_called_once()
-    
-
+        if data_dict["manual_submit"] == "true":
+            mock_submitter.assert_called_once()
+        elif data_dict["manual_submit"] == "false":
+            mock_handler.assert_called_once()
 
 class TestStats:
     # Tests for /stats
@@ -139,13 +146,6 @@ class TestStats:
         assert response.status_code == 200
         assert b"stats" in response.data
         mock_get_stats.assert_called_once()
-
-
-
-class TestDynamicSearch:
-    # Tests for /dynamic_search
-    
-
 
 class TestGoals:
     # Tests for /goals route

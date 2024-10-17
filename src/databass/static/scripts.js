@@ -153,6 +153,7 @@ function handleSearchSubmitButton() {
     inputs.forEach(function(input) {
         form_data[input.name] = input.value;
     })
+    form_data['manual_submit'] = 'false';
     fetch('/image_search', {
         method: 'POST',
         headers: {
@@ -341,7 +342,7 @@ function searchAjax(data) {
 document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', function(event) {
         // Handle search button click
-        if (event.target && event.target.classList.contains('search-btn')) {
+        if (event.target && event.target.classList.contains('new-release-search')) {
             handleSearchButton();
         }
        if (event.target && event.target.classList.contains('search-submit-btn')) {
