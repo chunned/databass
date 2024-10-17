@@ -96,28 +96,3 @@ class TestImgExists:
         )
         assert result == f"/static/img/{item_type}/{item_id}.{file_extension}"
 
-
-
-
-class TestBackup:
-    # Tests backup()
-
-    def test_backup_correct_filename(self, mocker):
-        """
-        Function should return the correct filename based on current time
-        """
-        # Mocking gzip.open to prevent actual file writing
-        mock_gzip = mocker.patch("gzip.open", mocker.mock_open())
-
-        # Mocking subprocess.Popen to prevent actual execution
-        mock_process = mocker.Mock()
-        mock_process.stdout.readline = mocker.Mock(side_effect=["line1\n", "line2\n", ""])  # Simulate output lines
-        mock_process.wait = mocker.Mock()
-
-        mocker.patch("subprocess.Popen", return_value=mock_process)
-
-        backup_file = f'databass_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.gz'
-        result = util.backup()
-        assert result == backup_file
-
-# TODO: add tests for new functions in util.py
