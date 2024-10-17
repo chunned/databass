@@ -19,7 +19,7 @@ load_dotenv()
 # img_exists can be part of database model class
 # update_sequence probably can also be part of model class
 # backup should be removed/redone entirely (it's only half done, works for running locally but not docker)
-# 
+
 
 def img_exists(
         item_id: int,
