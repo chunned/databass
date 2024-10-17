@@ -48,22 +48,19 @@ def release(release_id):
     return render_template('release.html', data=data)
 
 # TODO: implement an edit function for Albums and Labels
-@release_bp.route('/release/<string:release_id>/edit', methods=['GET'])
+@release_bp.route('/release/<string:release_id>/edit', methods=['GET', 'POST'])
 def edit(release_id):
-    release_data = models.Release.exists_by_id(int(release_id))
-    release_image = release_data.image[1:]
-    label_data = models.Label.exists_by_id(release_data.label_id)
-    artist_data = models.Artist.exists_by_id(release_data.artist_id)
-    return render_template('edit.html',
-                           release=release_data,
-                           artist=artist_data,
-                           label=label_data,
-                           image=release_image)
-
-
-# TODO: merge with above edit() and just handle the GET and POST differently 
-@release_bp.route('/edit_release', methods=['POST'])
-def edit_release():
+    if request.method == 'GET':
+        release_data = models.Release.exists_by_id(int(release_id))
+        release_image = release_data.image[1:]
+        label_data = models.Label.exists_by_id(release_data.label_id)
+        artist_data = models.Artist.exists_by_id(release_data.artist_id)
+        return render_template('edit.html',
+                               release=release_data,
+                               artist=artist_data,
+                               label=label_data,
+                               image=release_image)
+    elif request.method == 'POST':
         edit_data = request.form.to_dict()
         updated_release = db.construct_item('release', edit_data)
         db.update(updated_release)
@@ -71,18 +68,18 @@ def edit_release():
 
 
 # TODO: implement a delete function for Albums and Labels
-@release_bp.route('/release/<string:id>/delete', methods=['POST', 'GET'])
+@release_bp.route('/delete', methods=['POST'])
 def delete():
-        data = request.get_json()
-        deletion_id = data['id']
-        deletion_type = data['type']
-        print(f'Deleting {deletion_type} {deletion_id}')
-        db.delete(item_type=deletion_type, item_id=deletion_id)
-        return redirect('/', 302)
+    data = request.get_json()
+    deletion_id = data['id']
+    deletion_type = data['type']
+    print(f'Deleting {deletion_type} {deletion_id}')
+    db.delete(item_type=deletion_type, item_id=deletion_id)
+    return redirect('/', 302)
 
 @release_bp.route('/release/<string:id>/add_review', methods=['POST'])
 def add_review():
-        review_data = request.form.to_dict()
-        new_review = db.construct_item('review', review_data)
-        db.insert(new_review)
-        return redirect(request.referrer, 302)
+    review_data = request.form.to_dict()
+    new_review = db.construct_item('review', review_data)
+    db.insert(new_review)
+    return redirect(request.referrer, 302)

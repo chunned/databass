@@ -76,11 +76,48 @@ class TestRelease:
         assert response.status_code == 302
         assert b"You should be redirected automatically" in response.data
 
-#class TestEdit:
+class TestEdit:
     # Tests for /release/<id>/edit
+    def test_edit_successful_get(self, client):
+        """
+        Test for successful handling of a GET request, which displays the editable fields
+        """
 
-#class TestDelete:
-    # Tests for /release/<id>/delete
+    def test_edit_non_existing_release(self, client):
+        """
+        Test for successful handling of a GET request for a release that does not exist
+        """
 
-#class TestAddReview:
+    def test_edit_successful_post(self, client):
+        """
+        Test for successful handling of a POST request, which submits edited data
+        """
+
+    def test_edit_failed_post(self, client):
+        """
+        Test for successful handling of a malformed POST request
+        """
+
+class TestDelete:
+    # Tests for /delete
+    def test_delete_successful(self, client):
+        """
+        Test for proper handling of a successful deletion
+        """
+
+    def test_delete_failure(self, client):
+        """
+        Test for proper handling of a failed deletion
+        """
+
+class TestAddReview:
     # Tests for /release/<id>/add_review
+    def test_add_review_success(self, client):
+        """
+        Test for successful release addition
+        """
+
+    def test_add_review_failure(self, client):
+        """
+        Test for successful handling of a failed release addition
+        """
