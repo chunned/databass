@@ -158,6 +158,8 @@ def bayesian_avg(
     :param mean_avg: Mean average release rating for all database entries
     :return: Float representing the Bayesian average rating for releases associated with this item
     """
+    if not item_weight or not item_avg or not mean_avg:
+        raise ValueError(f"Input missing one of the required values")
     return item_weight * item_avg + (1 - item_weight) * mean_avg
 
 
