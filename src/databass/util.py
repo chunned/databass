@@ -15,6 +15,11 @@ from .api import Util, MusicBrainz
 
 load_dotenv()
 
+# TODO: attempt to remove this file; move functions into classes or modules where they fit
+# img_exists can be part of database model class
+# update_sequence probably can also be part of model class
+# backup should be removed/redone entirely (it's only half done, works for running locally but not docker)
+# 
 
 def img_exists(
         item_id: int,
