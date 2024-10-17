@@ -20,3 +20,10 @@ def artists():
     countries = db.get_distinct_col(db.Artist, 'country')
     data = {"countries": countries}
     return render_template('artists.html', data=data, active_page='artists')
+
+@artist_bp.route('/artist/<string:artist_id>', methods=['GET', 'POST'])
+def edit_artist(artist_id):
+    if request.method == 'GET':
+        pass
+    elif request.method == 'POST':
+        pass

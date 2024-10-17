@@ -49,7 +49,7 @@ def release(release_id):
 
 # TODO: implement an edit function for Albums and Labels
 @release_bp.route('/release/<string:release_id>/edit', methods=['GET', 'POST'])
-def edit(release_id):
+def edit_release(release_id):
     if request.method == 'GET':
         release_data = models.Release.exists_by_id(int(release_id))
         release_image = release_data.image[1:]
@@ -67,7 +67,8 @@ def edit(release_id):
         return redirect('/', 302)
 
 
-# TODO: implement a delete function for Albums and Labels
+# TODO: implement a delete function for Artist and Labels
+# very low priority; there is never really a scenario where we "need" to delete an Artist or Label
 @release_bp.route('/delete', methods=['POST'])
 def delete():
     data = request.get_json()

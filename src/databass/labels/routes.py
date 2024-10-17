@@ -20,3 +20,10 @@ def labels():
     types = db.get_distinct_col(db.Label, 'type')
     data = {"countries": countries, "types": types}
     return render_template('labels.html', data=data, active_page='labels')
+
+@label_bp.route('/label/<string:label_id>', methods=['GET', 'POST'])
+def edit_label(label_id):
+    if request.method == 'GET':
+        pass
+    elif request.method == 'POST':
+        pass
