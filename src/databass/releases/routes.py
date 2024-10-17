@@ -43,8 +43,8 @@ def release(release_id):
             "reviews": existing_reviews}
     return render_template('release.html', data=data)
 
-
-@release_bp.route('/edit/<string:release_id>', methods=['GET'])
+# TODO: implement an edit function for Albums and Labels
+@release_bp.route('/release/<string:release_id>/edit', methods=['GET'])
 def edit(release_id):
     release_data = models.Release.exists_by_id(int(release_id))
     release_image = release_data.image[1:]
@@ -57,6 +57,7 @@ def edit(release_id):
                            image=release_image)
 
 
+# TODO: merge with above edit() and just handle the GET and POST differently 
 @release_bp.route('/edit_release', methods=['POST'])
 def edit_release():
         edit_data = request.form.to_dict()
@@ -64,7 +65,9 @@ def edit_release():
         db.update(updated_release)
         return redirect('/', 302)
 
-@release_bp.route('/delete', methods=['POST', 'GET'])
+
+# TODO: implement a delete function for Albums and Labels
+@release_bp.route('/release/<string:id>/delete', methods=['POST', 'GET'])
 def delete():
         data = request.get_json()
         deletion_id = data['id']
@@ -73,7 +76,7 @@ def delete():
         db.delete(item_type=deletion_type, item_id=deletion_id)
         return redirect('/', 302)
 
-@release_bp.route('/add_review', methods=['POST'])
+@release_bp.route('/release/<string:id>/add_review', methods=['POST'])
 def add_review():
         review_data = request.form.to_dict()
         new_review = db.construct_item('review', review_data)
