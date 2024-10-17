@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect, flash
 from .. import db
 from ..db import models
 
@@ -34,6 +34,10 @@ def releases():
 def release(release_id):
     # Displays all info related to a particular release
     release_data = models.Release.exists_by_id(release_id)
+    if not release_data:
+        error = f"No release with id {release_id} found."
+        flash(error)
+        return redirect('/error', code=302)
     artist_data = models.Artist.exists_by_id(release_data.artist_id)
     label_data = models.Label.exists_by_id(release_data.label_id)
     existing_reviews = models.Release.get_reviews(release_id)

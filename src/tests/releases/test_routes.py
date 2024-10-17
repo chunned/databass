@@ -11,17 +11,76 @@ def client():
 
 class TestReleases:
     # Tests for /releases
-    
+    def test_releases_successful_page_load(self, client):
+        response = client.get("/releases")
+        assert response.status_code == 200
+        assert b"search-bar" in response.data
 
 class TestRelease:
     # Tests for /release
+    def test_release_successful_page_load(self, client, mocker):
+        import datetime
 
+        mock_release_data = mocker.MagicMock()
+        mock_release_data.id = 1
+        mock_release_data.artist_id = 1
+        mock_release_data.label_id = 1
+        mock_release_data.name = "BLUE LIPS"
+        mock_release_data.country = "[Worldwide]"
+        mock_release_data.genre = "hiphop"
+        mock_release_data.image = "./static/img/release/1.jpg"
+        mock_release_data.listen_date = datetime.datetime(2024, 3, 3, 0, 0)
+        mock_release_data.mbid = "46004fde-3059-42a8-b399-daa0a18816e0"
+        mock_release_data.rating = 70
+        mock_release_data.release_year = 2024
+        mock_release_data.review = None
+        mock_release_data.runtime = 3361000
+        mock_release_data.tags = None
+        mock_release_data.track_count = 18
 
-class TestEdit:
+        mock_artist_data = mocker.patch(
+            "databass.db.models.Artist.exists_by_id",
+            return_value={
+                "begin_date": datetime.date(1986, 10, 26),
+                "country": None,
+                "end_date": datetime.date(9999, 12, 31),
+                "id": 1,
+                "image": "./static/img/artist/1.jpg",
+                "mbid": "bce6d667-cde8-485e-b078-c0a05adea36d",
+                "name": "ScHoolboy Q",
+                "type": "person"
+            })
+
+        mock_label_data = mocker.patch(
+            "databass.db.models.Label.exists_by_id",
+            return_value={
+                "begin_date": datetime.date(2004, 1, 1),
+                "country": "US",
+                "end_date": datetime.date(9999, 12, 31),
+                "id": 1,
+                "image": None,
+                "mbid": '56d2501f-12b7-4cfd-b8f8-e95189ea27f5',
+                "name": "Top Dawg Entertainment",
+                "type": "Original Production"
+            })
+        mock_reviews = mocker.patch("databass.db.models.Release.get_reviews",
+                                    return_value=[])
+        response = client.get("/release/1")
+        assert response.status_code == 200
+        assert b"release-table" in response.data
+        assert b"listened: 2024-03-04" in response.data
+
+    def test_release_not_found(self, client, mocker):
+        mock_release_data = mocker.patch("databass.db.models.Release.exists_by_id", return_value=False)
+        response = client.get("/release/99999999999999999999")
+        assert response.status_code == 302
+        assert b"You should be redirected automatically" in response.data
+
+#class TestEdit:
     # Tests for /release/<id>/edit
 
-class TestDelete:
+#class TestDelete:
     # Tests for /release/<id>/delete
 
-class TestAddReview:
+#class TestAddReview:
     # Tests for /release/<id>/add_review

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect, get_flashed_messages
 
 error_bp = Blueprint(
     'error_bp', __name__,
@@ -41,3 +41,9 @@ def unsupported_media_type(e):
         "error_full": e.description,
     }
     return render_template('errors/415.html', data=data), 415
+
+
+@error_bp.route('/error', methods=['GET'])
+def error():
+    error_message = get_flashed_messages()
+    return render_template('error.html', error=error_message)
