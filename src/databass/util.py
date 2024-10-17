@@ -17,30 +17,7 @@ load_dotenv()
 
 # TODO: attempt to remove this file; move functions into classes or modules where they fit
 # img_exists can be part of database model class
-# update_sequence probably can also be part of model class
 # backup should be removed/redone entirely (it's only half done, works for running locally but not docker)
-
-
-def update_sequence(
-        app: Flask,
-        app_db: SQLAlchemy,
-) -> None:
-    """
-    Updates the sequence number used for each table's primary key
-    :param app: Flask application instance
-    :param app_db: flask_sqlalchemy database instance
-    :return: None
-    """
-    tables = ['release', 'label', 'artist']
-    with app.app_context():
-        with app_db.engine.connect() as conn:
-            try:
-                for table in tables:
-                    conn.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), MAX(id)) FROM {table};"))
-            except DataError:
-                raise
-            except Exception:
-                raise
 
 
 def backup():
