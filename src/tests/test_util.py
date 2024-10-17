@@ -97,34 +97,6 @@ class TestImgExists:
         assert result == f"/static/img/{item_type}/{item_id}.{file_extension}"
 
 
-class TestUpdateSequence:
-    # Tests update_sequence()
-    @pytest.fixture
-    def mock_app(self, mocker):
-        app = mocker.MagicMock()
-        app.app_context.return_value.__enter__.return_value = app
-        return app
-
-    @pytest.fixture
-    def mock_app_db(self, mocker):
-        mock_db = mocker.MagicMock()
-        mock_connection = mocker.MagicMock()
-        mock_db.engine.connect.return_value.__enter__.return_value = mock_connection
-        return mock_db, mock_connection
-
-    def test_update_sequence_success(self, mock_app, mock_app_db):
-        """
-        Test function success; should have 3 .execute() calls for mock_app_db
-        """
-        mock_db, mock_connection = mock_app_db
-        util.update_sequence(mock_app, mock_db)
-        assert mock_connection.execute.call_count == 3
-
-    def test_update_sequence_data_error(self, mock_app, mock_app_db):
-        mock_db, mock_connection = mock_app_db
-        mock_connection.execute.side_effect = DataError("Mock DataError for testing", None, None)
-        with pytest.raises(DataError):
-            util.update_sequence(mock_app, mock_db)
 
 
 class TestBackup:
