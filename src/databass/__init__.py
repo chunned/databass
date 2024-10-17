@@ -28,6 +28,9 @@ def create_app():
         from .labels.routes import label_bp
         app.register_blueprint(label_bp)
 
+        from .errors.routes import error_bp
+        app.register_blueprint(error_bp)
+
         register_routes(app)
 
         @app.before_request

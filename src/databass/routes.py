@@ -76,7 +76,8 @@ def register_routes(app):
             origin = data["referrer"]
         except KeyError:
             error = "Request referrer missing. You should only be coming to this page from /new or from the pagination buttons."
-            return render_template('errors/error.html', error=error)
+            # TODO: move this error handling into errors/routes.py
+            return render_template('error.html', error=error)
         if origin == 'search':
             try:
                 search_release = data["release"]
@@ -84,10 +85,12 @@ def register_routes(app):
                 search_label = data["label"]
             except KeyError:
                 error = "Request missing one of the expected keys"
-                return render_template('errors/error.html', error=error, back='/new')
+                # TODO: move this error handling into errors/routes.py
+                return render_template('error.html', error=error, back='/new')
             if not search_release and not search_artist and not search_label:
                 error = "Search requires at least one search term"
-                return render_template('errors/error.html', error=error, back='/new')
+                # TODO: move this error handling into errors/routes.py
+                return render_template('error.html', error=error, back='/new')
             release_data = MusicBrainz.release_search(release=search_release,
                                                           artist=search_artist,
                                                           label=search_label)
@@ -166,7 +169,8 @@ def register_routes(app):
                 handle_submit_data(release_data)
         except KeyError:
             error = "Request missing one of the expected keys"
-            return render_template('errors/error.html', error=error, back='/new', data=data)
+            # TODO: move this error handling into errors/routes.py
+            return render_template('error.html', error=error, back='/new', data=data)
         return redirect("/", code=302)
 
     @app.route('/stats', methods=['GET'])
@@ -273,13 +277,15 @@ def register_routes(app):
         data = request.form.to_dict()
         if not data:
             err = "/add_goal received an empty payload"
-            return render_template('errors/error.html', error=err, back="/goals")
+            # TODO: move this error handling into errors/routes.py
+            return render_template('error.html', error=err, back="/goals")
         try:
             goal = db.construct_item(model_name='goal', data_dict=data)
             if not goal:
                 raise NameError("Construction of Goal object failed")
         except Exception as e:
-            return render_template('errors/error.html', error=e, back="/goals")
+            # TODO: move this error handling into errors/routes.py
+            return render_template('error.html', error=e, back="/goals")
 
         db.insert(goal)
         return redirect('/goals', 302)
@@ -379,38 +385,4 @@ def register_routes(app):
         bkp()
         return redirect('/', code=302)
 
-    # TODO: make error handlers use the generic error.html template
-    # TODO: move these to their own routes.py
-    @app.errorhandler(405)
-    def method_not_allowed(e):
-        data = {
-            "method": request.method,
-            "arguments": request.args,
-            "url": request.url,
-            "data": request.data,
-            "error_full": e.description,
-            "valid_methods": e.valid_methods
-        }
-        return render_template('errors/405.html', data=data), 405
 
-    @app.errorhandler(404)
-    def not_found(e):
-        data = {
-            "method": request.method,
-            "arguments": request.args,
-            "url": request.url,
-            "data": request.data,
-            "error_full": e.description,
-        }
-        return render_template('errors/404.html', data=data), 404
-
-    @app.errorhandler(415)
-    def unsupported_media_type(e):
-        data = {
-            "method": request.method,
-            "arguments": request.args,
-            "url": request.url,
-            "data": request.data,
-            "error_full": e.description,
-        }
-        return render_template('errors/415.html', data=data), 415
