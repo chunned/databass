@@ -159,3 +159,21 @@ def bayesian_avg(
     :return: Float representing the Bayesian average rating for releases associated with this item
     """
     return item_weight * item_avg + (1 - item_weight) * mean_avg
+
+
+def get_all_stats():
+    stats = {
+        "total_listens": Release.total_count(),
+        "total_artists": Artist.total_count(),
+        "total_labels": Label.total_count(),
+        "average_rating": Release.ratings_average(),
+        "average_runtime": Release.average_runtime(),
+        "total_runtime": Release.total_runtime(),
+        "listens_this_year": Release.listens_this_year(),
+        "listens_per_day": Release.listens_per_day(),
+        "top_rated_labels": Label.average_ratings_bayesian()[0:10],
+        "top_rated_artists": Artist.average_ratings_bayesian()[0:10],
+        "top_frequent_labels": Label.frequency_highest()[0:10],
+        "top_frequent_artists": Artist.frequency_highest()[0:10]
+    }
+    return stats

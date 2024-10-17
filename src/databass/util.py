@@ -16,8 +16,6 @@ from .api import Util, MusicBrainz
 load_dotenv()
 
 # TODO: attempt to remove this file; move functions into classes or modules where they fit
-# img_exists can be part of database model class
-# backup should be removed/redone entirely (it's only half done, works for running locally but not docker)
 
 
 def backup():
@@ -25,6 +23,7 @@ def backup():
     Dumps database to disk; currently only works when running outside of Docker
     :return:
     """
+    # TODO: rewrite or remove
     backup_file = f'databass_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.gz'
     db_name = os.getenv('DB_NAME')
     db_user = os.getenv('PG_USER')
@@ -45,23 +44,6 @@ def backup():
         process.wait()
     return backup_file
 
-
-def get_stats():
-    stats = {
-        "total_listens": Release.total_count(),
-        "total_artists": Artist.total_count(),
-        "total_labels": Label.total_count(),
-        "average_rating": Release.ratings_average(),
-        "average_runtime": Release.average_runtime(),
-        "total_runtime": Release.total_runtime(),
-        "listens_this_year": Release.listens_this_year(),
-        "listens_per_day": Release.listens_per_day(),
-        "top_rated_labels": Label.average_ratings_bayesian()[0:10],
-        "top_rated_artists": Artist.average_ratings_bayesian()[0:10],
-        "top_frequent_labels": Label.frequency_highest()[0:10],
-        "top_frequent_artists": Artist.frequency_highest()[0:10]
-    }
-    return stats
 
 def create_if_not_exist(mbid: str, name: str, item_type: str) -> int:
     """

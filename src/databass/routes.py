@@ -1,9 +1,10 @@
 from flask import render_template, request, redirect, abort
 from flask_paginate import Pagination, get_page_parameter
 from .api import Util, MusicBrainz, Discogs
-from .util import backup as bkp, get_stats, handle_submit_data
+from .util import backup as bkp, handle_submit_data
 from . import db
 from .db import models
+from .db.util import get_all_stats as get_stats
 from datetime import datetime
 
 def register_routes(app):
