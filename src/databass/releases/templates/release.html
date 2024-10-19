@@ -22,7 +22,7 @@
                     <a href="/label/{{ data.label.id }}" class="link">{{ data.label.name }}</a>
                 </th>
                 <th>
-                    <button onclick="window.location.href='/edit/{{ data.release.id }}'" class="box edit-btn">edit</button>
+                    <button onclick="window.location.href='/release/{{ data.release.id }}/edit'" class="box edit-btn">edit</button>
                 </th>
                 <th>
                    <button class="box delete-btn" id="delete-btn" data-id="{{ data.release.id }}" data-type="release">delete</button>

@@ -37,9 +37,15 @@ def update(item: app_db.Model) -> None:
     :param item: Instance of database model class to update
     """
     try:
-        app_db.session.merge(item)
-        app_db.session.commit()
-        # TODO: investigate common exceptions stemming from .merge()
+        model_class = type(item)
+        existing_item = app_db.session.query(model_class).get(item.id)
+        if existing_item:
+            for key in item.__dict__:
+                if not key.startswith('_'): # Ignore private attributes
+                    setattr(existing_item, key, getattr(item, key))
+            app_db.session.commit()
+        else:
+            raise Exception(f"No entry found with ID {item.id}")
     except Exception as err:
         app_db.session.rollback()
         raise Exception(f'Unexpected error: {err}')
