@@ -212,3 +212,4 @@ def handle_submit_data(submit_data: dict) -> None:
     if submit_data["tags"] is not None:
         Tag.create_tags(submit_data["tags"], release_id)
     Goal.check_goals()
+
