@@ -46,7 +46,6 @@ def release(release_id):
             "reviews": existing_reviews}
     return render_template('release.html', data=data)
 
-# TODO: implement an edit function for Albums and Labels
 @release_bp.route('/release/<string:release_id>/edit', methods=['GET', 'POST'])
 def edit_release(release_id):
     # Check if release exists
@@ -78,8 +77,6 @@ def edit_release(release_id):
         db.update(updated_release)
         return redirect('/', 302)
 
-# TODO: implement a delete function for Artist and Labels
-# very low priority; there is never really a scenario where we "need" to delete an Artist or Label
 @release_bp.route('/delete', methods=['POST'])
 def delete():
     data = request.get_json()

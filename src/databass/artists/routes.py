@@ -26,9 +26,12 @@ def artists():
     data = {"countries": countries}
     return render_template('artists.html', data=data, active_page='artists')
 
-@artist_bp.route('/artist/<string:artist_id>', methods=['GET', 'POST'])
-def edit_artist(artist_id):
-    if request.method == 'GET':
-        pass
-    elif request.method == 'POST':
-        pass
+# TODO: implement edit_artist
+# @artist_bp.route('/artist/<string:artist_id>', methods=['GET', 'POST'])
+# def edit_artist(artist_id):
+#     if request.method == 'GET':
+#         pass
+#     elif request.method == 'POST':
+#         pass
+
+# TODO: implement delete_artist

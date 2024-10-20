@@ -3,7 +3,7 @@ from databass import create_app
 import datetime
 
 
-# TODO: this fixture is a duplicate of the same fixture in test_routes.py; figure out how to generalize/reuse a single fixture instead of duplicating the code
+# TODO: this fixture is a duplicate of the same fixture in other tests; figure out how to generalize/reuse a single fixture instead of duplicating the code
 @pytest.fixture()
 def client():
     app = create_app()
