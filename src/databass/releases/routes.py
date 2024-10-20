@@ -7,7 +7,6 @@ release_bp = Blueprint(
     template_folder='templates'
 )
 
-
 @release_bp.route('/releases', methods=["GET"])
 def releases():
     genres = sorted(models.Release.get_distinct_column_values('genre'))
@@ -50,8 +49,14 @@ def release(release_id):
 # TODO: implement an edit function for Albums and Labels
 @release_bp.route('/release/<string:release_id>/edit', methods=['GET', 'POST'])
 def edit_release(release_id):
+    # Check if release exists
+    release_data = models.Release.exists_by_id(int(release_id))
+    if not release_data:
+        error = f"No release with id {release_id} found."
+        flash(error)
+        return redirect('/error', code=302)
+    # Handle actual request
     if request.method == 'GET':
-        release_data = models.Release.exists_by_id(int(release_id))
         release_image = release_data.image[1:]
         label_data = models.Label.exists_by_id(release_data.label_id)
         artist_data = models.Artist.exists_by_id(release_data.artist_id)
@@ -63,24 +68,52 @@ def edit_release(release_id):
     elif request.method == 'POST':
         edit_data = request.form.to_dict()
         updated_release = db.construct_item('release', edit_data)
+        # construct_item() will produce a unique ID primary key, so we need to set it to the original one for update() to work
+        try:
+            updated_release.id = edit_data['id']
+        except KeyError:
+            error = f"Edit data missing ID key, unable to update an existing entry without ID."
+            flash(error)
+            return redirect('/error', code=302)
         db.update(updated_release)
         return redirect('/', 302)
-
 
 # TODO: implement a delete function for Artist and Labels
 # very low priority; there is never really a scenario where we "need" to delete an Artist or Label
 @release_bp.route('/delete', methods=['POST'])
 def delete():
     data = request.get_json()
-    deletion_id = data['id']
-    deletion_type = data['type']
-    print(f'Deleting {deletion_type} {deletion_id}')
-    db.delete(item_type=deletion_type, item_id=deletion_id)
-    return redirect('/', 302)
+    try:
+        deletion_id = data['id']
+        deletion_type = data['type']
+    except KeyError:
+        error = "Deletion request missing one of the required variables (ID or type)"
+        flash(error)
+        return redirect('/error', code=302)
 
-@release_bp.route('/release/<string:id>/add_review', methods=['POST'])
-def add_review():
+    if not models.Release.exists_by_id(deletion_id):
+        error = f"No release with id {deletion_id} found."
+        flash(error)
+        return redirect('/error', code=302)
+    else:
+        print(f'Deleting {deletion_type} {deletion_id}')
+        db.delete(item_type=deletion_type, item_id=deletion_id)
+        return redirect('/', 302)
+
+@release_bp.route('/release/<string:release_id>/add_review', methods=['POST'])
+def add_review(release_id):
+    # Make sure release exists before doing anything
+    if not models.Release.exists_by_id(int(release_id)):
+        error = f"No release with ID {release_id} found"
+        flash(error)
+        return redirect("/error", code=302)
+    # Ensure request has required data
     review_data = request.form.to_dict()
+    if "text" not in review_data.keys() or "id" not in review_data.keys():
+        error = "Request missing one of the required variables: text, id (release id)"
+        flash(error)
+        return redirect("/error", code=302)
+    # Perform deletion
     new_review = db.construct_item('review', review_data)
     db.insert(new_review)
     return redirect(request.referrer, 302)
