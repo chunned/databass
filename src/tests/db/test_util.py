@@ -29,22 +29,22 @@ class TestBayesianAvg:
         """
         Test for correct handling of input with missing values
         """
-        result = bayesian_avg(
-                item_weight=weight,
-                item_avg=item_avg,
-                mean_avg=mean_avg
-        )
-        assert result == 'asdf'
+        with pytest.raises(ValueError, match="Input missing one of the required values"):
+            bayesian_avg(
+                    item_weight=weight,
+                    item_avg=item_avg,
+                    mean_avg=mean_avg
+            )
 
     @pytest.mark.parametrize(
-        "weight,item_avg,mean_avg",
+        "weight,item_avg,mean_avg,expected",
         [
-            (2.0, 1.0, 3.0),
-            (2.0, 1.0, 3.0),
-            (2.0, 1.0, 3.0)
+            (1.0, 2.0, 3.0, 2.0),
+            (2.0, 3.0, 1.0, 5.0),
+            (3.0, 1.0, 2.0, -1.0)
         ]
     )
-    def test_bayesian_avg_correct_return(self, weight, item_avg, mean_avg):
+    def test_bayesian_avg_correct_return(self, weight, item_avg, mean_avg, expected):
         """
         Test for correct handling of valid input
         """
@@ -53,7 +53,7 @@ class TestBayesianAvg:
                 item_avg=item_avg,
                 mean_avg=mean_avg
         )
-        assert result == 'asdf'
+        assert result == expected
         
 class TestGetAllStats:
     # Tests for get_all_stats()
