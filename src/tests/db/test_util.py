@@ -80,6 +80,14 @@ class TestConstructItem:
 
 # class TestNextItem:
     # Tests for next_item()
+    # Skipping tests for this function for now, because the only place it is used is in /fix_images
+
+# class TestApplyComparisonFilter:
+    # Tests for apply_comparison_filter()
+    # Skipping tests for this function for now; all it does is add terms to the SQLAlchemy query
+    # Could still add a few basic tests for correct error handling though
+
+
 
 
 

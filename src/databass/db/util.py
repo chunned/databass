@@ -108,27 +108,6 @@ def apply_comparison_filter(query,
     return query
 
 
-def get_all_id_and_img() -> dict:
-    """
-    Retrieve all IDs and images from the database
-    :return: Dictionary containing all IDs and images
-    """
-    releases = app_db.session.query(
-        Release.id, Release.image
-    ).all()
-    artists = app_db.session.query(
-        Artist.id, Artist.image
-    ).all()
-    labels = app_db.session.query(
-        Label.id, Label.image
-    ).all()
-    data = {
-        "releases": releases,
-        "artists": artists,
-        "labels": labels
-    }
-    return data
-
 # Utility function to calculate the mean average rating and total release count for releases associated with a specific Label/Artist
 def mean_avg_and_count(entities: list[Row]) -> (int, int):
     """
