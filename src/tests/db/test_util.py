@@ -1,6 +1,8 @@
 import pytest 
 from databass.db.util import *
 
+from src.databass.db.util import mean_avg_and_count
+
 
 class MockModel:
     def __init__(self, **kwargs):
@@ -88,21 +90,43 @@ class TestConstructItem:
     # Could still add a few basic tests for correct error handling though
 
 
-
-
-
-
 class TestMeanAvgAndCount:
     # Tests for mean_avg_and_count()
-    def test_mean_avg_and_count_successful_return(self):
+    @pytest.mark.parametrize(
+        "input_list,expected_avg,expected_count",
+        [
+            ([{"avg": 98, "count": 5},{"avg": 80, "count": 10}], 89.0, 7.5),
+            ([{"avg": 47, "count": 1},{"avg": 53, "count": 4},{"avg": 62, "count": 2}], 54.0, 2.3333333333333335)
+        ]
+    )
+    def test_mean_avg_and_count_success(self, input_list, expected_avg, expected_count, mocker):
         """
         Test for proper handling of successful calculation of average and total count
         """
+        # Construct list of mock objects to be passed to the function
+        mock_list = []
+        for item in input_list:
+            mock_item = mocker.MagicMock()
+            mock_item.average_rating = item["avg"]
+            mock_item.release_count = item["count"]
+            mock_list.append(mock_item)
 
-    def test_mean_avg_and_count_successful_failure(self):
+        result_avg, result_count = mean_avg_and_count(mock_list)
+        assert result_avg == expected_avg
+        assert result_count == expected_count
+
+
+    def test_mean_avg_and_count_fail(self, mocker):
         """
-        Test for proper handling of invalid return data 
+        Test for proper handling of invalid input data; invalid element should be discounted from the end calculation
         """
+        mock_row = mocker.MagicMock()
+        mock_row.average_rating = 60
+        mock_row.release_count = 2
+        entity_list = [{"test": 1}, mock_row]
+        result_avg, result_count = mean_avg_and_count(entity_list)
+        assert result_avg == 60
+        assert result_count == 2
 
 
 class TestBayesianAvg:

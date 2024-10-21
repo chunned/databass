@@ -117,8 +117,14 @@ def mean_avg_and_count(entities: list[Row]) -> (int, int):
     avg = count = 0
     total = len(entities)
     for item in entities:
-        avg += int(item.average_rating)
-        count += int(item.release_count)
+        try:
+            avg += int(item.average_rating)
+            count += int(item.release_count)
+        except AttributeError:
+            # TODO: consider logging info about the erroring release
+            # Have not encountered this in practice, but if it is encountered it means there is a 'corrupted' DB entry
+            total -= 1
+
     mean_avg = avg / total
     mean_count = count / total
     return mean_avg, mean_count
