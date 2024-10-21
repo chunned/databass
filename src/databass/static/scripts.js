@@ -52,6 +52,7 @@ function popupHTML(parsed_data) {
     <div class="popup-content">
         <span class="close-btn">&times;</span>
         <form action="/submit" method="POST" id="popup-form">
+            <input type="hidden" name="manual_submit" value="false">
             <input type="hidden" name="release_group_id" value="${parsed_data.release_group_id}">
             <input type="hidden" name="release_name" value="${parsed_data.release.name}">
             <input type="hidden" name="artist" value="${parsed_data.artist.name}">

@@ -220,15 +220,16 @@ class MusicBrainz:
                 length = 0
                 try:
                     for track in tracks:
-                        length += track["length"]
-                except KeyError | TypeError as e:
+                        length += int(track["length"])
+                except (KeyError, TypeError) as e:
                     length = 0
+                finally:
+                    return length
             except Exception as e:
                 raise e
-            return length
         else:
             MusicBrainz.initialize()
-            MusicBrainz.get_release_length(mbid)
+            return MusicBrainz.get_release_length(mbid)
 
     @staticmethod
     def get_image(mbid: str):
@@ -237,6 +238,7 @@ class MusicBrainz:
         :param mbid: MBID of the release/release group to check for existing images
         :return: List of available image URLs
         """
+        # TODO: implement timeout here
         try:
             return mbz.get_release_group_image_front(mbid, size='250')
         except musicbrainzngs.musicbrainz.ResponseError:

@@ -4,9 +4,18 @@ import requests
 from os import getenv
 from dotenv import load_dotenv
 import pathlib
+import signal
 
 load_dotenv()
 VERSION = getenv('VERSION')
+
+class TimeoutException(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutException("Request timed out")
+
+
 
 
 # Collection of generic utility functions used by other parts of the app
@@ -99,6 +108,11 @@ class Util:
             print(f'Item is a release and MBID is populated; attempting to fetch image from CoverArtArchive: {mbid}')
             from .musicbrainz import MusicBrainz
             try:
+                # Number of seconds to wait before raising a TimeoutException
+                timeout_duration = 5
+                signal.signal(signal.SIGALRM, timeout_handler)
+                signal.alarm(timeout_duration)
+
                 img = MusicBrainz.get_image(mbid)
                 if img is not None:
                     print('CoverArtArchive image found')
