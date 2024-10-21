@@ -21,15 +21,24 @@ def timeout_handler(signum, frame):
 # Collection of generic utility functions used by other parts of the app
 class Util:
     @staticmethod
-    def to_date(begin_or_end: str, date_str: str):
-        # Receives a string representing an artist or label's begin_date or end_date
-        # Converts to datetime object
+    def to_date(begin_or_end: str | None, date_str: str | None) -> datetime.date:
+        """
+        Takes a string representation of a date and returns a datetime object.
+        :param begin_or_end: String representing whether this is the artist/label's start or end date. Has no purpose unless date_str is None, so it may be None
+        :param date_str: String representing the date, or None if no string was found in API search results
+        :return: Datetime object representing the input date_str. If date_str was None, then returns the 'max' or 'min' date depending on begin_or_end
+        """
         date = None
         if not date_str:
-            if begin_or_end == 'begin':
+            if not begin_or_end:
+                raise ValueError("Must be used with either begin_or_end or date_str, or both")
+            # No date in search results, return max/min date
+            elif begin_or_end == 'begin':
                 date = datetime.datetime(year=1, month=1, day=1)
             elif begin_or_end == 'end':
                 date = datetime.datetime(year=9999, month=12, day=31)
+
+        # Date found in search results
         elif len(date_str) == 4:
             date = datetime.datetime.strptime(date_str, "%Y")
         elif len(date_str) == 7:
@@ -48,15 +57,24 @@ class Util:
         return datetime.datetime.today().strftime('%Y-%m-%d')
 
     @staticmethod
-    def get_page_range(per_page, current_page):
-        # Calculates the page range for pagination
+    def get_page_range(per_page: int, current_page: int) -> (int, int):
+        """
+        Calculates the range of elements to slice from a list to use for pagination
+        :param per_page: Amount of results per page
+        :param current_page: Page number
+        :return: Tuple representing the start and end index to slice
+        """
         start = (current_page - 1) * per_page
         end = start + per_page
         return start, end
 
     @staticmethod
-    def get_image_type_from_url(url):
-        # Take a URL (string) and return the image type
+    def get_image_type_from_url(url: str) -> str:
+        """
+        Determine image file extension given its URL; by extension acts as an image format filter
+        :param url: String representation of the URL
+        :return: String representation of the image file extension
+        """
         try:
             if url.endswith('.jpg'):
                 return '.jpg'
@@ -65,20 +83,25 @@ class Util:
             elif url.endswith('.png'):
                 return '.png'
             else:
-                raise KeyError('ERROR: Invalid image type')
-        except KeyError as e:
-            raise f'{e}: {url}'
+                raise ValueError(f'ERROR: Invalid image type. URL: {url}')
+        except ValueError as e:
+            raise e
 
     @staticmethod
-    def get_image_type_from_bytes(bytestr):
+    def get_image_type_from_bytes(bytestr: bytes) -> str:
+        """
+        Determine image file extension from bytes; by extension acts as an image format filter
+        :param bytestr: Byte representation of an image file
+        :return: String representation of the image file extension
+        """
         try:
             if bytestr.startswith(b'\xff\xd8\xff'):
                 return '.jpg'
             elif bytestr.startswith(b'\x89PNG\r\n\x1a\n'):
                 return '.png'
-            elif bytestr.startswith(b'GIF87a') or bytestr.startswith(b'GIF89a'):
-                return '.gif'
-        except Exception as e:
+            else:
+                raise ValueError("Either image file is invalid or is not a supported filetype - supported types are jpg and png.")
+        except ValueError as e:
             raise e
 
     @staticmethod
@@ -90,6 +113,7 @@ class Util:
             artist_name: str = None,
             label_name: str = None
     ):
+        # TODO: refactor
         img = img_type = img_url = None
         base_path = "./databass/static/img"
         subdir = item_type
@@ -166,7 +190,6 @@ class Util:
         Returns a string of the image's path if it exists
         Returns False if the image does not exist
         """
-
         if not isinstance(item_id, int):
             raise TypeError("item_id must be an integer.")
         if not isinstance(item_type, str):
