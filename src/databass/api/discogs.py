@@ -26,26 +26,31 @@ class Discogs:
         print('Remaining: ', cls.remaining_requests)
 
     @classmethod
-    def is_throttled(cls):
-        if cls.remaining_requests is not None and cls.remaining_requests <= 2:
-            return True
-        else:
-            return False
+    def is_throttled(cls) -> bool:
+        """
+        Checks if we have enough remaining requests to make a new request per rate limiting guidelines
+        If Discogs.remaining_requests is None, no requests have been sent yet and thus we are not throttled
+        If we have 1.1 or fewer remaining requests, we are throttled
+        """
+        return cls.remaining_requests is not None and cls.remaining_requests <= 1
 
     @staticmethod
-    def request(endpoint: str):
-        # Sends request to an endpoint then updates rate limit count
-        # Returns json if response code is 200
-        if not Discogs.is_throttled():
+    def request(endpoint: str) -> requests.Response:
+        """
+        Sends request to an endpoint then updates rate limit count
+        Returns json if response code is 200
+        """
+        if Discogs.is_throttled() is False:
             resp = requests.get(Discogs.url+endpoint, headers=Discogs.headers)
             Discogs.update_rate_limit(resp)
-            time.sleep(1)
             if resp.status_code == 200:
                 return resp.json()
             else:
                 raise requests.exceptions.RequestException(f'Status code != 200: {resp}')
         else:
-            print('ERROR: Discogs rate limit exceeded. Please wait.')
+            # If throttled, sleep for 1s then recursively retry
+            time.sleep(5)
+            return Discogs.request(endpoint)
 
     @staticmethod
     def get_item_id(name: str,
