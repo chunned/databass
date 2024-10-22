@@ -64,7 +64,7 @@ class MusicBrainz:
                 try:
                     raw_date = r["date"]
                     date = dateparser.parse(raw_date, fuzzy=True).year
-                except KeyError:
+                except (KeyError, dateparser.ParserError):
                     date = ""
                 try:
                     physical_release = r["medium-list"][0]
@@ -224,7 +224,8 @@ class MusicBrainz:
                                                      includes=["recordings", "media", "recording-level-rels"])
                 tracks = []
                 for disc in release_data["release"]["medium-list"]:
-                    tracks.append(disc["track-list"])
+                    for track in disc["track-list"]:
+                        tracks.append(track)
                 length = 0
                 try:
                     for track in tracks:
