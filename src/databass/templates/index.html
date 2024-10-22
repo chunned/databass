@@ -57,17 +57,9 @@
                 <td class="col6">
                     {{ item.genre }}
                 </td>
-                <td class="col7">
+                <td class="col7" style="white-space: normal!important;">
                     <p>
-                    {% set tags = item.tags %}
-                    {% set len = tags|length %}
-                    {% for i in range(len) %}
-                        {% if i + 1 == len %}
-                            {{ tags[i] }}
-                        {% else %}
-                            {{ tags[i] }},
-                        {% endif %}
-                    {% endfor %}
+                    {{ item.tags | join(', ') }}
                     </p>
                 </td>
             </tr>
