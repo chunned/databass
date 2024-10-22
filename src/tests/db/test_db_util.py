@@ -1,8 +1,6 @@
 import pytest 
 from databass.db.util import *
 
-from src.databass.db.util import mean_avg_and_count
-
 
 class MockModel:
     def __init__(self, **kwargs):

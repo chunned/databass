@@ -57,25 +57,24 @@ class TestSearch:
         Test for successful page load
         """
         response = client.post("/search", json={'referrer': 'search', 'release': '', 'artist': '', 'label': ''})
-        assert response.status_code == 200
-        assert b"Search requires at least one search term" in response.data
+        assert response.status_code == 302
+        assert response.location == '/error'
 
     def test_search_malformed_request_missing_key(self, client):
         """
         Test for successful handling of a request missing one of the required keys
         """
         response = client.post("/search", json={'referrer': 'search'})
-        assert response.status_code == 200
-        assert b"Application Error" in response.data
-        assert b"Request missing one of the expected keys" in response.data
+        assert response.status_code == 302
+        assert response.location == '/error'
 
     def test_search_missing_referrer(self, client):
         """
         Test for proper handling of requests without a referrer
         """
         response = client.post("/search", json={})
-        assert response.status_code == 200
-        assert b"Request referrer missing" in response.data
+        assert response.status_code == 302
+        assert response.location == '/error'
 
     def test_search_pagination(self, client, mocker):
         """
@@ -101,9 +100,7 @@ class TestSearch:
         Test for successful handling of a request missing JSON data
         """
         response = client.post("/search")
-        assert response.status_code == 200
-        assert b"Application Error" in response.data
-        assert b"Request missing one of the expected keys" in response.data
+        assert response.status_code == 415
 
 class TestSubmit:
     # Tests for /submit
@@ -113,9 +110,8 @@ class TestSubmit:
         Test for successful handling of a request missing required data
         """
         response = client.post("/submit")
-        assert response.status_code == 200
-        assert b"Application Error" in response.data
-        assert b"Request missing one of the expected keys" in response.data
+        assert response.status_code == 302
+        assert response.location == '/error'
 
     @pytest.mark.parametrize(
         'data_dict',
@@ -141,7 +137,7 @@ class TestSubmit:
 class TestStats:
     # Tests for /stats
     def test_home_page_load_success(self, client, mocker):
-        mock_get_stats = mocker.patch("databass.util.get_stats", return_value={})
+        mock_get_stats = mocker.patch("databass.routes.get_all_stats", return_value={})
         response = client.get("/stats")
         assert response.status_code == 200
         assert b"stats" in response.data
@@ -202,9 +198,8 @@ class TestAddGoal:
         Test for successful handling of empty payload
         """
         response = client.post("/add_goal")
-        assert response.status_code == 200
-        assert b"Application Error" in response.data
-        assert b"/add_goal received an empty payload" in response.data
+        assert response.status_code == 302
+        assert response.location == '/error'
 
     def test_add_goals_goal_construction_error(self, client, mocker):
         """
@@ -213,8 +208,8 @@ class TestAddGoal:
         data = {'amount': '4', 'end_goal': '2024-10-24', 'start_date': '2024-10-11', 'type': 'release'}
         with mocker.patch("databass.db.construct_item", return_value=None):
             response = client.post("/add_goal", data=data)
-            assert b"Application Error" in response.data
-            assert b"Construction of Goal object failed" in response.data
+            assert response.status_code == 302
+            assert response.location == '/error'
 
     @pytest.mark.parametrize(
         "amount,end_goal,start_date,goal_type",

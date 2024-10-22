@@ -1,16 +1,16 @@
-from flask import render_template, request, redirect, abort
+from flask import render_template, request, redirect, abort, flash
 from flask_paginate import Pagination, get_page_parameter
 from .api import Util, MusicBrainz, Discogs
 from . import db
 from .db import models
-from .db.util import get_all_stats as get_stats, handle_submit_data
+from .db.util import get_all_stats, handle_submit_data
 from datetime import datetime
 
 def register_routes(app):
     @app.route('/', methods=['GET'])
     @app.route('/home', methods=['GET'])
     def home():
-        stats_data = get_stats()
+        stats_data = get_all_stats()
         active_goals = models.Goal.get_incomplete()
 
         goal_data = []
@@ -76,8 +76,9 @@ def register_routes(app):
             origin = data["referrer"]
         except KeyError:
             error = "Request referrer missing. You should only be coming to this page from /new or from the pagination buttons."
+            flash(error)
             # TODO: move this error handling into errors/routes.py
-            return render_template('error.html', error=error)
+            return redirect('/error')
         if origin == 'search':
             try:
                 search_release = data["release"]
@@ -85,12 +86,14 @@ def register_routes(app):
                 search_label = data["label"]
             except KeyError:
                 error = "Request missing one of the expected keys"
+                flash(error)
                 # TODO: move this error handling into errors/routes.py
-                return render_template('error.html', error=error, back='/new')
+                return redirect('/error')
             if not search_release and not search_artist and not search_label:
                 error = "Search requires at least one search term"
+                flash(error)
                 # TODO: move this error handling into errors/routes.py
-                return render_template('error.html', error=error, back='/new')
+                return redirect('/error')
             release_data = MusicBrainz.release_search(release=search_release,
                                                           artist=search_artist,
                                                           label=search_label)
@@ -169,13 +172,13 @@ def register_routes(app):
                 handle_submit_data(release_data)
         except KeyError:
             error = "Request missing one of the expected keys"
-            # TODO: move this error handling into errors/routes.py
-            return render_template('error.html', error=error, back='/new', data=data)
+            flash(error)
+            return redirect('/error')
         return redirect("/", code=302)
 
     @app.route('/stats', methods=['GET'])
     def stats():
-        statistics = get_stats()
+        statistics = get_all_stats()
         return render_template('stats.html', data=statistics, active_page='stats')
 
     @app.route('/dynamic_search', methods=['POST'])
@@ -276,16 +279,18 @@ def register_routes(app):
     def add_goal():
         data = request.form.to_dict()
         if not data:
-            err = "/add_goal received an empty payload"
+            error = "/add_goal received an empty payload"
             # TODO: move this error handling into errors/routes.py
-            return render_template('error.html', error=err, back="/goals")
+            flash(error)
+            return redirect('/error')
         try:
             goal = db.construct_item(model_name='goal', data_dict=data)
             if not goal:
                 raise NameError("Construction of Goal object failed")
         except Exception as e:
             # TODO: move this error handling into errors/routes.py
-            return render_template('error.html', error=e, back="/goals")
+            flash(str(e))
+            return redirect('/error')
 
         db.insert(goal)
         return redirect('/goals', 302)
