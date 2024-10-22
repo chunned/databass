@@ -20,35 +20,41 @@ class MusicBrainz:
             cls.init = True
 
     @staticmethod
-    def release_search(release: str = None,
-                       artist: str = None,
-                       label: str = None):
+    def release_search(
+            release: str = None,
+            artist: str = None,
+            label: str = None
+    ) -> list:
         """
         Search MusicBrainz for releases matching the search terms
         :param release: Optional - release name string
         :param artist: Optional - artist name string
         :param label: Optional - label name string
-        :return: Dictionary containing data from API
+        :return: List of dictionary data results from API
         """
         if MusicBrainz.init:
             if all(search_term is None for search_term in (release, artist, label)):
-                return ValueError("At least one query term is required")
-            results = mbz.search_releases(artist=artist,
-                                          label=label,
-                                          release=release)
+                raise ValueError("At least one query term is required")
+            results = mbz.search_releases(
+                artist=artist,
+                label=label,
+                release=release
+            )
             search_data = []        # Will hold the main return data
             for r in results["release-list"]:
+                # Parse label data
                 try:
                     labelinfo = r["label-info-list"][0]["label"]
                     try:
                         label_id = labelinfo["id"]
-                    except Exception:
+                    except KeyError:
                         label_id = ""
                     try:
                         label_name = labelinfo["name"]
-                    except Exception:
+                    except KeyError:
                         label_name = ""
-                except Exception:
+                except (KeyError, IndexError):
+                    # No label info found; continue with empty label data
                     label_id = ""
                     label_name = ""
                 label = {
@@ -58,24 +64,24 @@ class MusicBrainz:
                 try:
                     raw_date = r["date"]
                     date = dateparser.parse(raw_date, fuzzy=True).year
-                except Exception:
+                except KeyError:
                     date = ""
                 try:
                     physical_release = r["medium-list"][0]
                     try:
                         release_format = physical_release["format"]
-                    except Exception:
+                    except KeyError:
                         release_format = ""
                     try:
                         track_count = physical_release["track-count"]
-                    except Exception:
+                    except KeyError:
                         track_count = ""
-                except Exception:
+                except (KeyError, IndexError):
                     release_format = ""
                     track_count = ""
                 try:
                     country = r["country"]
-                except Exception:
+                except KeyError:
                     country = ""
 
                 release_id = r["id"]
@@ -97,6 +103,7 @@ class MusicBrainz:
                     "release_group_id": r["release-group"]["id"],
                 }
                 search_data.append(rel)
+            print(search_data)
             return search_data
         else:
             MusicBrainz.initialize()
