@@ -32,3 +32,33 @@ class TestReleaseSearch:
                 artist=None,
                 label=None
             )
+
+#class TestLabelSearch:
+    # Tests for MusicBrainz.label_search()
+
+#class TestArtistSearch:
+    # Tests for MusicBrainz.artist_search()
+
+# class TestParseSearchResult:
+#     # Tests for MusicBrainz.parse_search_result()
+#     def test_parse_search_result_success(self, mocker):
+#         import datetime
+#         mock_to_date = mocker.patch("databass.api.Util.to_date", return_value=datetime.datetime().date())
+#         search_data = {}
+#         result = MusicBrainz.parse_search_result(search_data)
+
+class TestGetReleaseLength:
+    # Tests for MusicBrainz.get_release_length()
+    def test_get_release_length_success(self, mocker):
+        #mock_mbz = mocker.patch("musicbrainzngs")
+        #mock_mbz.get_release_by_id.return_value = ""
+        result = MusicBrainz.get_release_length('2ab9206e-4408-47e3-92cc-283d2b96c896')
+
+
+# TODO: implement this when CAA is back up
+# class TestGetImage:
+#     # Tests for MusicBrainz.get_image()
+#     def test_get_image_success(self, mocker):
+#         mock_mbz = mocker.patch("musicbrainzngs")
+#         mock_mbz.get_release_group_image_front.return_value = ""
+#         mock_mbz.get_image.return_value = ""

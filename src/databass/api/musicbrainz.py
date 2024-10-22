@@ -73,7 +73,9 @@ class MusicBrainz:
                     except KeyError:
                         release_format = ""
                     try:
-                        track_count = physical_release["track-count"]
+                        track_count = 0
+                        for disc in r["medium-list"]:
+                            track_count += disc["track-count"]
                     except KeyError:
                         track_count = ""
                 except (KeyError, IndexError):
@@ -103,7 +105,6 @@ class MusicBrainz:
                     "release_group_id": r["release-group"]["id"],
                 }
                 search_data.append(rel)
-            print(search_data)
             return search_data
         else:
             MusicBrainz.initialize()
@@ -174,7 +175,7 @@ class MusicBrainz:
             return MusicBrainz.artist_search(name, mbid)
 
     @staticmethod
-    def parse_search_result(search_result: dict):
+    def parse_search_result(search_result: dict) -> dict:
         # Parses the result of get_(artist|label)_by_id and returns a dictionary
         try:
             # Try to get the label's creation date
@@ -221,9 +222,9 @@ class MusicBrainz:
             try:
                 release_data = mbz.get_release_by_id(mbid,
                                                      includes=["recordings", "media", "recording-level-rels"])
-                print(release_data)
-                tracks = release_data["release"]["medium-list"][0]["track-list"]
-                print(tracks)
+                tracks = []
+                for disc in release_data["release"]["medium-list"]:
+                    tracks.append(disc["track-list"])
                 length = 0
                 try:
                     for track in tracks:
