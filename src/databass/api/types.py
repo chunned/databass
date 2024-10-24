@@ -32,3 +32,5 @@ class SearchResult(TypedDict, total=False):
     life_span: dict[str, str]
     country: str
     type: str
+
+# TODO: add more types
