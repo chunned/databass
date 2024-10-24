@@ -6,6 +6,13 @@ from databass.api.musicbrainz import MusicBrainz
 class TestInitialize:
     # Tests for MusicBrainz.release_search()
     def test_initialize_success(self, mocker):
+        """
+        Test the successful initialization of the MusicBrainz API client.
+
+        Verifies that the `MusicBrainz.initialize()` method correctly sets the
+        `MusicBrainz.init` flag to `True` and calls the `musicbrainzngs.set_useragent()`
+        function to initialize the MusicBrainz API client.
+        """
         mock_mbz = mocker.patch("musicbrainzngs.set_useragent")
         assert MusicBrainz.init is False
         MusicBrainz.initialize()
@@ -14,6 +21,7 @@ class TestInitialize:
 
 class TestReleaseSearch:
     # Tests for MusicBrainz.release_search()
+
     # TODO: more advanced tests for handling specific edge cases
     # def test_release_search_success(self, mocker):
     #     mock_mbz = mocker.patch("musicbrainzngs.search_releases")
@@ -29,7 +37,10 @@ class TestReleaseSearch:
     #     assert result == expected
 
     def test_release_search_fail(self):
-        """Should raise a ValueError without any input parameters"""
+        """
+        Tests that the `release_search` method of the `MusicBrainz` class raises a `ValueError`
+        when called without any input parameters.
+        """
         with pytest.raises(ValueError, match="At least one query term is required"):
             MusicBrainz.release_search(
                 release=None,
@@ -38,6 +49,14 @@ class TestReleaseSearch:
             )
 
     def test_release_search_correct_track_length(self, mocker):
+        """
+        Tests the `release_search` method of the `MusicBrainz` class,
+        ensuring that the returned release data contains the correct track count.
+
+        Mocks the `musicbrainzngs.search_releases` function and provides a mock data response.
+        Then calls the `release_search` method with specific search parameters and
+        verifies that the returned track count matches the expected value.
+        """
         mock_data = {
             'id': '2ab9206e-4408-47e3-92cc-283d2b96c896', 'ext:score': '100', 'title': 'dronevil –final–', 'status': 'Official', 'packaging': 'Gatefold Cover', 'text-representation': {'language': 'mul', 'script': 'Qaaa'}, 'artist-credit': [{'name': 'boris', 'artist': {'id': '57652bf8-cfe8-42e7-b9a7-5572a7080d8d', 'name': 'Boris', 'sort-name': 'Boris', 'disambiguation': 'Japanese experimental doom/sludge/drone/psych/metal band'}}], 'release-group': {'id': '11431e95-21ff-3d3f-85c6-04381e5e26be', 'type': 'Album', 'title': 'dronevil', 'primary-type': 'Album'}, 'date': '2006-08-08', 'country': 'JP', 'release-event-list': [{'date': '2006-08-08', 'area': {'id': '2db42837-c832-3c27-b4a3-08198f75693c', 'name': 'Japan', 'sort-name': 'Japan', 'iso-3166-1-code-list': ['JP']}}], 'barcode': '4543034010080', 'asin': 'B000ICLUOU', 'label-info-list': [{'catalog-number': 'IXCD-0404', 'label': {'id': '5374ff02-76b9-4b33-9856-d65514c4b438', 'name': 'Inoxia Records'}}, {'catalog-number': 'IXCD-0403', 'label': {'id': '5374ff02-76b9-4b33-9856-d65514c4b438', 'name': 'Inoxia Records'}}], 'medium-list': [{'format': 'CD', 'disc-list': [], 'disc-count': 1, 'track-list': [], 'track-count': 3}, {'format': 'CD', 'disc-list': [], 'disc-count': 1, 'track-list': [], 'track-count': 3}], 'medium-track-count': 6, 'medium-count': 2, 'tag-list': [], 'artist-credit-phrase': 'boris'}
         mock_mbz = mocker.patch(
@@ -71,6 +90,14 @@ class TestReleaseSearch:
 class TestGetReleaseLength:
     # Tests for MusicBrainz.get_release_length()
     def test_get_release_length_success(self, mocker):
+        """
+        Tests the `get_release_length` method of the `MusicBrainz` class,
+        ensuring the returned release length matches the expected value.
+
+        Mocks the `musicbrainzngs.get_release_by_id` function and provides a mock
+        data response. It then calls the `get_release_length` method with a specific
+        MBID and verifies that the returned release length matches the expected value.
+        """
         test_release_data = {
             'release': {'id': '2ab9206e-4408-47e3-92cc-283d2b96c896', 'title': 'dronevil –final–', 'status': 'Official', 'quality': 'normal', 'packaging': 'Gatefold Cover', 'text-representation': {'language': 'mul', 'script': 'Qaaa'}, 'date': '2006-08-08', 'country': 'JP', 'release-event-list': [{'date': '2006-08-08', 'area': {'id': '2db42837-c832-3c27-b4a3-08198f75693c', 'name': 'Japan', 'sort-name': 'Japan', 'iso-3166-1-code-list': ['JP']}}], 'release-event-count': 1, 'barcode': '4543034010080', 'asin': 'B000ICLUOU', 'cover-art-archive': {'artwork': 'true', 'count': '2', 'front': 'true', 'back': 'false'}, 'medium-list': [{'title': 'disc drone', 'position': '1', 'format': 'CD', 'track-list': [{'id': '7b84bde3-41be-32aa-ba2f-d60869adc90d', 'position': '1', 'number': '1', 'length': '1294160', 'recording': {'id': '89c70743-3357-4837-aa1b-3709b1427865', 'title': 'ほどけていく loose', 'length': '1294160'}, 'track_or_recording_length': '1294160'}, {'id': '868fff58-28e4-3209-82f2-fee45a82b110', 'position': '2', 'number': '2', 'length': '1222640', 'recording': {'id': 'c7a92bf9-d913-4189-90a3-f7e3affd5e46', 'title': 'めまいの椅子 giddiness throne', 'length': '1222640'}, 'track_or_recording_length': '1222640'}, {'id': '377362e5-eb48-3f1b-82c8-e99881aeea4a', 'position': '3', 'number': '3', 'length': '1182600', 'recording': {'id': '47906a3e-2643-4114-9b76-2ab09090a40b', 'title': '干渉 interference demon', 'length': '1182600'}, 'track_or_recording_length': '1182600'}], 'track-count': 3}, {'title': 'disc evil', 'position': '2', 'format': 'CD', 'track-list': [{'id': '5b7e8061-a637-38c4-83f1-db68ad684dc8', 'position': '1', 'number': '1', 'length': '1290493', 'recording': {'id': '4256ec4a-75f4-4209-9a42-c03b794476f9', 'title': '振りきれた風景 red', 'length': '1290493'}, 'track_or_recording_length': '1290493'}, {'id': '105d085c-6ba4-38e2-b747-b99939f14c8b', 'position': '2', 'number': '2', 'length': '1183733', 'recording': {'id': 'b26a8d2d-d327-4391-903b-7e62e887f3c2', 'title': 'ふりおろす evil wave form', 'length': '1183733'}, 'track_or_recording_length': '1183733'}, {'id': '04ed44c2-eb72-3841-9938-e6481f6e65d4', 'position': '3', 'number': '3', 'length': '1304400', 'recording': {'id': '4e68a4ea-4d25-4dc7-8d92-2e0afa383ed9', 'title': '泣きたがるスピード the evilone which sobs', 'length': '1304400'}, 'track_or_recording_length': '1304400'}], 'track-count': 3}], 'medium-count': 2}}
         mock_mbz = mocker.patch(

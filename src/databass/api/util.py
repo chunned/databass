@@ -5,9 +5,17 @@ from os import getenv
 from dotenv import load_dotenv
 import pathlib
 import signal
+from pathlib import Path
+from typing import Optional
 
 load_dotenv()
 VERSION = getenv('VERSION')
+
+JPEG_HEADER = b'\xff\xd8\xff'
+PNG_HEADER = b'\x89PNG\r\n\x1a\n'
+
+VALID_TYPES = frozenset(["release", "artist", "label"])
+
 
 class TimeoutException(Exception):
     pass
@@ -71,38 +79,59 @@ class Util:
     @staticmethod
     def get_image_type_from_url(url: str) -> str:
         """
-        Determine image file extension given its URL; by extension acts as an image format filter
-        :param url: String representation of the URL
-        :return: String representation of the image file extension
+        Determine the image file extension from the URL of an image file.
+
+        This function extracts the image format from a URL, supporting common web image formats
+        and handling various URL patterns. The extension can appear anywhere in the URL path.
+
+        Args:
+            url (str): The URL of an image file.
+
+        Returns:
+            str: The file extension of the image (e.g. '.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff').
+
+        Raises:
+            ValueError: If no supported image extension is found in the URL.
         """
-        try:
-            if url.endswith('.jpg'):
-                return '.jpg'
-            elif url.endswith('.jpeg'):
-                return '.jpeg'
-            elif url.endswith('.png'):
-                return '.png'
-            else:
-                raise ValueError(f'ERROR: Invalid image type. URL: {url}')
-        except ValueError as e:
-            raise e
+        # List of supported image extensions
+        extensions = {
+            '.jpg', '.jpeg', '.png', '.webp',
+            '.gif', '.bmp', '.tiff', '.tif', '.avif'
+        }
+
+        url = url.lower()
+        for ext in extensions:
+            if ext in url:
+                return ext
+
+        raise ValueError(f'ERROR: No supported image type found in URL: {url}')
 
     @staticmethod
     def get_image_type_from_bytes(bytestr: bytes) -> str:
         """
-        Determine image file extension from bytes; by extension acts as an image format filter
-        :param bytestr: Byte representation of an image file
-        :return: String representation of the image file extension
+        Determine the image file extension from the byte representation of an image file.
+
+        This function acts as an image format filter, returning the appropriate file extension
+        based on the first few bytes of the input byte string.
+
+        Args:
+            bytestr (bytes): The byte representation of an image file.
+
+        Returns:
+            str: The file extension of the image, either '.jpg' or '.png'.
+
+        Raises:
+            ValueError: If the input byte string does not match the expected header for a
+                supported image type (JPEG or PNG).
         """
-        try:
-            if bytestr.startswith(b'\xff\xd8\xff'):
-                return '.jpg'
-            elif bytestr.startswith(b'\x89PNG\r\n\x1a\n'):
-                return '.png'
-            else:
-                raise ValueError("Either image file is invalid or is not a supported filetype - supported types are jpg and png.")
-        except ValueError as e:
-            raise e
+        if len(bytestr) < 8:
+            raise ValueError("bytestr must be at least 8 bytes.")
+        if bytestr.startswith(JPEG_HEADER):
+            return '.jpg'
+        elif bytestr.startswith(PNG_HEADER):
+            return '.png'
+        else:
+            raise ValueError(f"Unsupported file type (signature: {bytestr[:8].hex()}). Supported types: jpg, png")
 
     @staticmethod
     def get_image(
@@ -184,26 +213,36 @@ class Util:
     def img_exists(
             item_id: int,
             item_type: str
-    ) -> str | bool:
+    ) -> Optional[str]:
         """
-        Checks if a local image has already been downloaded for the given entity
-        Returns a string of the image's path if it exists
-        Returns False if the image does not exist
+        Check if a local image exists for the given entity.
+
+        Args:
+            item_id: Unique identifier for the item
+            item_type: Type of item ('release', 'artist', or 'label')
+
+        Returns:
+            str: Path to the image if found
+            bool: False if no image exists
+
+        Raises:
+            TypeError: If parameters are of incorrect type
+            ValueError: If item_type is invalid or item_id is negative
         """
         if not isinstance(item_id, int):
-            raise TypeError("item_id must be an integer.")
+            raise TypeError("item_id must be a positive integer.")
         if not isinstance(item_type, str):
             raise TypeError("item_type must be a string.")
+        if item_id < 0:
+            raise ValueError("item_id must be a positive integer")
 
         item_type = item_type.lower()
-        valid_types = ["release", "artist", "label"]
-        if item_type not in valid_types:
+        if item_type not in VALID_TYPES:
             raise ValueError(f"Invalid item_type: {item_type}. "
-                             f"Must be one of the following strings: {', '.join(valid_types)}")
+                         f"Must be one of the following strings: {', '.join(VALID_TYPES)}")
 
-        result = glob.glob(f'static/img/{item_type}/{item_id}.*')
+        base_path = Path("static/img")
+        result = list(base_path.joinpath(item_type).glob(f"{item_id}.*"))
         if result:
-            url = '/' + result[0].replace('databass/', '')
+            url = '/' + str(result[0]).replace('databass/', '')
             return url
-        else:
-            return False

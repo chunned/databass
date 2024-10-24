@@ -1,3 +1,4 @@
+import flask
 from flask import render_template, request, redirect, abort, flash
 from flask_paginate import Pagination, get_page_parameter
 from .api import Util, MusicBrainz, Discogs
@@ -9,32 +10,12 @@ from datetime import datetime
 def register_routes(app):
     @app.route('/', methods=['GET'])
     @app.route('/home', methods=['GET'])
-    def home():
+    def home() -> str:
         stats_data = get_all_stats()
         active_goals = models.Goal.get_incomplete()
-
-        goal_data = []
-        for goal in active_goals:
-            start_date = goal.start_date
-            end_goal = goal.end_goal
-            goal_type = goal.type
-            amount = goal.amount
-
-            current = goal.new_releases_since_start_date
-            remaining = amount - current
-            days_left = (end_goal - datetime.today()).days
-            progress = round((current / amount) * 100)
-            target = round((remaining / days_left), 2)
-            goal_data.append({
-                "start_date": start_date,
-                "end_goal": end_goal,
-                "type": goal_type,
-                "amount": amount,
-                "progress": progress,
-                "target": target,
-                "current": current
-            })
+        goal_data = [process_goal_data(goal) for goal in active_goals]
         data = models.Release.home_data()
+
         page = request.args.get(
             get_page_parameter(),
             type=int,
@@ -67,7 +48,7 @@ def register_routes(app):
         return render_template("new.html", actions=actions, active_page='new')
 
     @app.route("/search", methods=["POST"])
-    def search():
+    def search() -> str | flask.Response:
         # Initialize variables to None
         page = data_length = paged_data = release_data = per_page = None
 
@@ -391,3 +372,36 @@ def register_routes(app):
         return redirect('/', code=302)
 
 
+def process_goal_data(goal: models.Goal):
+    """
+    Processes the data for a given goal, calculating the current progress, remaining amount, and daily target.
+
+    Args:
+        goal (models.Goal): The goal object to process.
+
+    Returns:
+        dict: A dictionary containing the following keys:
+            - start_date (datetime): The start date of the goal.
+            - end_goal (datetime): The end date of the goal.
+            - type (str): The type of the goal.
+            - amount (int): The total amount of the goal.
+            - progress (float): The current progress of the goal as a percentage.
+            - target (float): The daily target amount needed to reach the goal.
+            - current (int): The current amount achieved for the goal.
+    """
+    current = goal.new_releases_since_start_date
+    remaining = goal.amount - current
+    days_left = (goal.end_goal - datetime.today()).days
+    try:
+        target = round((remaining / days_left), 2)
+    except ZeroDivisionError:
+        target = 0
+    return {
+        "start_date": goal.start_date,
+        "end_goal": goal.end_goal,
+        "type": goal.type,
+        "amount": goal.amount,
+        "progress": round((current / goal.amount) * 100),
+        "target": target,
+        "current": current
+    }
