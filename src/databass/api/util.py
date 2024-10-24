@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import pathlib
 import signal
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple, Literal
 
 load_dotenv()
 VERSION = getenv('VERSION')
@@ -15,7 +15,11 @@ JPEG_HEADER = b'\xff\xd8\xff'
 PNG_HEADER = b'\x89PNG\r\n\x1a\n'
 
 VALID_TYPES = frozenset(["release", "artist", "label"])
+VALID_DATE_TYPES = frozenset(['begin', 'end'])
 
+YEAR_FORMAT = "%Y"
+MONTH_FORMAT = "%Y-%m" 
+DAY_FORMAT = "%Y-%m-%d"
 
 class TimeoutException(Exception):
     pass
@@ -24,23 +28,30 @@ def timeout_handler(signum, frame):
     raise TimeoutException("Request timed out")
 
 
-
-
 # Collection of generic utility functions used by other parts of the app
 class Util:
     @staticmethod
-    def to_date(begin_or_end: str | None, date_str: str | None) -> datetime.date:
+    def to_date(begin_or_end: Literal['begin', 'end'] | None, date_str: str | None) -> datetime.date:
         """
-        Takes a string representation of a date and returns a datetime object.
-        :param begin_or_end: String representing whether this is the artist/label's start or end date. Has no purpose unless date_str is None, so it may be None
-        :param date_str: String representing the date, or None if no string was found in API search results
-        :return: Datetime object representing the input date_str. If date_str was None, then returns the 'max' or 'min' date depending on begin_or_end
+        Convert a date string or begin/end indicator to a datetime.date object.
+
+        Args:
+            begin_or_end (Literal['begin', 'end'] | None): Indicates whether to return the earliest or latest possible date.
+            date_str (str | None): A date string in the format YYYY, YYYY-MM, or YYYY-MM-DD.
+
+        Returns:
+            datetime.date: The corresponding date object.
+
+        Raises:
+            ValueError: If `begin_or_end` is not 'begin' or 'end', or if `date_str` is in an unexpected format.
         """
         date = None
         if not date_str:
             if not begin_or_end:
                 raise ValueError("Must be used with either begin_or_end or date_str, or both")
             # No date in search results, return max/min date
+            elif begin_or_end not in VALID_DATE_TYPES:
+                raise ValueError(f"Invalid begin_or_end value: {begin_or_end}")
             elif begin_or_end == 'begin':
                 date = datetime.datetime(year=1, month=1, day=1)
             elif begin_or_end == 'end':
@@ -48,11 +59,11 @@ class Util:
 
         # Date found in search results
         elif len(date_str) == 4:
-            date = datetime.datetime.strptime(date_str, "%Y")
+            date = datetime.datetime.strptime(date_str, YEAR_FORMAT)
         elif len(date_str) == 7:
-            date = datetime.datetime.strptime(date_str, "%Y-%m")
+            date = datetime.datetime.strptime(date_str, MONTH_FORMAT)
         elif len(date_str) == 10:
-            date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+            date = datetime.datetime.strptime(date_str, DAY_FORMAT)
 
         if date is not None:
             return date.date()
@@ -60,18 +71,27 @@ class Util:
             raise ValueError(f"Unexpected date string format: {date_str}")
 
     @staticmethod
-    def today():
-        # Return current day as a string
+    def today() -> str:
+        """Returns current day formatted as YYYY-MM-DD string"""
         return datetime.datetime.today().strftime('%Y-%m-%d')
 
     @staticmethod
-    def get_page_range(per_page: int, current_page: int) -> (int, int):
+    def get_page_range(per_page: int, current_page: int) -> Tuple[int, int]:
         """
-        Calculates the range of elements to slice from a list to use for pagination
-        :param per_page: Amount of results per page
-        :param current_page: Page number
-        :return: Tuple representing the start and end index to slice
+        Get the start and end indices for a page of results given the page size and current page number.
+
+        Args:
+            per_page (int): The number of results to return per page.
+            current_page (int): The current page number (1-indexed).
+
+        Returns:
+            Tuple[int, int]: The start and end indices for the current page of results.
+
+        Raises:
+            ValueError: If `per_page` or `current_page` is less than or equal to 0.
         """
+        if per_page <= 0 or current_page <= 0:
+            raise ValueError("per_page and current_page must be positive integers")
         start = (current_page - 1) * per_page
         end = start + per_page
         return start, end

@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import datetime
 import pytest
 from databass.api.util import Util
 
@@ -9,52 +9,99 @@ INVALID_BYTES = bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
 
 
 class TestToDate:
-    # Tests for Util.to_date()
-    import datetime
+    """Tests for the Util.to_date() function"""
 
-    @pytest.mark.parametrize(
-        "begin_or_end,date_str,expected",
-        [
-            ("begin", "2024", datetime.datetime.strptime("2024", "%Y").date()),
-            ("end", "2024-10", datetime.datetime.strptime("2024-10", "%Y-%m").date()),
-            ("begin", "2024-10-21", datetime.datetime.strptime("2024-10-21", "%Y-%m-%d").date()),
-            ("end", None, datetime.datetime(year=9999, month=12, day=31).date()),
-            ("begin", None, datetime.datetime(year=1, month=1, day=1).date())
-        ]
-    )
-    def test_to_date_success(self, begin_or_end, date_str, expected):
-        """Test to verify return of the proper datetime.date object"""
-        result = Util.to_date(begin_or_end, date_str)
+    @pytest.mark.parametrize("begin_or_end, expected", [
+        ('begin', datetime.date(1, 1, 1)),
+        ('end', datetime.date(9999, 12, 31))
+    ])
+    def test_begin_end_without_date(self, begin_or_end, expected):
+        """Test conversion when only begin_or_end is provided"""
+        result = Util.to_date(begin_or_end=begin_or_end, date_str=None)
         assert result == expected
 
-    def test_to_date_fail_no_arguments(self):
-        """Test to verify that ValueError is raised when neither argument is given a value"""
-        with pytest.raises(ValueError, match="Must be used with either"):
-            Util.to_date(None, None)
+    @pytest.mark.parametrize("date_str, expected", [
+        ('2023', datetime.date(2023, 1, 1)),
+        ('2023-06', datetime.date(2023, 6, 1)),
+        ('2023-06-15', datetime.date(2023, 6, 15))
+    ])
+    def test_valid_date_formats(self, date_str, expected):
+        """Test conversion of various valid date string formats"""
+        result = Util.to_date(begin_or_end=None, date_str=date_str)
+        assert result == expected
 
-    def test_to_date_fail_unrecognized_datestr_format(self):
-        """Test to verify that ValueError is raised if date_str is an unexpected length"""
-        with pytest.raises(ValueError, match="Unexpected date string format"):
-            Util.to_date(begin_or_end=None, date_str="2024-1021")
+    def test_invalid_begin_end_value(self):
+        """Test that invalid begin_or_end values raise ValueError"""
+        with pytest.raises(ValueError, match="Invalid begin_or_end value"):
+            Util.to_date(begin_or_end='invalid', date_str=None)
+
+    def test_missing_both_parameters(self):
+        """Test that providing neither parameter raises ValueError"""
+        with pytest.raises(ValueError, match="Must be used with either begin_or_end or date_str"):
+            Util.to_date(begin_or_end=None, date_str=None)
+
+    @pytest.mark.parametrize("invalid_date", [
+        '202',          # Too short year
+        '20234',        # Too long year
+        '2023-6',       # Invalid month format
+        '2023-13',      # Invalid month value
+        '2023-06-1',    # Invalid day format
+        '2023-06-32',   # Invalid day value
+        '2023/06/15',   # Wrong separator
+        'invalid'       # Non-date string
+    ])
+    def test_invalid_date_formats(self, invalid_date):
+        """Test that invalid date string formats raise ValueError"""
+        with pytest.raises(ValueError):
+            Util.to_date(begin_or_end=None, date_str=invalid_date)
+
+    @pytest.mark.parametrize("begin_or_end, date_str, expected", [
+        ('begin', '2023', datetime.date(2023, 1, 1)),
+        ('end', '2023-06', datetime.date(2023, 6, 1)),
+        ('begin', '2023-06-15', datetime.date(2023, 6, 15))
+    ])
+    def test_both_parameters(self, begin_or_end, date_str, expected):
+        """Test that providing both parameters works correctly and date_str takes precedence"""
+        result = Util.to_date(begin_or_end=begin_or_end, date_str=date_str)
+        assert result == expected
+
 
 class TestGetPageRange:
-    # Tests for Util.get_page_range()
-    @pytest.mark.parametrize(
-        "per_page,current_page,expected_start,expected_end",
-        [(5, 2, 5, 10), (0, 0, 0, 0)]
-    )
-    def test_get_page_range_success(self, per_page, current_page, expected_start, expected_end):
-        result_start, result_end = Util.get_page_range(per_page, current_page)
-        assert result_start == expected_start
-        assert result_end == expected_end
+    """Tests for Util.get_page_range() function"""
+    @pytest.mark.parametrize("per_page, current_page, expected_start, expected_end", [
+        (10, 1, 0, 10),      # First page
+        (10, 2, 10, 20),     # Second page
+        (5, 3, 10, 15),      # Third page with different page size
+        (100, 1, 0, 100),    # Large page size
+        (1, 1, 0, 1),        # Minimum valid page size
+        (3, 5, 12, 15),      # Later page with small page size
+    ])
+    def test_get_page_range_valid_inputs(self, per_page, current_page, expected_start, expected_end):
+        """Test get_page_range with various valid input combinations"""
+        start, end = Util.get_page_range(per_page, current_page)
+        assert start == expected_start
+        assert end == expected_end
 
-    @pytest.mark.parametrize(
-        "per_page,current_page",
-        [(5, None), (None, 0)]
-    )
-    def test_get_page_range_fail_invalid_input(self, per_page, current_page):
-        with pytest.raises(TypeError):
-            result_start, result_end = Util.get_page_range(per_page, current_page)
+    @pytest.mark.parametrize("per_page, current_page, error_message", [
+        (0, 1, "per_page and current_page must be positive integers"),
+        (-5, 1, "per_page and current_page must be positive integers"),
+        (10, 0, "per_page and current_page must be positive integers"),
+        (10, -1, "per_page and current_page must be positive integers"),
+        (-5, -5, "per_page and current_page must be positive integers"),
+    ])
+    def test_get_page_range_invalid_inputs(self, per_page, current_page, error_message):
+        """Test get_page_range with invalid input values"""
+        with pytest.raises(ValueError) as exc_info:
+            Util.get_page_range(per_page, current_page)
+        assert str(exc_info.value) == error_message
+
+    def test_get_page_range_large_values(self):
+        """Test get_page_range with very large input values"""
+        per_page = 1000000
+        current_page = 1000
+        start, end = Util.get_page_range(per_page, current_page)
+        assert start == 999000000
+        assert end == 1000000000
 
 class TestGetImageTypeFromUrl:
     """Tests for Util.get_image_type_from_url method."""
