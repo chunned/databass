@@ -6,6 +6,7 @@ from dateutil import parser as dateparser
 from dotenv import load_dotenv
 from os import getenv
 from typing import Optional, Dict, Any
+from .types import ArtistInfo, LabelInfo, ReleaseInfo, EntityInfo, SearchResult
 
 load_dotenv()
 VERSION = getenv("VERSION")
@@ -25,14 +26,18 @@ class MusicBrainz:
             release: str = None,
             artist: str = None,
             label: str = None
-    ) -> list:
+    ) -> Optional[list[ReleaseInfo]]:
         """
-        Search MusicBrainz for releases matching the search terms
-        :param release: Optional - release name string
-        :param artist: Optional - artist name string
-        :param label: Optional - label name string
-        :return: List of dictionary data results from API
-        """
+            Performs a search for music releases on the MusicBrainz API.
+
+            Args:
+                release (str, optional): The release name to search for.
+                artist (str, optional): The artist name to search for.
+                label (str, optional): The label name to search for.
+
+            Returns:
+                Optional[list[ReleaseInfo]]: A list of `ReleaseInfo` objects representing the search results, or `None` if no results were found.
+            """
         if MusicBrainz.init:
             if all(search_term is None for search_term in (release, artist, label)):
                 raise ValueError("At least one query term is required")
@@ -89,36 +94,45 @@ class MusicBrainz:
 
                 release_id = r["id"]
 
-                rel = {
-                    "release": {
+                rel = ReleaseInfo(
+                    release={
                         "name": r["title"],
                         "mbid": release_id
                     },
-                    "artist": {
+                    artist={
                         "name": r["artist-credit"][0]["name"],
                         "mbid": r["artist-credit"][0]["artist"]["id"]
                     },
-                    "label": label,
-                    "date": date,
-                    "format": release_format,
-                    "track_count": track_count,
-                    "country": country,
-                    "release_group_id": r["release-group"]["id"],
-                }
+                    label=label,
+                    date=date,
+                    format=release_format,
+                    track_count=track_count,
+                    country=country,
+                    release_group_id=r["release-group"]["id"],
+                )
                 search_data.append(rel)
             return search_data
         else:
-            MusicBrainz.initialize()
-            return MusicBrainz.release_search(release, artist, label)
+            try:
+                MusicBrainz.initialize()
+                return MusicBrainz.release_search(release, artist, label)
+            except RecursionError:
+                return None
 
     @staticmethod
-    def label_search(name: str, mbid: str = None):
+    def label_search(name: str, mbid: str = None) -> Optional[LabelInfo]:
         """
-        Search MusicBrainz for labels matching the search terms
-        :param name: Label name
-        :param mbid: Optional - MBID of the label
-        :return: Dictionary that can be used to construct an instance of Label from models.py
+        Search MusicBrainz for a label matching the given name or MusicBrainz ID (MBID).
+
+        Args:
+            name (str): The name of the label to search for.
+            mbid (str, optional): The MusicBrainz ID of the label, if known. If provided, the function will attempt to directly query the label by ID instead of searching.
+
+        Returns:
+            Optional[LabelInfo]: A `LabelInfo` object containing the parsed information about the label, or `None` if the search fails.
         """
+        if not name or not isinstance(name, str):
+            return None
         if MusicBrainz.init:
             if mbid is not None:
                 try:
@@ -135,22 +149,31 @@ class MusicBrainz:
                     label_id = label_results["label-list"][0]["id"]
                     # Now that we have an MBID, recursively call this function using that ID to grab the label data
                     # This call is required because begin_date/end_date are not included in search results
-                    MusicBrainz.label_search(name=name, mbid=label_id)
-                except Exception as e:
+                    return MusicBrainz.label_search(name=name, mbid=label_id)
+                except (KeyError, IndexError) as e:
                     raise e
         else:
             # MusicBrainz class not initialized; call initialize function, then re-call function
-            MusicBrainz.initialize()
-            return MusicBrainz.label_search(name, mbid)
+            try:
+                MusicBrainz.initialize()
+                return MusicBrainz.label_search(name, mbid)
+            except RecursionError:
+                return None
 
     @staticmethod
-    def artist_search(name: str, mbid: str = None):
+    def artist_search(name: str, mbid: str = None) -> Optional[ArtistInfo]:
         """
-        Search MusicBrainz for artists matching the search terms
-        :param name: Artist name
-        :param mbid: Optional - MBID of the artist
-        :return: Dictionary that can be used to construct an instance of Artist from models.py
+        Search MusicBrainz for artists matching the search terms.
+
+        Args:
+            name (str): The name of the artist to search for.
+            mbid (str, optional): The MusicBrainz ID of the artist, if known. If provided, the function will attempt to directly query the artist by ID instead of searching.
+
+        Returns:
+            Optional[Dict[str, Any]]: A dictionary containing the parsed information about the artist, or None if the search fails.
         """
+        if not name or not isinstance(name, str):
+            return None
         if MusicBrainz.init:
             if mbid is not None:
                 try:
@@ -158,8 +181,8 @@ class MusicBrainz:
                     artist_result = mbz.get_artist_by_id(mbid, includes=['area-rels'])["artist"]
                     artist = MusicBrainz.parse_search_result(artist_result)
                     return artist
-                except Exception as e:
-                    raise e
+                except KeyError as e:
+                    return None
             else:
                 # No MBID, have to search. Assume first result is correct
                 artist_results = mbz.search_artists(query=name)
@@ -167,16 +190,19 @@ class MusicBrainz:
                     artist_id = artist_results["artist-list"][0]["id"]
                     # Now that we have an MBID, recursively call this function using that ID to grab the label data
                     # This call is required because begin_date/end_date are not included in search results
-                    MusicBrainz.artist_search(name=name, mbid=artist_id)
-                except Exception as e:
-                    raise e
+                    return MusicBrainz.artist_search(name=name, mbid=artist_id)
+                except (KeyError, IndexError) as e:
+                    return None
         else:
             # MusicBrainz class not initialized; call initialize function, then re-call function
-            MusicBrainz.initialize()
-            return MusicBrainz.artist_search(name, mbid)
+            try:
+                MusicBrainz.initialize()
+                return MusicBrainz.artist_search(name, mbid)
+            except RecursionError:
+                return None
 
     @staticmethod
-    def parse_search_result(search_result: dict) -> dict:
+    def parse_search_result(search_result: SearchResult) -> EntityInfo:
         """
         Parse a search result from the MusicBrainz API into a dictionary with the following keys:
         - name: The name of the item (e.g. label, artist)
@@ -192,14 +218,16 @@ class MusicBrainz:
         Returns:
             dict: A dictionary containing the parsed information about the item.
         """
+        if not isinstance(search_result, dict) or not search_result:
+            raise ValueError("Invalid or empty search result passed to the function")
         try:
             # Try to get the label's creation date
-            begin_raw = search_result["life-span"]["begin"]
+            begin_raw = search_result["life_span"]["begin"]
         except KeyError:
             begin_raw = None
         try:
             # Try to get the label's end date
-            end_raw = search_result["life-span"]["end"]
+            end_raw = search_result["life_span"]["end"]
         except KeyError:
             end_raw = None
             # Parse from string to datetime
@@ -216,14 +244,14 @@ class MusicBrainz:
         except KeyError:
             item_type = None
 
-        item = {
-            "name": search_result["name"],
-            "mbid": search_result["id"],
-            "begin_date": begin_date,
-            "end_date": end_date,
-            "country": country,
-            "type": item_type,
-        }
+        item = EntityInfo(
+            name=search_result["name"],
+            mbid=search_result["id"],
+            begin_date=begin_date,
+            end_date=end_date,
+            country=country,
+            type=item_type,
+        )
         return item
 
     @staticmethod
@@ -259,8 +287,11 @@ class MusicBrainz:
             except Exception as e:
                 return 0
         else:
-            MusicBrainz.initialize()
-            return MusicBrainz.get_release_length(mbid)
+            try:
+                MusicBrainz.initialize()
+                return MusicBrainz.get_release_length(mbid)
+            except RecursionError:
+                return 0
 
     @staticmethod
     def get_image(mbid: str, size: str = '250') -> Optional[bytes]:
@@ -274,6 +305,8 @@ class MusicBrainz:
         Returns:
             Optional[bytes]: The front cover image of the release group as bytes, or None if no image is found.
         """
+        if not size.isdigit():
+            return None
         if not mbid or not isinstance(mbid, str):
             return None
         try:
@@ -285,7 +318,7 @@ class MusicBrainz:
                     try:
                         coverid = covers['images'][0]['id']
                         return mbz.get_image(mbid, coverid=coverid, size=size)
-                    except KeyError:
+                    except (KeyError, IndexError):
                         pass
             except musicbrainzngs.musicbrainz.ResponseError:
                 return None
