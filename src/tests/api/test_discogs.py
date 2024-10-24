@@ -1,10 +1,7 @@
 import pytest
 import requests.exceptions
-from databass.api.discogs import Discogs
 from requests import Response
 import time
-
-import pytest
 import requests
 from databass.api.discogs import Discogs, RATE_LIMIT_THRESHOLD
 

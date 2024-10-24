@@ -5,6 +5,7 @@ from .util import Util
 from dateutil import parser as dateparser
 from dotenv import load_dotenv
 from os import getenv
+from typing import Optional, Dict, Any
 
 load_dotenv()
 VERSION = getenv("VERSION")
@@ -176,7 +177,21 @@ class MusicBrainz:
 
     @staticmethod
     def parse_search_result(search_result: dict) -> dict:
-        # Parses the result of get_(artist|label)_by_id and returns a dictionary
+        """
+        Parse a search result from the MusicBrainz API into a dictionary with the following keys:
+        - name: The name of the item (e.g. label, artist)
+        - mbid: The MusicBrainz ID of the item
+        - begin_date: The start date of the item, as a datetime object or None if not available
+        - end_date: The end date of the item, as a datetime object or None if not available
+        - country: The country of the item, or None if not available
+        - type: The type of the item (e.g. "Label", "Artist"), or None if not available
+
+        Args:
+            search_result (dict): The raw search result dictionary from the MusicBrainz API.
+
+        Returns:
+            dict: A dictionary containing the parsed information about the item.
+        """
         try:
             # Try to get the label's creation date
             begin_raw = search_result["life-span"]["begin"]
@@ -212,54 +227,68 @@ class MusicBrainz:
         return item
 
     @staticmethod
-    def get_release_length(mbid: str):
+    def get_release_length(mbid: str) -> int:
         """
-        Search a release on MusicBrainz and calculate the runtime (ms)
-        :param mbid: String containing the MBID of the release
-        :return: Integer representing the release runtime in ms
+        Get the total length of a release on MusicBrainz in milliseconds.
+
+        Args:
+            mbid (str): The MBID (MusicBrainz ID) of the release.
+
+        Returns:
+            int: The total length of the release in milliseconds, or 0 if the length could not be determined.
         """
+        if not mbid or not isinstance(mbid, str):
+            return 0
         if MusicBrainz.init:
             try:
                 release_data = mbz.get_release_by_id(mbid,
                                                      includes=["recordings", "media", "recording-level-rels"])
-                tracks = []
-                for disc in release_data["release"]["medium-list"]:
-                    for track in disc["track-list"]:
-                        tracks.append(track)
+                tracks = [
+                    track
+                    for disc in release_data["release"]["medium-list"]
+                    for track in disc["track-list"]
+                ]
                 length = 0
-                try:
-                    for track in tracks:
+                for track in tracks:
+                    try:
                         length += int(track["length"])
-                except (KeyError, TypeError) as e:
-                    length = 0
-                finally:
-                    return length
+                    except (KeyError, TypeError) as e:
+                        pass
+                    finally:
+                        return length
             except Exception as e:
-                raise e
+                return 0
         else:
             MusicBrainz.initialize()
             return MusicBrainz.get_release_length(mbid)
 
     @staticmethod
-    def get_image(mbid: str):
+    def get_image(mbid: str, size: str = '250') -> Optional[bytes]:
         """
-        Search CoverArtArchive API for image candidates
-        :param mbid: MBID of the release/release group to check for existing images
-        :return: List of available image URLs
+        Search for the front cover image of a release group on MusicBrainz and return it as bytes, or return None if no image is found.
+
+        Args:
+            mbid (str): The MBID (MusicBrainz ID) of the release group.
+            size (str): Desired size of the image in pixels, 250px by default
+
+        Returns:
+            Optional[bytes]: The front cover image of the release group as bytes, or None if no image is found.
         """
-        # TODO: implement timeout here
+        if not mbid or not isinstance(mbid, str):
+            return None
         try:
-            return mbz.get_release_group_image_front(mbid, size='250')
+            return mbz.get_release_group_image_front(mbid, size=size)
         except musicbrainzngs.musicbrainz.ResponseError:
             try:
-                covers = mbz.get_image_list(mbid)
+                covers: Dict[str, Any] = mbz.get_image_list(mbid)
                 if covers:
-                    coverid = covers['images'][0]['id']
-                    return mbz.get_image(mbid, coverid=coverid, size='250')
+                    try:
+                        coverid = covers['images'][0]['id']
+                        return mbz.get_image(mbid, coverid=coverid, size=size)
+                    except KeyError:
+                        pass
             except musicbrainzngs.musicbrainz.ResponseError:
                 return None
-            except Exception as e:
-                raise e
         except Exception as e:
-            raise e
+            return None
 
