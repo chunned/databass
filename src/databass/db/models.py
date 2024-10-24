@@ -3,14 +3,16 @@ from sqlalchemy import String, Integer, ForeignKey, DateTime, Date, func, Unique
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from datetime import datetime, date
 from sqlalchemy.engine.row import Row
+from typing import Any, Optional
 
 from .base import app_db
 
 class Base(DeclarativeBase):
+    """Base class which all other database model classes are built from"""
     id: Mapped[int] = mapped_column(primary_key=True)
 
     @classmethod
-    def get_all(cls) -> list:
+    def get_all(cls) -> list[Any]:
         # Return all database entries for this class
         results = app_db.session.query(cls).all()
         return results
@@ -20,30 +22,25 @@ class Base(DeclarativeBase):
         # Return the count of all database entries for this class
         try:
             results = app_db.session.query(cls).count()
-            if results is None:
-                return 0
-            elif isinstance(results, int):
-                return results
-            else:
-                raise TypeError(f"Expected int, got {type(results)}: {results}")
+            return results if isinstance(results, int) else None
         except Exception as e:
-            raise e
+            raise RuntimeError(f"Failed to count {cls.__name__} entries") from e
 
     @classmethod
     def exists_by_id(
             cls,
             item_id: int
-    ) -> Base | False:
+    ) -> Optional[Base]:
         """
         Check if an item exists in the database by its ID
         :param item_id: Item's ID (primary key)
         :return: The item, if it exists, or False if the item does not exist
         """
-        result = app_db.session.query(cls).filter(cls.id == item_id).one_or_none()
-        if result:
-            return result
-        else:
-            return False
+        try:
+            result = app_db.session.query(cls).filter(cls.id == item_id).one_or_none()
+            return result if result else None
+        except Exception as e:
+            return None
 
     @classmethod
     def get_distinct_column_values(
@@ -57,11 +54,7 @@ class Base(DeclarativeBase):
         """
         try:
             attribute = getattr(cls, column)
-            result = app_db.session.query(
-                distinct(attribute)
-            ).all()
-            values = [i[0] for i in result]
-            return values
+            return [value for (value,) in app_db.session.query(distinct(attribute))]
         except AttributeError as e:
             raise e
 
@@ -78,33 +71,39 @@ class MusicBrainzEntity(Base):
     def exists_by_mbid(
             cls,
             mbid: str
-    ) -> MusicBrainzEntity | False:
+    ) -> Optional[MusicBrainzEntity]:
         """
         Check if an item exists in the database by its MusicBrainzID (mbid)
         :param mbid: Item's MusicBrainzID
         :return: The item, if it exists, or False if the item does not exist
         """
+        if not isinstance(mbid, str):
+            return None
         result = app_db.session.query(cls).filter(cls.mbid == mbid).one_or_none()
         if result:
             return result
         else:
-            return False
+            return None
 
     @classmethod
     def exists_by_name(
             cls,
             name: str
-    ) -> MusicBrainzEntity | False:
+    ) -> Optional[MusicBrainzEntity]:
         """
         Check if an item exists in the database by its name
         :param name: The item's name
         :return: The item, if it exists, or False if the item does not exist
         """
-        result = app_db.session.query(cls).filter(cls.name.ilike(f'%{name}%')).one_or_none()
+        if not isinstance(name, str):
+            return None
+        result = app_db.session.query(cls).filter(
+            cls.name.ilike(f'%{name}%')
+        ).one_or_none()
         if result:
             return result
         else:
-            return False
+            return None
 
 
 app_db.Model = Base
