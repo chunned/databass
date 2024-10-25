@@ -108,10 +108,24 @@ class MusicBrainzEntity(Base):
         result = app_db.session.query(cls).filter(
             cls.name.ilike(f'%{name}%')
         ).one_or_none()
-        if result:
-            return result
-        else:
+        return result
+
+    @classmethod
+    def name_from_id(cls, item_id: int) -> Optional[MusicBrainzEntity.name]:
+        """
+        Get the name of a MusicBrainzEntity from its database ID.
+
+        Args:
+            item_id (int): The ID of the MusicBrainzEntity to get the name of.
+
+        Returns:
+            Optional[MusicBrainzEntity.name]: The name (str) of the MusicBrainzEntity, or None if no entry with the specified ID is found.
+        """
+        if not isinstance(item_id, int) or item_id <= 0:
             return None
+        result = app_db.session.query(cls.name).where(cls.id == item_id).one_or_none()
+        return result[0] if result is not None else None
+
 
 app_db.Model = Base
 
@@ -851,7 +865,7 @@ class Artist(ArtistOrLabel):
         :return: SQLAlchemy Row objects representing the releases related to the given artist_id; empty list if none are found
         """
         releases = (
-            app_db.session.query(Release, Label.name)
+            app_db.session.query(Release, Label.name, Label.id)
             .join(Label, Release.label_id == Label.id)
             .join(cls, cls.id == Release.artist_id)
             .where(cls.id == artist_id)

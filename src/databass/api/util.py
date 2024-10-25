@@ -116,7 +116,6 @@ class Util:
         # List of supported image extensions
         extensions = {
             '.jpg', '.jpeg', '.png', '.webp',
-            '.gif', '.bmp', '.tiff', '.tif', '.avif'
         }
 
         url = url.lower()

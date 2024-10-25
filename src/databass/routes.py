@@ -13,7 +13,10 @@ def register_routes(app):
     def home() -> str:
         stats_data = get_all_stats()
         active_goals = models.Goal.get_incomplete()
-        goal_data = [process_goal_data(goal) for goal in active_goals]
+        if active_goals is not None:
+            goal_data = [process_goal_data(goal) for goal in active_goals]
+        else:
+            goal_data = []
         data = models.Release.home_data()
 
         page = request.args.get(
@@ -170,7 +173,14 @@ def register_routes(app):
         origin = data["referrer"]
         del data["referrer"]
         if origin in ['release', 'artist', 'label']:
-            search_data = db.dynamic_search(data)
+            if origin == 'release':
+                search_data = db.models.Release.dynamic_search(data)
+            elif origin == 'artist':
+                search_data = db.models.Artist.dynamic_search(data)
+            elif origin == 'label':
+                search_data = db.models.Label.dynamic_search(data)
+            else:
+                raise ValueError("origin/referrer must be one of: release, artist, label")
             page = request.args.get(
                 get_page_parameter(),
                 type=int,
@@ -250,6 +260,8 @@ def register_routes(app):
         if request.method != 'GET':
             abort(405)
         existing_goals = models.Goal.get_incomplete()
+        if existing_goals is None:
+            existing_goals = []
         data = {
             "today": Util.today(),
             "existing_goals": existing_goals

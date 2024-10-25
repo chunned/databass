@@ -46,7 +46,7 @@
 
 
                 <p style="padding: 7px;"><a href="/release/{{ release[0].id }}" class="link">{{ release[0].name }}</a> ({{ release[0].release_year }}) - {{ release[0].rating }}%
-                <br><a href="/label/{{ release.label_id }}" class="link">{{ release[1] }}</a></p>
+                <br><a href="/label/{{ release[0].label_id }}" class="link">{{ release[1] }}</a></p>
             </div>
             {% endfor %}
         </div>

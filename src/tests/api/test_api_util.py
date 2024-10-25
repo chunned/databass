@@ -111,7 +111,6 @@ class TestGetImageTypeFromUrl:
             'https://example.com/image.jpg': '.jpg',
             'https://example.com/photo.png': '.png',
             'https://example.com/avatar.webp': '.webp',
-            'https://example.com/animation.gif': '.gif'
         }
         for url, expected in test_cases.items():
             assert Util.get_image_type_from_url(url) == expected
@@ -149,7 +148,7 @@ class TestGetImageTypeFromUrl:
 
     def test_all_supported_formats(self):
         """Test all supported image formats."""
-        formats = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff', '.tif', '.avif']
+        formats = ['.jpg', '.jpeg', '.png', '.webp']
         for fmt in formats:
             url = f'https://example.com/image{fmt}'
             assert Util.get_image_type_from_url(url) == fmt
