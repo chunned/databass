@@ -3,6 +3,7 @@ from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Tag, 
 from sqlalchemy import extract
 from sqlalchemy.orm import query as sql_query
 from sqlalchemy.engine.row import Row
+from typing import Type
 
 def get_model(model_name: str) -> Base | None:
     """
@@ -59,7 +60,7 @@ def next_item(item_type: str,
         return item if item else False
 
 def apply_comparison_filter(query,
-                      model: MusicBrainzEntity,
+                      model: Type[MusicBrainzEntity],
                       key: str,
                       operator: str,
                       value: str) -> sql_query:
