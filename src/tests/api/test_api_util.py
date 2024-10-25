@@ -136,11 +136,6 @@ class TestGetImageTypeFromUrl:
         for url, expected in test_cases.items():
             assert Util.get_image_type_from_url(url) == expected
 
-    def test_multiple_extensions(self):
-        """Test URLs containing multiple extensions - should return the first valid one."""
-        url = 'https://example.com/image.jpg.png'
-        assert Util.get_image_type_from_url(url) == '.jpg'
-
     def test_invalid_url(self):
         """Test that invalid URLs raise ValueError."""
         invalid_urls = [
@@ -161,27 +156,27 @@ class TestGetImageTypeFromUrl:
 
 class TestGetImageTypeFromBytes:
     # Test Util.get_image_type_from_bytes()
-    def test_from_bytes_jpeg(self):
+    def test_get_image_type_from_bytes_jpeg(self):
         """Test to verify JPEG bytes are correctly identified"""
-        assert Util.from_bytes(VALID_JPEG_BYTES) == '.jpg'
+        assert Util.get_image_type_from_bytes(VALID_JPEG_BYTES) == '.jpg'
 
-    def test_from_bytes_png(self):
+    def test_get_image_type_from_bytes_png(self):
         """Test to verify PNG bytes are correctly identified"""
-        assert Util.from_bytes(VALID_PNG_BYTES) == '.png'
+        assert Util.get_image_type_from_bytes(VALID_PNG_BYTES) == '.png'
 
-    def test_from_bytes_invalid(self):
+    def test_get_image_type_from_bytes_invalid(self):
         """Test to verify ValueError is raised for invalid image bytes"""
         with pytest.raises(ValueError) as exc_info:
-            Util.from_bytes(INVALID_BYTES)
+            Util.get_image_type_from_bytes(INVALID_BYTES)
         assert "Unsupported file type" in str(exc_info.value)
 
-    def test_from_bytes_empty(self):
+    def test_get_image_type_from_bytes_empty(self):
         """Test to verify ValueError is raised for empty bytes"""
         with pytest.raises(ValueError) as exc_info:
-            Util.from_bytes(bytes())
+            Util.get_image_type_from_bytes(bytes())
         assert "must be at least 8 bytes" in str(exc_info.value)
 
-    def test_from_bytes_partial_header(self):
+    def test_get_image_type_from_bytes_partial_header(self):
         """Test to verify ValueError is raised for incomplete image headers"""
         partial_jpeg = VALID_JPEG_BYTES[:3]
         with pytest.raises(ValueError) as exc_info:

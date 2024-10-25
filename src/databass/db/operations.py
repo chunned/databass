@@ -14,9 +14,17 @@ TIMEZONE = getenv('TIMEZONE')
 
 def insert(item: app_db.Model) -> int:
     """
-    Insert an instance of a model class into the database
-    :param item: Instance of SQLAlchemy model class from models.py
-    :return: ID of the newly inserted item on success; -1 on failure
+    Insert a new database entry.
+
+    Args:
+        item (app_db.Model): Instance of a database model class to insert.
+
+    Returns:
+        int: The ID of the newly inserted item.
+
+    Raises:
+        IntegrityError: If there is a SQLite integrity error when inserting the item.
+        Exception: For any other unexpected errors.
     """
     try:
         app_db.session.add(item)
@@ -33,8 +41,13 @@ def insert(item: app_db.Model) -> int:
 
 def update(item: app_db.Model) -> None:
     """
-    Update an existing database entry
-    :param item: Instance of database model class to update
+        Update an existing database entry.
+
+        Args:
+            item (app_db.Model): Instance of a database model class to update.
+
+        Raises:
+            Exception: For any unexpected errors that occur during the update operation.
     """
     try:
         model_class = type(item)
@@ -50,25 +63,28 @@ def update(item: app_db.Model) -> None:
         app_db.session.rollback()
         raise Exception(f'Unexpected error: {err}')
 
+
+
 def delete(item_type: str,
            item_id: str) -> None:
     """
-    Delete an existing entry from the database
-    :param item_type: String corresponding to a database model class
-    :param item_id: The ID of the item to delete
+        Delete a database entry by its type and ID.
+
+        Args:
+            item_type (str): The type of the database item to delete (e.g. 'label', 'artist').
+            item_id (str): The ID of the database item to delete.
+
+        Raises:
+            Exception: If no model is found for the given item_type, or if an unexpected error occurs during the delete operation.
     """
-    # TODO: investigate common exceptions stemming from .delete()
     try:
         model = get_model(item_type)
-        if model:
-            to_delete = app_db.session.query(model).where(model.id == item_id).one()
-            if to_delete:
-                app_db.session.delete(to_delete)
-                app_db.session.commit()
-            else:
-                raise Exception(f'No {item_type} entry found for {item_id}')
+        to_delete = app_db.session.query(model).where(model.id == item_id).one()
+        if to_delete:
+            app_db.session.delete(to_delete)
+            app_db.session.commit()
         else:
-            raise NameError(f"No model found for item_type: {item_type}")
+            raise Exception(f'No {item_type} entry found for {item_id}')
     except Exception as err:
         app_db.session.rollback()
         raise Exception(f'Unexpected error: {err}')
