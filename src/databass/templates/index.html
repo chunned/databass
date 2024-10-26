@@ -1,165 +1,161 @@
 {% extends '_base.html' %}
 {% block content %}
-<div class="home">
-    <div class="home_albums_container">
-        <table class="pagination">
-            <tr>
-                <td>
-                    {% if pagination.has_prev %}
-                        <button onclick="window.location.href='/home?page={{ pagination.page - 1 }}'" class="box">back</button>
-                    {% else %}
-                        <button disabled style="color: var(--color-black);">back</button>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if pagination.has_next %}
-                        <button onclick="window.location.href='/home?page={{ pagination.page + 1 }}'" class="box">next</button>
-                    {% else %}
-                        <button disabled style="color: var(--color-black);">next</button>
-                    {% endif %}
-                </td>
-            </tr>
-        </table>
-        <table class="home_album_table">
-            <thead>
-                <tr>
-                    <th class="col1">ART</th>
-                    <th class="col2">ARTIST</th>
-                    <th class="col3">TITLE</th>
-                    <th class="col4">RATING</th>
-                    <th class="col5">LISTEN DATE</th>
-                    <th class="col6">GENRE</th>
-                    <th class="col7">TAGS</th>
-                </tr>
-            </thead>
-
-            {% for item in data %}
-            <tr>
-                <td class="col1">
-                {% if item.image %}
-                    <img src="{{ item.image }}" class="homepage_covers col1" alt="Album art">
+    <div id="home" style="display: grid; grid-template-columns: 1fr 20vw;">
+        <article
+            style="
+                border: 1px solid white;
+                display: grid;
+                grid-template-rows: 0.1fr 0.1fr repeat(5, 1fr);
+                text-align: center;
+                max-height: 85vh;
+            "
+            id="home_container"
+        >
+            <nav class="pagination" aria-label="Latest albums pagination">
+            <div class="pagination_controls">
+                {% if pagination.has_prev %}
+                    <button onclick="window.location.href='/home?page={{ pagination.page - 1 }}'" class="box">back</button>
                 {% else %}
-                    <img class="homepage_covers col1" alt="Album art" src="">
+                    <button disabled style="color: var(--color-black);">back</button>
                 {% endif %}
-                </td>
-                <td class="col2">
-                    <a href="/artist/{{ item.artist_id }}" class="link">{{ item.artist_name }}</a>
-                </td>
-                <td class="col3">
-                    <a href="/release/{{ item.id }}" class="link">{{ item.name }}</a>
-                </td>
-                <td class="col4">
-                    {{ item.rating }}%
-                </td>
-                <td class="col5">
-                    {{ item.listen_date.date() }}
-                </td>
-                <td class="col6">
-                    {{ item.genre }}
-                </td>
-                <td class="col7" style="white-space: normal!important;">
-                    <p>
-                    {{ item.tags | join(', ') }}
-                    </p>
-                </td>
-            </tr>
-        {% endfor %}
-        </table>
-    </div>
-    <div class="home_stats_container">
-        <table class="home_stats">
-            <tr>
-                <th colspan="2"><h3>STATS</h3></th>
-            </tr>
-            <tr>
-                <td>
-                    listens
-                </td>
-                <td>
-                    {{ stats.total_listens }}
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    artists
-                </td>
-                <td>
-                    {{ stats.total_artists }}
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    labels
-                </td>
-                <td>
-                    {{ stats.total_labels }}
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    avg rating
-                </td>
-                <td>
-                    {{ stats.average_rating }}%
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    avg runtime
-                </td>
-                <td>
-                    {{ stats.average_runtime }}m
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    total runtime
-                </td>
-                <td>
-                    {{ stats.total_runtime }}h
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    listens this year
-                </td>
-                <td>
-                    {{ stats.listens_this_year }}
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    listens per day
-                </td>
-                <td>
-                    {{ stats.listens_per_day }}
-                </td>
-            </tr>
-        </table>
 
-        <table class="home_stats">
-            <tr>
-                <th colspan="2"><h3>GOALS</h3></th>
-            </tr>
-            {% for goal in goals %}
-            <tr>
-                <td style="text-align: right;">{{ goal["amount"] }} {{ goal["type"] }}s by </td>
-                <td style="text-align: left;">{{ goal["end_goal"].date() }}</td>
-            </tr>
-            <tr>
-                <td style="text-align: right;">start:</td>
-                <td style="text-align: left;">{{ goal["start_date"].date() }}</td>
-            </tr>
-            <tr>
-                <td style="text-align: right;">progress:</td>
-                <td style="text-align: left;">{{ goal["progress"] }}% ({{ goal["current"] }}/{{ goal["amount"] }})</td>
-            </tr>
-            <tr>
-                <td style="text-align: right;">target:</td>
-                <td style="text-align: left;">{{ goal["target"] }} per day</td>
-            </tr>
+                {% if pagination.has_next %}
+                    <button onclick="window.location.href='/home?page={{ pagination.page + 1 }}'" class="box">next</button>
+                {% else %}
+                    <button disabled style="color: var(--color-black);">next</button>
+                {% endif %}
+            </div>
+        </nav>
+            <section
+                style="
+                    display: grid;
+                    grid-template-columns: 0.9fr 1.75fr 1.75fr 0.75fr 1.75fr 1.5fr 1.75fr;
+                "
+            >
+                <!-- TODO: figure out why col1 width is slightly misaligned -->
+                    <h3 style="border: 1px solid white">ART</h3>
+                    <h3 style="border: 1px solid white">TITLE</h3>
+                    <h3 style="border: 1px solid white">ARTIST</h3>
+                    <h3 style="border: 1px solid white">RATING</h3>
+                    <h3 style="border: 1px solid white">LISTEN DATE</h3>
+                    <h3 style="border: 1px solid white">GENRE</h3>
+                    <h3 style="border: 1px solid white">TAGS</h3>
+            </section>
+            {% for release in data %}
+                <section style="
+                    display: grid;
+                    grid-template-columns: 0.9fr 1.75fr 1.75fr 0.75fr 1.75fr 1.5fr 1.75fr;
+                    align-items: center;
+                ">
+                    <div style="aspect-ratio: 1; height: 100%;">
+                        {% if release.image %}
+                            <img src="{{ release.image }}" alt="Album art"
+                                style="width: 100%; height: 100%; object-fit: cover;"
+                            >
+                        {% else %}
+                            <img class="homepage_covers col1" alt="Album art" src="./static/img/none.png">
+                        {% endif %}
+                    </div>
+
+                    <div style="">
+                        <a href="/release/{{ release.id }}">{{  release.name }}</a>
+                    </div>
+
+                    <div>
+                        <a href="/artist/{{ release.artist_id }}">{{ release.artist_name }}</a>
+                    </div>
+
+                    <div>
+                        {{ release.rating }}
+                    </div>
+
+                    <div>
+                        {{ release.listen_date.date() }}
+                    </div>
+
+                    <div>
+                        {{ release.genre }}
+                    </div>
+
+                    <div>
+                        {{ release.tags | join(', ') }}
+                    </div>
+                </section>
             {% endfor %}
-        </table>
+        </article>
+        <aside
+            style="
+                border: 1px solid white;
+                display: grid;
+                grid-template-rows: 1fr 1fr;
+                max-height: 85vh;
+                text-align: center;
+            "
+            id="sidebar"
+        >
+            <section
+                    id="home_stats"
+                    style="
+                        display: grid;
+                        align-content: start;
+                    "
+            >
+                <h2>STATS</h2>
+                <div style="display: grid;grid-template-columns: 1fr 1fr;">
+                    <p>listens</p>
+                    <p>{{ stats.total_listens }}</p>
+                </div>
+                <div style="display: grid;grid-template-columns: 1fr 1fr;">
+                    <p>artists</p>
+                    <p>{{ stats.total_artists }}</p>
+                </div>
+                <div style="display: grid;grid-template-columns: 1fr 1fr;">
+                    <p>labels</p>
+                    <p>{{ stats.total_labels }}</p>
+                </div>
+                <div style="display: grid;grid-template-columns: 1fr 1fr;">
+                    <p>avg rating (%)</p>
+                    <p>{{ stats.average_rating }}</p>
+                </div>
+                <div style="display: grid;grid-template-columns: 1fr 1fr;">
+                    <p>avg runtime (m)</p>
+                    <p>{{ stats.average_runtime }}</p>
+                </div>
+                <div style="display: grid;grid-template-columns: 1fr 1fr;">
+                    <p>total runtime (h)</p>
+                    <p>{{ stats.total_runtime }}</p>
+                </div>
+                <div style="display: grid;grid-template-columns: 1fr 1fr;">
+                    <p>listens this year</p>
+                    <p>{{ stats.listens_this_year }}</p>
+                </div>
+                <div style="display: grid;grid-template-columns: 1fr 1fr;">
+                    <p>listens per day</p>
+                    <p>{{ stats.listens_per_day }}</p>
+                </div>
+            </section>
+            <section id="home_goals" style="display: grid; align-content: start;">
+                <h2>GOALS</h2>
+                {% for goal in goals %}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr;">
+                        <p>{{ goal["amount"] }} {{ goal["type"] }}</p>
+                        <p>by {{ goal["end_goal"].date() }}</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr;">
+                        <p>start:</p>
+                        <p>{{ goal["start_date"].date() }}</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr;">
+                        <p>progress:</p>
+                        <p>{{ goal["progress"] }}% ({{ goal["current"] }}/{{ goal["amount"] }})</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr;">
+                        <p>target:</p>
+                        <p>{{ goal["target"] }} per day</p>
+                    </div>
+                {% endfor %}
+            </section>
+        </aside>
     </div>
-</div>
+
 {% endblock %}
