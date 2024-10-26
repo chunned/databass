@@ -180,6 +180,7 @@ class Util:
             print(f'Item is a release and MBID is populated; attempting to fetch image from CoverArtArchive: {mbid}')
             from .musicbrainz import MusicBrainz
             try:
+
                 # Number of seconds to wait before raising a TimeoutException
                 timeout_duration = 5
                 signal.signal(signal.SIGALRM, timeout_handler)
