@@ -12,7 +12,7 @@
             <td class="form-cell">
                 <label for="country">country</label><br>
                 <select id="country" name="country" class="box">
-                    <option value="NO VALUE" selected></option>
+                    <option value="" selected></option>
                     {% for country in data.countries %}
                     <option value="{{ country }}">{{ country }}</option>
                     {% endfor %}
@@ -23,9 +23,9 @@
                 <label for="begin_date">year</label>
                 <br>
                 <select id="begin_filter" name="begin_date" class="box">
-                    <option value="-1"><</option>
-                    <option value="0">=</option>
-                    <option value="1">></option>
+                    <option value="<"><</option>
+                    <option value="=">=</option>
+                    <option value=">">></option>
                 </select>
                 <input type="number" min=0 max="2100" id="begin_date" name="begin_date" class="box">
             </td>
@@ -34,23 +34,23 @@
                 <label for="end_date">year</label>
                 <br>
                 <select id="end_filter" name="end_comparison" class="box">
-                    <option value="-1"><</option>
-                    <option value="0">=</option>
-                    <option value="1">></option>
+                    <option value="<"><</option>
+                    <option value="=">=</option>
+                    <option value=">">></option>
                 </select>
                 <input type="number" min=0 max="2100" id="end_date" name="end_date" class="box">
             </td>
             <td class="form-cell">
                 <label for="type">type</label><br>
                 <select id="type" name="type" class="box">
-                    <option value="NO VALUE" selected></option>
+                    <option value="" selected></option>
                     {% for type in data.types %}
                     <option value="{{ type }}">{{ type }}</option>
                     {% endfor %}
                 </select>
             </td>
             <td class="form-cell"><br>
-                <button type="button" class="box label-search test" value="submit">submit</button>
+                <button type="button" class="box label-search" value="submit">submit</button>
             </td>
         </tr>
         </thead>

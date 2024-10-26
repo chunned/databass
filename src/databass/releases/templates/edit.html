@@ -1,7 +1,7 @@
 {% extends '_base.html' %}
 {% block content %}
 <div>
-    <form action="/edit_release" method="POST">
+    <form action="/release/{{ release.id }}/edit" method="POST">
         <input type="hidden" id="release_id" name="id" value="{{ release.id }}">
         <input type="hidden" id="release_name" name="name" value="{{ release.name }}">
         <input type="hidden" id="label_id" name="label_id" value="{{ release.label_id }}">
@@ -36,32 +36,27 @@
                 <input type="text" id="listen_date" name="listen_date" value="{{ release.listen_date }}">
             </td>
             <td>
-                <label for="rating_edit">rating</label>
-                <input type="number" min="0" max="100" id="rating_edit" name="rating_edit" value="{{ release.rating }}">
+                <label for="rating">rating</label><br>
+                <input type="number" min="0" max="100" id="rating" name="rating" value="{{ release.rating }}">
             </td>
             <td>
                 <label for="release_year">released</label>
                 <input type="number" min="0" id="release_year" name="release_year" value="{{ release.release_year }}">
             </td>
              <td>
-                <label for="genre">genre</label>
+                <label for="genre">genre</label><br>
                 <input type="text" id="genre" name="genre" value="{{ release.genre }}">
-            </td>
-            <td>
-                <label for="tags">tags</label>
-                <input type="text" id="tags" name="tags" value="{{ release.tags }}">
             </td>
             <td>
                 <label for="country">country</label>
                 <input type="text" id="country" name="country" value="{{ release.country }}">
             </td>
-        </tr>
-        <tr>
             <td>
                 <label for="image">album art</label>
                 <input type="text" id="image" name="image" value="{{ release.image }}">
             </td>
             <td>
+                <br>
                 <button type="submit" class="search-btn">submit</button>
             </td>
         </tr>

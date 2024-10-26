@@ -1,7 +1,7 @@
 from flask import Flask, g
 import os
 from dotenv import load_dotenv
-from .models import app_db
+from .db.base import app_db
 from .routes import register_routes
 
 
@@ -15,13 +15,9 @@ def create_app():
     app.config.from_object('config.Config')
     app.static_folder = 'static'
     app_db.init_app(app)
-    print('Database initialized successfully.')
 
     with app.app_context():
         app_db.create_all()
-
-        from .util import register_filters
-        register_filters(app)
 
         from .releases.routes import release_bp
         app.register_blueprint(release_bp)
@@ -32,8 +28,10 @@ def create_app():
         from .labels.routes import label_bp
         app.register_blueprint(label_bp)
 
+        from .errors.routes import error_bp
+        app.register_blueprint(error_bp)
+
         register_routes(app)
-        print('Routes registered.')
 
         @app.before_request
         def before_request():

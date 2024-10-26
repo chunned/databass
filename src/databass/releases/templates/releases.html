@@ -1,7 +1,7 @@
 {% extends '_base.html' %}
 {% block content %}
 <div class="search-bar">
-<form action="/dynamic_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
+<form action="/release_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
 <table class="filter-table">
     <thead>
         <tr>
@@ -24,7 +24,7 @@
             <td class="form-cell">
                 <label for="country">country</label><br>
                 <select id="country" name="country" class="box">
-                    <option value="NO VALUE" selected></option>
+                    <option value="" selected></option>
                     {% for country in data.countries %}
                     <option value="{{ country }}">{{ country }}</option>
                     {% endfor %}
@@ -33,20 +33,20 @@
             <td class="form-cell">
                 <label for="rating-filter">rating</label><br>
                 <select id="rating-filter" name="rating_comparison" class="box">
-                    <option value="-1"><</option>
-                    <option value="0">=</option>
-                    <option value="1">></option>
+                    <option value="<"><</option>
+                    <option value="=">=</option>
+                    <option value=">">></option>
                 </select>
                 <input type="number" min=0 max=100 id="rating" name="rating" class="box">
             </td>
             <td class="form-cell">
                 <label for="year-filter">year</label><br>
                 <select id="year-filter" name="year_comparison" class="box">
-                    <option value="-1"><</option>
-                    <option value="0">=</option>
-                    <option value="1">></option>
+                    <option value="<"><</option>
+                    <option value="=">=</option>
+                    <option value=">">></option>
                 </select>
-                <input type="number" min=0 max="2100" id="year" name="year" class="box">
+                <input type="number" min=0 max="2100" id="release_year" name="release_year" class="box">
             </td>
             <td class="form-cell">
                 <label for="genre">genre</label><br>
@@ -60,7 +60,7 @@
                 <label for="tags">tags</label><br>
                 <div class="checkbox-form">
                     <select id="tags">
-                        <option value="NO VALUE" selected></option>
+                        <option value="" selected></option>
                     {% for tag in data.tags %}
                         <option value="{{ tag }}">{{ tag }}</option>
                     {% endfor %}

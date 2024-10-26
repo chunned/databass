@@ -1,40 +1,24 @@
-from flask import render_template, request, redirect
+import flask
+from flask import render_template, request, redirect, abort, flash
 from flask_paginate import Pagination, get_page_parameter
 from .api import Util, MusicBrainz, Discogs
-from .util import backup as bkp
-from .stats import get_all as get_stats, get_homepage_releases as get_releases
 from . import db
+from .db import models
+from .db.util import get_all_stats, handle_submit_data
 from datetime import datetime
 
 def register_routes(app):
     @app.route('/', methods=['GET'])
     @app.route('/home', methods=['GET'])
-    def home():
-        stats_data = get_stats()
-        active_goals = db.get_incomplete_goals()
-        goal_data = []
-        for goal in active_goals:
-            start_date = goal.start_date
-            end_goal = goal.end_goal
-            goal_type = goal.type
-            amount = goal.amount
+    def home() -> str:
+        stats_data = get_all_stats()
+        active_goals = models.Goal.get_incomplete()
+        if active_goals is not None:
+            goal_data = [process_goal_data(goal) for goal in active_goals]
+        else:
+            goal_data = []
+        data = models.Release.home_data()
 
-            current = goal.new_releases_since_start_date
-            remaining = amount - current
-            days_left = (end_goal - datetime.today()).days
-            progress = round((current / amount) * 100)
-            target = round((remaining / days_left), 2)
-            goal_data.append({
-                "start_date": start_date,
-                "end_goal": end_goal,
-                "type": goal_type,
-                "amount": amount,
-                "progress": progress,
-                "target": target,
-                "current": current
-            })
-
-        data = get_releases()
         page = request.args.get(
             get_page_parameter(),
             type=int,
@@ -67,16 +51,33 @@ def register_routes(app):
         return render_template("new.html", actions=actions, active_page='new')
 
     @app.route("/search", methods=["POST"])
-    def search():
+    def search() -> str | flask.Response:
         # Initialize variables to None
         page = data_length = paged_data = release_data = per_page = None
 
         data = request.get_json()
-        origin = data["referrer"]
+        try:
+            origin = data["referrer"]
+        except KeyError:
+            error = "Request referrer missing. You should only be coming to this page from /new or from the pagination buttons."
+            flash(error)
+            # TODO: move this error handling into errors/routes.py
+            return redirect('/error')
         if origin == 'search':
-            search_release = data["release"]
-            search_artist = data["artist"]
-            search_label = data["label"]
+            try:
+                search_release = data["release"]
+                search_artist = data["artist"]
+                search_label = data["label"]
+            except KeyError:
+                error = "Request missing one of the expected keys"
+                flash(error)
+                # TODO: move this error handling into errors/routes.py
+                return redirect('/error')
+            if not search_release and not search_artist and not search_label:
+                error = "Search requires at least one search term"
+                flash(error)
+                # TODO: move this error handling into errors/routes.py
+                return redirect('/error')
             release_data = MusicBrainz.release_search(release=search_release,
                                                           artist=search_artist,
                                                           label=search_label)
@@ -100,6 +101,7 @@ def register_routes(app):
         if all(
             var is not None for var in [page, data_length, paged_data, release_data, per_page]
         ):
+            # TODO: make generic pagination handler function
             flask_pagination = Pagination(
                 page=page,
                 total=data_length,
@@ -118,135 +120,67 @@ def register_routes(app):
     @app.route("/submit", methods=["POST"])
     def submit():
         data = request.form.to_dict()
-        # Grab variables from request
-        release_group_mbid = data["release_group_id"]
-        release_name = data["release_name"]
-        release_mbid = data["release_mbid"]
-        artist_name = data["artist"]
-        artist_mbid = data["artist_mbid"]
-        label_name = data["label"]
-        label_mbid = data["label_mbid"]
-        year = int(data["release_year"])
-        genre = data["genre"]
-        rating = int(data["rating"])
-        tags = data["tags"]
-        track_count = data["track_count"]
-        country = data["country"]
-        runtime = MusicBrainz.get_release_length(release_mbid)
-
-        if label_mbid:
-            # Check if label exists already
-            label_exists = db.exists(
-                item_type='label',
-                mbid=label_mbid
-            )
-            if label_exists:
-                label_id = label_exists.id
-            else:
-                # Label does not exist; grab image, start/end date, type, and insert
-                label_search = MusicBrainz.label_search(label_name, label_mbid)
-                # Construct and insert label
-                new_label = db.construct_item('label', label_search)
-                label_id = db.insert(new_label)
-                Util.get_image(
-                    item_type='label',
-                    item_id=label_id,
-                    label_name=label_name
-                )
-        else:
-            label_id = 0
-
-        if artist_mbid:
-            # Check if release exists
-            artist_exists = db.exists(
-                item_type='artist',
-                mbid=artist_mbid
-            )
-            if artist_exists:
-                artist_id = artist_exists.id
-            else:
-                # Artist does not exist; grab image, start/end date, type, and insert
-                artist_search = MusicBrainz.artist_search(
-                    name=artist_name,
-                    mbid=artist_mbid
-                )
-                # Construct and insert artist
-                new_artist = db.construct_item('artist', artist_search)
-                artist_id = db.insert(new_artist)
-                Util.get_image(
-                    item_type='artist',
-                    item_id=artist_id,
-                    artist_name=artist_name
-                )
-        else:
-            artist_id = 0
-
-        release_data = {
-            "name": release_name,
-            "mbid": release_mbid,
-            "artist_id": artist_id,
-            "label_id": label_id,
-            "release_year": year,
-            "genre": genre,
-            "rating": rating,
-            "runtime": runtime,
-            "listen_date": Util.today(),
-            "track_count": track_count,
-            "country": country
-        }
-        new_release = db.construct_item('release', release_data)
-        release_id = db.insert(new_release)
-        image_filepath = Util.get_image(
-            item_type='release',
-            item_id=release_id,
-            release_name=release_name,
-            artist_name=artist_name,
-            label_name=label_name,
-            mbid=release_group_mbid
-        )
-        new_release.image = image_filepath
-        db.update(new_release)
-        if tags is not None:
-            for tag in tags.split(','):
-                tag_data = {"name": tag, "release_id": release_id}
-                tag_obj = db.construct_item('tag', tag_data)
-                db.insert(tag_obj)
-
-        active_goals = db.get_incomplete_goals()
-        if active_goals is not None:
-            for goal in active_goals:
-                goal.check_and_update_goal()
-                if goal.end_actual:
-                    # Goal is complete; updating db entry
-                    db.update(goal)
+        try:
+            # Check if this is a manual submission (i.e. manually entered data, no results found from MusicBrainz)
+            if data["manual_submit"] == "true":
+                release_data = {
+                    "name": data["name"],
+                    "artist_name": data["artist"],
+                    "label_name": data["label"],
+                    "release_year": data["release_year"],
+                    "genre": data["genre"],
+                    "rating": data["rating"],
+                    "tags": data["tags"],
+                    "listen_date": Util.today()
+                }
+                # TODO: improve manual submission; check Discogs for Artist/Label images, let user provide release image URL and auto-fetch it
+                db.operations.submit_manual(release_data)
+            elif data["manual_submit"] == "false":
+                # Grab variables from request
+                release_data = {
+                    "release_group_mbid": data["release_group_id"],
+                    "name": data["release_name"],
+                    "mbid": data["release_mbid"],
+                    "artist_name": data["artist"],
+                    "artist_mbid": data["artist_mbid"],
+                    "label_name": data["label"],
+                    "label_mbid": data["label_mbid"],
+                    "release_year": int(data["release_year"]),
+                    "genre": data["genre"],
+                    "rating": int(data["rating"]),
+                    "track_count": data["track_count"],
+                    "listen_date": Util.today(),
+                    "country": data["country"],
+                    "tags": data["tags"]
+                }
+                handle_submit_data(release_data)
+        except KeyError:
+            error = "Request missing one of the expected keys"
+            flash(error)
+            return redirect('/error')
         return redirect("/", code=302)
-
-    # @app.route('/charts', methods=['GET'])
-    # def charts():
-    #     # Not implemented
-    #     # con = db.create_connection('music.db')
-    #     # cur = db.create_cursor(con)
-    #     #
-    #     # query = "SELECT rating FROM release"
-    #     # cur.execute(query)
-    #     # data = cur.fetchall()
-    #     #
-    #     # data = [n[0] for n in data]
-    #     # return flask.render_template('charts.html', data=data)
-    #     return redirect('/', 302)
 
     @app.route('/stats', methods=['GET'])
     def stats():
-        statistics = get_stats()
+        statistics = get_all_stats()
         return render_template('stats.html', data=statistics, active_page='stats')
 
     @app.route('/dynamic_search', methods=['POST'])
     def dynamic_search():
+        # TODO: make a unique dynamic_search() in the routes.py for each entity (/release, /artist, /label); also simplify implementation
+
         data = request.get_json()
         origin = data["referrer"]
         del data["referrer"]
         if origin in ['release', 'artist', 'label']:
-            search_data = db.dynamic_search(data)
+            if origin == 'release':
+                search_data = db.models.Release.dynamic_search(data)
+            elif origin == 'artist':
+                search_data = db.models.Artist.dynamic_search(data)
+            elif origin == 'label':
+                search_data = db.models.Label.dynamic_search(data)
+            else:
+                raise ValueError("origin/referrer must be one of: release, artist, label")
             page = request.args.get(
                 get_page_parameter(),
                 type=int,
@@ -321,15 +255,13 @@ def register_routes(app):
             per_page=per_page
         )
 
-    @app.route('/submit_manual', methods=['POST'])
-    def submit_manual():
-        data = request.form.to_dict()
-        db.submit_manual(data)
-        return redirect('/', 302)
-
     @app.route('/goals', methods=['GET'])
     def goals():
-        existing_goals = db.get_incomplete_goals()
+        if request.method != 'GET':
+            abort(405)
+        existing_goals = models.Goal.get_incomplete()
+        if existing_goals is None:
+            existing_goals = []
         data = {
             "today": Util.today(),
             "existing_goals": existing_goals
@@ -339,10 +271,24 @@ def register_routes(app):
     @app.route('/add_goal', methods=['POST'])
     def add_goal():
         data = request.form.to_dict()
-        goal = db.construct_item(model_name='goal', data_dict=data)
+        if not data:
+            error = "/add_goal received an empty payload"
+            # TODO: move this error handling into errors/routes.py
+            flash(error)
+            return redirect('/error')
+        try:
+            goal = db.construct_item(model_name='goal', data_dict=data)
+            if not goal:
+                raise NameError("Construction of Goal object failed")
+        except Exception as e:
+            # TODO: move this error handling into errors/routes.py
+            flash(str(e))
+            return redirect('/error')
+
         db.insert(goal)
         return redirect('/goals', 302)
 
+    # TODO: see if still needed
     @app.route('/stats_search', methods=['GET'])
     def stats_search():
         data = request.get_json()
@@ -355,11 +301,19 @@ def register_routes(app):
                      item_type=item_type,
                      item_property=item_property)
 
+    # TODO: see if still needed
     @app.route('/imgupdate/<item_type>/<item_id>')
     def imgupdate(item_type, item_id):
         print(f'Checking: {item_type} {item_id}')
         item_id = int(item_id)
-        item = db.exists(item_type=item_type, item_id=item_id)
+        if item_type == 'release':
+            item = models.Release.exists_by_id(item_id)
+        elif item_type == 'artist':
+            item = models.Artist.exists_by_id(item_id)
+        elif item_type == 'label':
+            item = models.Label.exists_by_id(item_id)
+        else:
+            raise ValueError(f"Unexpected item_type: {item_type}")
         try:
             img_path = '.' + Util.img_exists(item_id=item_id, item_type=item_type)
             print(f'Local image already exists: {img_path}')
@@ -368,7 +322,7 @@ def register_routes(app):
             # No local image exists, grab it
             if item_type == 'release':
                 release_name = item.name
-                release_artist = db.exists(item_type='artist', item_id=item.artist_id)
+                release_artist = models.Artist.exists_by_id(item.artist_id)
                 artist_name = release_artist.name
                 img_path = Util.get_image(
                     item_type=item_type,
@@ -404,7 +358,7 @@ def register_routes(app):
                 'artist': 'label',
                 'label': None
             }
-            next_item = db.next_item(item_type=item_type, prev_id=item_id)
+            next_item = db.util.next_item(item_type=item_type, prev_id=item_id)
             if next_item:
                 return redirect(f'/imgupdate/{item_type}/{next_item.id}')
             else:
@@ -416,14 +370,50 @@ def register_routes(app):
                     # Complete, redirect to home
                     return redirect('/', code=302)
 
-
+    # TODO: see if still needed
     @app.route('/fix_images')
     def fix_images():
         print('Fixing images.')
         # Starts the imgupdate process; imgupdate() will recursively call itself and update all images 1 by 1
         return redirect('/imgupdate/release/1')
 
+    # TODO: see if still needed
     @app.route('/backup', methods=['GET'])
     def backup():
         bkp()
         return redirect('/', code=302)
+
+
+def process_goal_data(goal: models.Goal):
+    """
+    Processes the data for a given goal, calculating the current progress, remaining amount, and daily target.
+
+    Args:
+        goal (models.Goal): The goal object to process.
+
+    Returns:
+        dict: A dictionary containing the following keys:
+            - start_date (datetime): The start date of the goal.
+            - end_goal (datetime): The end date of the goal.
+            - type (str): The type of the goal.
+            - amount (int): The total amount of the goal.
+            - progress (float): The current progress of the goal as a percentage.
+            - target (float): The daily target amount needed to reach the goal.
+            - current (int): The current amount achieved for the goal.
+    """
+    current = goal.new_releases_since_start_date
+    remaining = goal.amount - current
+    days_left = (goal.end_goal - datetime.today()).days
+    try:
+        target = round((remaining / days_left), 2)
+    except ZeroDivisionError:
+        target = 0
+    return {
+        "start_date": goal.start_date,
+        "end_goal": goal.end_goal,
+        "type": goal.type,
+        "amount": goal.amount,
+        "progress": round((current / goal.amount) * 100),
+        "target": target,
+        "current": current
+    }
