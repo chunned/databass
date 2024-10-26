@@ -9,6 +9,7 @@ services:
     ports:
       - ${APP_PORT}:8080
     environment:
+      - TZ=${TIMEZONE}           # e.g. America/New York
       - TIMEZONE=${TIMEZONE}           # e.g. America/New York
       - DISCOGS_KEY=${DISCOGS_KEY}
       - DISCOGS_SECRET=${DISCOGS_SECRET}
@@ -28,6 +29,7 @@ services:
     restart: always
     container_name: ${PG_HOSTNAME}
     environment:
+      - TZ=${TIMEZONE}           # e.g. America/New York
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
