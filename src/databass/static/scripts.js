@@ -386,6 +386,13 @@ document.addEventListener('DOMContentLoaded', () => {
             handleStatsSearch();
         }
     });
+    if (document.querySelector('#new-release')) {
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                handleSearchButton();
+            }
+        })
+    }
 });
 
 
