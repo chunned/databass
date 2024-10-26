@@ -34,3 +34,9 @@ def labels():
 #     elif request.method == 'POST':
 #         pass
 # TODO: implement delete_label
+
+@label_bp.route('/label_search', methods=["POST"])
+def label_search():
+    data = request.get_json()
+    search_results = Label.dynamic_search(data)
+    return render_template('label_search.html', data=search_results)

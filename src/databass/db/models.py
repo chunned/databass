@@ -6,6 +6,8 @@ from sqlalchemy.engine.row import Row
 from typing import Any, Optional, List
 
 from .base import app_db
+from ..api import MusicBrainz
+
 
 class Base(DeclarativeBase):
     """Base class which all other database model classes are built from"""
@@ -58,7 +60,9 @@ class Base(DeclarativeBase):
         except AttributeError as e:
             raise e
 
-class MusicBrainzEntity(Base):
+app_db.Model = Base
+
+class MusicBrainzEntity(app_db.Model):
     # Release and ArtistOrLabel are built from this prototype
     __abstract__ = True
 
@@ -126,8 +130,22 @@ class MusicBrainzEntity(Base):
         result = app_db.session.query(cls.name).where(cls.id == item_id).one_or_none()
         return result[0] if result is not None else None
 
+    @classmethod
+    def id_by_matching_name(cls, name: str) -> list[MusicBrainzEntity.id]:
+        """
+        Get all MusicBrainzEntity IDs of a given type (Release, Artist, Label) where the name matches the `name` argument.
 
-app_db.Model = Base
+        Args:
+            name (str): The name to match on.
+
+        Returns:
+            list[MusicBrainzEntity.id]: A list of MusicBrainzEntity IDs (int) with names that match the `name` argument.
+        """
+        if not isinstance(name, str):
+            return []
+        result = app_db.session.query(cls.id).filter(cls.name.ilike(f'%{name}%')).all()
+        # .all() returns a list of tuples like [(1,), (2,)] so return list comprehension unpacks it to [1, 2]
+        return [r[0] for r in result]
 
 class Release(MusicBrainzEntity):
     __tablename__ = "release"
@@ -339,7 +357,7 @@ class Release(MusicBrainzEntity):
     def dynamic_search(
             cls,
             data: dict
-    ) -> list[Row]:
+    ) -> list[Release]:
         """
         Dynamically search for Release objects based on the provided search criteria.
 
@@ -363,7 +381,7 @@ class Release(MusicBrainzEntity):
             data (dict): A dictionary containing the search criteria.
 
         Returns:
-            list[Row]: A list of SQLAlchemy Row objects representing the matching Release objects.
+            list[Release]: A list of Release objects representing the matching releases.
 
         Raises:
             ValueError: If `data` is not a dictionary.
@@ -371,58 +389,50 @@ class Release(MusicBrainzEntity):
         if not isinstance(data, dict):
             raise ValueError("Search criteria must be a dictionary")
         from .util import apply_comparison_filter
-        query = app_db.session.query()
+        query = app_db.session.query(cls)
+        search_keys = ["name", "artist", "country", "genre", "label", "rating", "tags", "release_year"]
         for key, value in data.items():
-            if 'comparison' in key or key == 'qtype':
-                # Utility field, not a query field
-                pass
-            elif value == '' or value == 'NO VALUE':
-                # No value for the given key
-                pass
+            if value == '' or value == [''] or key not in search_keys:
+                pass # Empty value or key not meant for searching, do nothing
+            elif key == 'name':
+                query = query.filter(
+                    cls.name.ilike(f'%{value}%')
+                )
+            elif key == 'artist':
+                artist_ids = Artist.id_by_matching_name(name=value)
+                query = query.filter(cls.artist_id.in_(artist_ids))
+            elif key == 'label':
+                label_ids = Label.id_by_matching_name(name=value)
+                query = query.filter(cls.label_id.in_(label_ids))
+            elif key == 'rating':
+                operator = data["rating_comparison"]   # <, ==, or >
+                query = apply_comparison_filter(
+                    query=query,
+                    model=cls,
+                    key=key,
+                    operator=operator,
+                    value=value
+                )
+            elif key == 'release_year':
+                operator = data["year_comparison"] # <, ==, or >
+                query = apply_comparison_filter(
+                    query=query,
+                    model=cls,
+                    key=key,
+                    operator=operator,
+                    value=value
+                )
+            elif key == 'tags':
+                # Retrieve all tags related to the Release ID
+                query = query.join(Tag, Tag.release_id == cls.id)
+                # Filter to only show results with matching tag name
+                for tag in value:
+                    query = query.filter(Tag.name == tag)
             else:
-                # TODO: extract into query building function
-                if key == 'label':
-                    label = Label.exists_by_name(name=value)
-                    label_id = [l.id for l in label]
-                    query = query.filter(cls.label_id.in_(label_id))
-                elif key == 'artist':
-                    artist = Artist.exists_by_name(name=value)
-                    artist_id = [a.id for a in artist]
-                    query = query.filter(cls.artist_id.in_(artist_id))
-                elif key == 'rating':
-                    # operator denotes the type of comparison to make; <, =, or >
-                    operator = data["rating_comparison"]
-                    query = apply_comparison_filter(
-                        query=query,
-                        model=cls,
-                        key=key,
-                        operator=operator,
-                        value=value
-                    )
-                elif key == 'year':
-                    # operator denotes the type of comparison to make; <, =, or >
-                    operator = data["year_comparison"]
-                    query = apply_comparison_filter(
-                        query=query,
-                        model=cls,
-                        key=key,
-                        operator=operator,
-                        value=value
-                    )
-                elif key == 'name':
-                    query = query.filter(
-                        cls.name.ilike(f'%{value}%')
-                    )
-                elif key == 'tags':
-                    # Retrieve all tags related to the Release ID
-                    query = query.join(Tag, Tag.release_id == cls.id)
-                    # Filter to only show results with matching tag name
-                    for tag in value:
-                        query = query.filter(Tag.name == tag)
-                else:
-                    query = query.filter(
-                        getattr(cls, key) == value
-                    )
+                # generic handler for any other search key not matching above (country, genre)
+                query = query.filter(
+                    getattr(cls, key) == value
+                )
         results = query.order_by(cls.id).all()
         return results
 
@@ -730,27 +740,25 @@ class ArtistOrLabel(MusicBrainzEntity):
 
         Returns:
             A list of model instances that match the provided filters.
+
+        Raises:
+            ValueError: If `filters` is not a dict
         """
         if not isinstance(filters, dict):
             raise ValueError("filters must be a dictionary")
         from .util import apply_comparison_filter
-        query = app_db.session.query()
+        query = app_db.session.query(cls)
+        search_keys = ["name", "begin_date", "end_date", "country", "type"]
         for key, value in filters.items():
-            if 'comparison' in key or key == 'qtype':
-                # Utility field, not a query field
-                pass
-            elif value == '' or value == 'NO VALUE':
-                # No value for the given key
-                pass
-            else:
-                if key == 'name':
-                    query = query.filter(
-                        cls.name.ilike(f'%{value}%')
-                    )
-                elif key == 'begin_date':
+            if value == '' or key not in search_keys:
+                pass # Empty value or key not meant from searching, pass
+            elif key == 'name':
+                query = query.filter(
+                    cls.name.ilike(f'%{value}%')
+                )
+            elif key == 'begin_date':
                     operator = filters["begin_comparison"]
-                    # TODO: switch to use just the string representation of <, =, >
-                    if operator not in ['-1', '0', '1']:
+                    if operator not in ['<', '=', '>']:
                         raise ValueError(f"Unexpected operator value for begin_comparison: {operator}")
                     query = apply_comparison_filter(
                         query=query,
@@ -759,10 +767,9 @@ class ArtistOrLabel(MusicBrainzEntity):
                         operator=operator,
                         value=value
                     )
-                elif key == 'end_date':
+            elif key == 'end_date':
                     operator = filters["end_comparison"]
-                    # TODO: switch to use just the string representation of <, =, >
-                    if operator not in ['-1', '0', '1']:
+                    if operator not in ['<', '=', '>']:
                         raise ValueError(f"Unexpected operator value for end_comparison: {operator}")
                     query = apply_comparison_filter(
                         query=query,
@@ -771,10 +778,10 @@ class ArtistOrLabel(MusicBrainzEntity):
                         operator=operator,
                         value=value
                     )
-                else:
-                    query = query.filter(
-                        getattr(cls, key) == value
-                    )
+            else:
+                query = query.filter(
+                    getattr(cls, key) == value
+                )
         # Filter out names that do not refer to a specific real-world entity
         results = query.where(
             cls.name != "[NONE]"

@@ -257,8 +257,6 @@ function getPageButtonDirection(direction) {
 
 function handleReleaseSearch() {
     let data = {
-        qtype: "release",
-        referrer: "release",
         name: document.querySelector("#name").value,
         artist: document.querySelector("#artist").value,
         label: document.querySelector("#label").value,
@@ -266,17 +264,25 @@ function handleReleaseSearch() {
         rating_comparison: document.querySelector("#rating-filter").value,
         rating: document.querySelector("#rating").value,
         year_comparison: document.querySelector("#year-filter").value,
-        year: document.querySelector("#year").value,
+        release_year: document.querySelector("#release_year").value,
         genre: document.querySelector("#genre").value,
         tags: [document.querySelector("#tags").value]
     };
-    searchAjax(data);
+    fetch('/release_search', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(function(response) {
+        return response.text();
+    })
+    .then(function(html) {
+        document.querySelector("#search-results").innerHTML = html;
+    })
 }
 
 function handleArtistSearch() {
     let data = {
-        qtype: "artist",
-        referrer: "artist",
         name: document.querySelector("#artist").value,
         country: document.querySelector("#country").value,
         begin_comparison: document.querySelector("#begin_filter").value,
@@ -285,13 +291,21 @@ function handleArtistSearch() {
         end_date: document.querySelector("#end_date").value,
         type: document.querySelector("#type").value
     };
-    searchAjax(data);
+    fetch('/artist_search', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+        .then(function(response) {
+            return response.text();
+        })
+        .then(function(html) {
+            document.querySelector("#search-results").innerHTML = html;
+        })
 }
 
 function handleLabelSearch() {
     let data = {
-        qtype: "label",
-        referrer: "label",
         name: document.querySelector("#label").value,
         country: document.querySelector("#country").value,
         begin_comparison: document.querySelector("#begin_filter").value,
@@ -300,7 +314,17 @@ function handleLabelSearch() {
         end_date: document.querySelector("#end_date").value,
         type: document.querySelector("#type").value,
     }
-    searchAjax(data);
+    fetch('/label_search', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(function(response) {
+        return response.text();
+    })
+    .then(function(html) {
+        document.querySelector("#search-results").innerHTML = html;
+    })
 }
 
 function handleStatsSearch() {
@@ -322,21 +346,6 @@ function handleStatsSearch() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(formData)
     })
-}
-
-function searchAjax(data) {
-    // AJAX function to update #search-results element
-    fetch('/dynamic_search', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-    })
-    .then(function(response) {
-        return response.text();
-    })
-    .then(function(html) {
-        document.querySelector("#search-results").innerHTML = html;
-    });
 }
 
 

@@ -35,3 +35,9 @@ def artists():
 #         pass
 
 # TODO: implement delete_artist
+
+@artist_bp.route('/artist_search', methods=['POST'])
+def artist_search():
+    data = request.get_json()
+    search_results = Artist.dynamic_search(data)
+    return render_template('artist_search.html', data=search_results)

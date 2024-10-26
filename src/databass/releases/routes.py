@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, flash
+from flask_paginate import Pagination, get_page_parameter
 from .. import db
 from ..db import models
 from ..api import Util
@@ -138,3 +139,16 @@ def add_review(release_id):
     new_review = db.construct_item('review', review_data)
     db.insert(new_review)
     return redirect(request.referrer, 302)
+
+@release_bp.route('/release_search', methods=['POST'])
+def release_search():
+    data = request.get_json()
+    search_results = models.Release.dynamic_search(data)
+    # TODO: extract pagination functionality from all routes
+    # page = request.args.get(
+    #     get_page_parameter(),
+    #     type=int,
+    #     default=1
+    # )
+    # full_data = []
+    return render_template('release_search.html', data=search_results)

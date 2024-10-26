@@ -1,9 +1,10 @@
 from .base import app_db
 from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Tag, Review
-from sqlalchemy import extract
+from sqlalchemy import extract, Integer
 from sqlalchemy.orm import query as sql_query
 from sqlalchemy.engine.row import Row
 from typing import Type
+from datetime import date
 
 def get_model(model_name: str) -> Base | None:
     """
@@ -69,7 +70,7 @@ def apply_comparison_filter(query,
     :param query: An SQLAlchemy query class
     :param model: The database model class to filter on
     :param key: The column to filter on - begin_date or end_date
-    :param operator: Denotes the comparison to perform; -1 = lt, 0 = eq, 1 = gt
+    :param operator: Denotes the comparison to perform
     :param value: The value to compare against
     :return: Newly constructed query
     """
@@ -81,31 +82,16 @@ def apply_comparison_filter(query,
     except TypeError:
         raise TypeError(f"Value must be an integer, got {type(value)}: {value}")
 
-    if operator not in ['-1', '0', '1']:
+    if operator not in ['<', '=', '>']:
         raise ValueError(f"Unrecognized operator value for year_comparison: {operator}")
 
     if key == 'begin_date' or key == 'end_date':
-        if operator == '-1':
-            query = query.filter(extract('year', attribute) < val)
-        elif operator == '0':
-            query = query.filter(extract('year', attribute) == val)
-        elif operator == '1':
-            query = query.filter(extract('year', attribute) > val)
-    elif key == 'rating':
-        if operator == '-1':
-            query = query.filter(Release.rating < value)
-        elif operator == '0':
-            query = query.filter(Release.rating == value)
-        elif operator == '1':
-            query = query.filter(Release.rating > value)
-    elif key == 'year':
-        if operator == '-1':
-            query = query.filter(Release.release_year < value)
-        elif operator == '0':
-            query = query.filter(Release.release_year == value)
-        elif operator == '1':
-            query = query.filter(Release.release_year > value)
 
+        query = query.filter(extract('year', attribute).cast(Integer).op(operator)(val))
+    elif key == 'rating':
+        query = query.filter(Release.rating.op(operator)(value))
+    elif key == 'release_year':
+        query = query.filter(Release.release_year.op(operator)(value))
     return query
 
 
