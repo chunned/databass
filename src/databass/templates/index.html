@@ -8,15 +8,15 @@
                         <tr>
                             <th id="home_table_pagination">
                                 {% if pagination.has_prev %}
-                                    <button onclick="window.location.href='/home?page={{ pagination.page - 1 }}'">back</button>
+                                    <button onclick="window.location.href='/home?page={{ pagination.page - 1 }}'" class="pagination_button">back</button>
                                 {% else %}
-                                    <button disabled>back</button>
+                                    <button disabled class="pagination_button">back</button>
                                 {% endif %}
 
                                 {% if pagination.has_next %}
-                                    <button onclick="window.location.href='/home?page={{ pagination.page + 1 }}'">next</button>
+                                    <button onclick="window.location.href='/home?page={{ pagination.page + 1 }}'" class="pagination_button">next</button>
                                 {% else %}
-                                    <button disabled style="color: var(--color-black);">next</button>
+                                    <button disabled style="color: var(--color-black);" class="pagination_button">next</button>
                                 {% endif %}
                             </th>
                             <th>

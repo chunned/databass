@@ -49,7 +49,7 @@ function formatDataString(data) {
 function popupHTML(parsed_data) {
     console.log(parsed_data);
     return `
-    <div class="popup-content">
+    <div class="popup_content">
         <span class="close-btn">&times;</span>
         <form action="/submit" method="POST" id="popup-form">
             <input type="hidden" name="manual_submit" value="false">
@@ -62,7 +62,7 @@ function popupHTML(parsed_data) {
             <input type="hidden" name="label_mbid" value="${parsed_data.label.mbid}">
             <input type="hidden" name="track_count" value="${parsed_data.track_count}">
             <input type="hidden" name="country" value="${parsed_data.country}">
-            <table id="popup-table">
+            <table id="popup_table">
                 <tr>
                     <td>RELEASE</td>
                     <td>${parsed_data.release.name}</td>
@@ -172,8 +172,8 @@ function handleSearchSubmitButton() {
 }
 
 function addPopupListeners(html) {
-    document.querySelector("#search-results").innerHTML = html;
-    let tableRows = document.querySelectorAll("#data-form table tbody tr");
+    document.querySelector("#search_results").innerHTML = html;
+    let tableRows = document.querySelectorAll("#data_form table tbody tr");
     tableRows.forEach((tableRow) => {
         tableRow.addEventListener("click", function() {
             let data = tableRow.dataset.item;
@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let direction = event.target.dataset.direction;
             handlePageButton(direction);
         }
-        if (event.target && event.target.classList.contains('release-search')) {
+        if (event.target && event.target.id === 'release-search') {
             handleReleaseSearch();
         }
         if (event.target && event.target.classList.contains('artist-search')) {
@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             handleStatsSearch();
         }
     });
-    if (document.querySelector('#new-release')) {
+    if (document.querySelector('#new_release')) {
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 handleSearchButton();

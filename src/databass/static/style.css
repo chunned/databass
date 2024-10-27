@@ -32,12 +32,24 @@ body {
     grid-template-rows: auto 1fr;
 }
 
+input, button {
+    background: var(--color-grey);
+    border: 1px solid var(--color-grey);
+}
+
 /* Main page elements */
 #navbar {
     display: flex;
     align-items: center;
 }
 
+#navbar a {
+    text-decoration: none;
+}
+
+#navbar > a.active {
+    text-decoration: underline!important;
+}
 .content {
     width: 100%;
     height: 100%;
@@ -45,7 +57,16 @@ body {
     display: flex;
 }
 
-/* Home */
+.pagination_button {
+    height: var(--home-table-head-row-height);
+    border: 1px solid var(--color-grey);
+}
+
+.pagination_button:disabled {
+    color: var(--color-grey)
+}
+
+/* /, /home */
 #home {
     width: 100%;
     height: 100%;
@@ -89,18 +110,13 @@ body {
 }
 
 /* every other column */
-#home_table td:nth-child(2), #home_table td:nth-child(3), #home_table td:nth-child(5), #home_table td:nth-child(6),
-#home_table th:nth-child(2), #home_table th:nth-child(3), #home_table th:nth-child(5)  #home_table th:nth-child(6) {
+#home_table :is(td, th):nth-child(2),
+#home_table :is(td, th):nth-child(3),
+#home_table :is(td, th):nth-child(5),
+#home_table :is(td, th):nth-child(6) {
     width: 12vw;
 }
 
-#home_table th > button {
-    height: var(--home-table-head-row-height);
-}
-
-#home_table th > button:disabled {
-    color: var(--color-grey)
-}
 
 #home_table img {
     width: 100%;
@@ -115,7 +131,6 @@ body {
 #home_aside {
     display: grid;
     grid-template-rows: 1fr 1fr;
-    border: 1px solid var(--color-grey);
 }
 
 #home_aside h4 {
@@ -140,4 +155,102 @@ body {
 
 #home_table td:empty {
     height: 5vh;
+}
+
+/* /new */
+#new_release {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 5vh 1fr;
+}
+
+#search_form {
+    display: flex;
+    align-items: center;
+}
+
+#search_form form {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 5vw 10vw 5vw 10vw 4vw 10vw 5vw;
+    align-items: center;
+    text-align: center;
+}
+
+#search_form input, #search_form button {
+    height: 50%;
+}
+
+#search_form button {
+    margin-left: 1vw;
+    font-size: inherit;
+}
+
+#search_results {
+    border: 1px solid var(--color-grey);
+    margin: 1%;
+}
+
+#search_results table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+}
+
+#search_results td div {
+    max-height: 7vh;
+    overflow-y: scroll;
+}
+
+#search_results :is(td, th) {
+    height: 7vh;
+    padding-left: 1vw;
+    border-top: 1px solid var(--color-grey);
+}
+
+#search_results :is(td, th):nth-child(1),
+#search_results :is(td, th):nth-child(2),
+#search_results :is(td, th):nth-child(3) {
+    width: 20vw;
+}
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-black);
+    border: 1px solid var(--color-white);
+    width: 80%;
+    max-width: 50vw;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.popup_content {
+    position: relative;
+}
+
+#popup_form {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#popup_table {
+    width: 50%;
+    margin: 0 auto;
+}
+
+#popup_table td {
+    text-align: center;
+}
+
+#popup_table input, #popup_table button {
+    height: 3vh;
+}
+
+#popup_table input {
+    width: 40%;
+    text-align: center;
 }

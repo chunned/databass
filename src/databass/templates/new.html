@@ -1,8 +1,8 @@
 {% extends '_base.html' %}
 {% block content %}
 
-    <div class="new-release" id="new-release">
-        <form action="/search" method="POST">
+    <div id="new_release">
+        <div id="search_form"><form action="/search" method="POST">
             <label for="release">release</label>
             <input type="text" id="release" name="release" class="box">
 
@@ -12,12 +12,9 @@
             <label for="label">label</label>
             <input type="text" id="label" name="label" class="box">
 
-            {% for action in actions %}
-            <button class="box search-btn new-release-search" type="button" data-action="{{ action }}" id="search">{{ action }}</button>
-            {% endfor %}
-        </form>
+            <button class="box search-btn new-release-search" type="button" data-action="search" id="search">search</button>
+        </form></div>
+        <div id="search_results"></div>
+
     </div>
-
-    <div id="search-results"></div>
-
 {% endblock %}

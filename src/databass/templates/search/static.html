@@ -1,51 +1,45 @@
 {% if data %}
-<table class="pagination">
-    <tr>
-        <td>
-            {% if pagination.has_prev %}
-                <button type="button" class="box page-btn" data-direction="prev" id="prev_page" value="{{ pagination.page - 1 }}">back</button>
-            {% else %}
-            <button type="button" class="box" disabled style="color: var(--color-black);">back</button>
-            {% endif %}
-        </td>
-        <td>
-            {% if pagination.has_next %}
-                <button type="button" class="box page-btn" data-direction="next" id="next_page" value="{{ pagination.page + 1 }}">next</button>
-            {% else %}
-                <button type="button" class="box" disabled style="color: var(--color-black);">next</button>
-            {% endif %}
-        </td>
-    </tr>
-</table>
 
-<form id="data-form" action="/submit" method="post">
-<table id="data-table">
+
+<form id="data_form" action="/submit" method="post">
+<table>
     <thead>
     <tr>
-        <th style="width: 25%;">RELEASE</th>
-        <th style="width: 25%;">ARTIST</th>
-        <th style="width: 20%;">LABEL</th>
-        <th style="width: 9%;">DATE</th>
-        <th style="width: 8%;">TRACKS</th>
-        <th style="width: 10%;">FORMAT</th>
+        <th>RELEASE</th>
+        <th>ARTIST</th>
+        <th>LABEL</th>
+        <th>DATE</th>
+        <th>TRACKS</th>
+        <th>FORMAT</th>
+        <th>
+            <nav class="pagination">
+                {% if pagination.has_prev %}
+                    <button type="button" class="page-btn pagination_button" data-direction="prev" id="prev_page" value="{{ pagination.page - 1 }}">back</button>
+                {% else %}
+                    <button type="button" disabled class="pagination_button">back</button>
+                {% endif %}
+                {% if pagination.has_next %}
+                    <button type="button" class="page-btn pagination_button" data-direction="next" id="next_page" value="{{ pagination.page + 1 }}">next</button>
+                {% else %}
+                    <button type="button" class="box pagination_button" disabled style="color: var(--color-black);">next</button>
+                {% endif %}
+            </nav>
+        </th>
     </tr>
     </thead>
-    <tbody id="paged_search">
+    <tbody>
     {% for item in data %}
-    <tr data-item="{{ item }}" class="search-data">
+    <tr data-item="{{ item }}">
         <td style="display: none;">
             <input hidden value="{{ item }}" type="radio" name="selected_item">
         </td>
-        <td class="long">{{ item['release']['name'] }}</td>
-        <td class="long">{{ item['artist']['name'] }}</td>
-        <td class="long">{{ item['label']['name'] }}</td>
-        <td class="short">{{ item['date'] }}</td>
-        <td class="short">{{ item['track_count'] }}</td>
-        <td class="long">{{ item['format'] }}</td>
-        <td style="display: none;">{{ item['release_year'] }}</td>
-        <td style="display: none;">{{ item['rating'] }}</td>
-        <td style="display: none;">{{ item['genre'] }}</td>
-        <td style="display: none;">{{ item['tags'] }}</td>
+        <td><div>{{ item['release']['name'] }}</div></td>
+        <td>{{ item['artist']['name'] }}</td>
+        <td>{{ item['label']['name'] }}</td>
+        <td>{{ item['date'] }}</td>
+        <td>{{ item['track_count'] }}</td>
+        <td>{{ item['format'] }}</td>
+        <td></td>
     </tr>
     {% endfor %}
     </tbody>
