@@ -5,350 +5,139 @@
     font-weight: normal;
     font-style: normal;
 }
-
 /* Variables */
 :root {
     --color-white: #c6c6c5;
     --color-black: #0c0d0e;
-    --color-grey: #3c3e3c
+    --color-grey: #3c3e3c;
+    --home-table-head-row-height: 4vh;
 }
-
 
 /* Base */
-html, body {
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
     font-family: 'JetBrains Mono', sans-serif;
     color: var(--color-white);
-    padding: 5px;
     background: var(--color-black);
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
 }
 
-/* Generic elements */
-a {
-    text-decoration: none;
-    color: var(--color-white);
-}
-
-input, textarea, button, select {
-    background: var(--color-grey);
-    font-family: inherit;
-    font-size: inherit;
-    border: 1px solid var(--color-grey);
-    color: inherit;
-}
-
-button {
-    color: inherit;
-}
-
-/* Page layout */
-.content {
-    padding: 10px;
+body {
+    width: 100vw;
     height: 100vh;
-    overflow-y: auto;
+    padding: 10px;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr;
 }
 
-/* Navbar */
+/* Main page elements */
 #navbar {
     display: flex;
     align-items: center;
 }
 
-#navbar > a.active {
-    text-decoration: underline!important;
-}
-
-/* /index */
-.home {
-    display: flex;
-    height: 85vh;
-}
-/* /index albums */
-.home_albums_container {
-    width: 75%;
+.content {
+    width: 100%;
     height: 100%;
-}
-
-.pagination {
-    padding: 2px;
-}
-
-.home_album_table {
-    width: 100%;
-    text-align: center;
-    table-layout: fixed;
-}
-
-.home_album_table > thead > tr {
-    height: 5vh;
-}
-
-.home_album_table, .home_album_table td, .home_album_table th {
-    border: 1px solid var(--color-grey);
-    border-collapse: collapse;
-}
-
-.homepage_covers {
-    max-width: 100%;
-    max-height: 20vh;
-    width: 7vw;
-    height: 100%;
-}
-
-.home_stats_container {
-    width: 25%;
-}
-
-.home_stats {
-    width: 100%;
-}
-
-.home_stats td {
-    text-align: center;
-    padding: 10px;
-    width: 50%;
-}
-
-.home_album_table td {
-    max-height: 15vh;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.home_album_table .col1 {
-    width: 7vw;
-}
-
-.home_album_table .col2 {
-    width: 10vw;
-}
-
-.home_album_table .col3 {
-    width: 15vw;
-}
-
-.home_album_table .col4 {
-    width: 4vw;
-}
-
-.home_album_table .col5 {
-    width: 10vw;
-}
-
-.home_album_table .col6 {
-    width: 10vw;
-}
-
-.home_album_table .col7 {
-    width: 10vw;
-}
-
-.home_album_table td {
-    overflow-x: auto;
-}
-
-.home-stats tr {
-    vertical-align: top;
-    height: 5vh;
-}
-
-/* SEARCH */
-.search-bar {
-    margin: 15px;
-}
-
-.search-bar label, .search-bar input {
-    padding: 5px;
-    margin: auto;
-}
-
-#data-table {
-    width: 100%;
-    text-align: center;
-    border-collapse: collapse;
-}
-#search-results th, #search-results td {
     margin: 10px;
-}
-#search-results tr {
-    border: 1px solid var(--color-grey);
-}
-#search-results img {
-    width: 12.5vw;
-}
-
-.search-data {
-    height: 7vh;
-}
-
-.popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: var(--color-black);
-    border: 1px solid var(--color-white);
-    width: 80%;
-    max-width: 50vw;
-    padding: 20px;
-    box-sizing: border-box;
-}
-.popup-content {
-    position: relative;
-}
-
-#popup-form {
-    width: 100%;
     display: flex;
-    justify-content: center;
 }
 
-#popup-table {
-    width: 50%;
-    margin: 0 auto;
+/* Home */
+#home {
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 22.5vw;
 }
 
-#popup-table td {
+#home_table, #home_aside {
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
     text-align: center;
 }
 
-#submit-btn {
-    color: var(--color-white);
-    background-color: var(--color-black);
-    max-height: 10vh;
-}
-
-.close-btn {
-    cursor: pointer;
-}
-
-
-/* ARTISTS, RELEASES, LABELS */
-.data-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 20%);
-    grid-auto-rows: 460px;
-}
-.grid-cell {
+/* Home <article> */
+#home_table td, #home_table th {
     border: 1px solid var(--color-grey);
 }
 
-.release-table th, .release-table td {
-    width: 75vw;
-    text-align: center;
-    height: 15vh;
+#home_table thead {
+    height: var(--home-table-head-row-height);
 }
 
-.release-table tr {
-    padding: 10px;
+/* Table cell width */
+/* 1st column (image) */
+#home_table > tbody > tr > td:first-child,
+#home_table > thead > tr > th:first-child {
+    width: 8vw;
+}
+/* 4th column (rating) */
+#home_table td:nth-child(4),
+#home_table th:nth-child(4) {
+    width: 5vw;
 }
 
-.manual-release-table {
-    width: 80vw;
+/* last column (tags) - fill remaining space */
+#home_table td:nth-child(7),
+#home_table th:nth-child(7) {
+    width: auto;
 }
 
-.manual-release-table th, .manual-release-table td {
-    text-align: center;
+/* every other column */
+#home_table td:nth-child(2), #home_table td:nth-child(3), #home_table td:nth-child(5), #home_table td:nth-child(6),
+#home_table th:nth-child(2), #home_table th:nth-child(3), #home_table th:nth-child(5)  #home_table th:nth-child(6) {
+    width: 12vw;
+}
+
+#home_table th > button {
+    height: var(--home-table-head-row-height);
+}
+
+#home_table th > button:disabled {
+    color: var(--color-grey)
+}
+
+#home_table img {
+    width: 100%;
+}
+
+#home_table_pagination {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+/* Home <aside> */
+#home_aside {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    border: 1px solid var(--color-grey);
+}
+
+#home_aside h4 {
+    display: grid;
+    align-items: center;
+    height: var(--home-table-head-row-height);
+}
+
+#home_aside table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#home_aside tr {
+    /*outline: thin solid var(--color-grey);*/
     height: 5vh;
 }
 
-
-.form-cell {
-    text-align: center;
-    padding: 10px;
-    border: 1px solid var(--color-grey);
-    vertical-align: middle;
-
+#home_aside td, #home_goals th {
+    border-top: 1px solid var(--color-grey);
 }
 
-.form-cell input, .form-cell select, .form-cell button {
-    box-sizing: border-box;
-    height: 4vh;
-}
-
-
-.dynamic-search-table {
-    width: 100%;
-    table-layout: fixed;
-}
-.dynamic-search-table td {
-    text-align: center;
-    vertical-align: top;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 100%;
-    border: 1px solid var(--color-grey)
-}
-
-/* Make sure search-bar inputs/selects don't get too wide - 11% vw ~= 1/9 of the screen */
-.search-bar select, .search-bar input {
-    max-width: 11vw;
-}
-/* Make sure search-data table fields don't get too wide */
-/* long = field containing a longer string; release title, artist/label name, release format */
-/* short = field containing a shorter string; release year, tracks */
-.long {
-    max-width: 30vw;
-    overflow: hidden;
-}
-.short {
-    max-width: 10vw;
-}
-
-
-#review {
-    width: 80%;
-    height: 10vh;
-    max-height: 10vh;
-    max-width: 90%;
-    resize: none;
-}
-
-.review-row {
-    vertical-align: top;
-}
-.review-col {
-    text-align: left!important;
-    height: 10%!important;
-}
-
-.review-time {
-    width: 10vw!important;
-}
-
-.stats_table {
-    border: 1px solid var(--color-grey);
-    border-collapse: collapse;
-    font-size: 14px;
-    text-align: left;
-}
-.stats_table > tbody > tr {
-    border: 1px solid var(--color-grey);
-    height: 6vh;
-}
-.stats_table > tbody > tr > td {
-    max-width: 10vw;
-}
-
-.stats_table th, .stats_table td {
-    padding: 10px;
-}
-
-.stats_container {
-    display: grid;
-    grid-template-columns: 25% 25% 25% 25%;
-}
-
-/* Generic element classes; reused throughout the app */
-.link {
-    text-decoration: underline;
-    color: var(--color-white);
-}
-
-.page-content { /* change this class name; it is only used on /release (currently missing), /artist, /label  */
-    display: grid;
-    grid-template-columns: 40% 60%;
+#home_table td:empty {
+    height: 5vh;
 }

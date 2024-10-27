@@ -1,159 +1,209 @@
 {% extends '_base.html' %}
 {% block content %}
-    <div id="home" style="display: grid; grid-template-columns: 1fr 20vw;">
-        <article
-            style="
-                border: 1px solid white;
-                display: grid;
-                grid-template-rows: 0.1fr 0.1fr repeat(5, 1fr);
-                text-align: center;
-                max-height: 85vh;
-            "
-            id="home_container"
-        >
-            <nav class="pagination" aria-label="Latest albums pagination">
-            <div class="pagination_controls">
-                {% if pagination.has_prev %}
-                    <button onclick="window.location.href='/home?page={{ pagination.page - 1 }}'" class="box">back</button>
-                {% else %}
-                    <button disabled style="color: var(--color-black);">back</button>
-                {% endif %}
+    <div id="home">
+        <article id="home_container">
+            <section>
+                <table id="home_table">
+                    <thead>
+                        <tr>
+                            <th id="home_table_pagination">
+                                {% if pagination.has_prev %}
+                                    <button onclick="window.location.href='/home?page={{ pagination.page - 1 }}'">back</button>
+                                {% else %}
+                                    <button disabled>back</button>
+                                {% endif %}
 
-                {% if pagination.has_next %}
-                    <button onclick="window.location.href='/home?page={{ pagination.page + 1 }}'" class="box">next</button>
-                {% else %}
-                    <button disabled style="color: var(--color-black);">next</button>
-                {% endif %}
-            </div>
-        </nav>
-            <section
-                style="
-                    display: grid;
-                    grid-template-columns: 0.9fr 1.75fr 1.75fr 0.75fr 1.75fr 1.5fr 1.75fr;
-                "
-            >
-                <!-- TODO: figure out why col1 width is slightly misaligned -->
-                    <h3 style="border: 1px solid white">ART</h3>
-                    <h3 style="border: 1px solid white">TITLE</h3>
-                    <h3 style="border: 1px solid white">ARTIST</h3>
-                    <h3 style="border: 1px solid white">RATING</h3>
-                    <h3 style="border: 1px solid white">LISTEN DATE</h3>
-                    <h3 style="border: 1px solid white">GENRE</h3>
-                    <h3 style="border: 1px solid white">TAGS</h3>
+                                {% if pagination.has_next %}
+                                    <button onclick="window.location.href='/home?page={{ pagination.page + 1 }}'">next</button>
+                                {% else %}
+                                    <button disabled style="color: var(--color-black);">next</button>
+                                {% endif %}
+                            </th>
+                            <th>
+                                <p>TITLE</p>
+                            </th>
+                            <th>
+                                <p>ARTIST</p>
+                            </th>
+                            <th>
+                                <p>RATING</p>
+                            </th>
+                            <th>
+                                <p>LISTENED</p>
+                            </th>
+                            <th>
+                                <p>GENRE</p>
+                            </th>
+                            <th>
+                                <p>TAGS</p>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for release in data %}
+                        <tr>
+                            <td>
+                                {% if release.image %}
+                                    <img src="{{  release.image }}" alt="album art">
+                                {% else %}
+                                    <img src="./static/img/none.png" alt="album art missing">
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="/release/{{ release.id }}" class="link">{{ release.name }}</a>
+                            </td>
+                            <td>
+                                <a href="/artist/{{ release.artist_id }}" class="link">{{ release.artist_name }}</a>
+                            </td>
+                            <td>
+                                {{ release.rating }}%
+                            </td>
+                            <td>
+                                {{ release.listen_date.date() }}
+                            </td>
+                            <td>
+                                {{ release.genre }}
+                            </td>
+                            <td style="white-space: normal!important;">
+                                <p>
+                                    {{ release.tags | join(', ') }}
+                                </p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </section>
-            {% for release in data %}
-                <section style="
-                    display: grid;
-                    grid-template-columns: 0.9fr 1.75fr 1.75fr 0.75fr 1.75fr 1.5fr 1.75fr;
-                    align-items: center;
-                ">
-                    <div style="aspect-ratio: 1; height: 100%;">
-                        {% if release.image %}
-                            <img src="{{ release.image }}" alt="Album art"
-                                style="width: 100%; height: 100%; object-fit: cover;"
-                            >
-                        {% else %}
-                            <img class="homepage_covers col1" alt="Album art" src="./static/img/none.png">
-                        {% endif %}
-                    </div>
-
-                    <div style="">
-                        <a href="/release/{{ release.id }}">{{  release.name }}</a>
-                    </div>
-
-                    <div>
-                        <a href="/artist/{{ release.artist_id }}">{{ release.artist_name }}</a>
-                    </div>
-
-                    <div>
-                        {{ release.rating }}
-                    </div>
-
-                    <div>
-                        {{ release.listen_date.date() }}
-                    </div>
-
-                    <div>
-                        {{ release.genre }}
-                    </div>
-
-                    <div>
-                        {{ release.tags | join(', ') }}
-                    </div>
-                </section>
-            {% endfor %}
         </article>
-        <aside
-            style="
-                border: 1px solid white;
-                display: grid;
-                grid-template-rows: 1fr 1fr;
-                max-height: 85vh;
-                text-align: center;
-            "
-            id="sidebar"
-        >
-            <section
-                    id="home_stats"
-                    style="
-                        display: grid;
-                        align-content: start;
-                    "
-            >
-                <h2>STATS</h2>
-                <div style="display: grid;grid-template-columns: 1fr 1fr;">
-                    <p>listens</p>
-                    <p>{{ stats.total_listens }}</p>
-                </div>
-                <div style="display: grid;grid-template-columns: 1fr 1fr;">
-                    <p>artists</p>
-                    <p>{{ stats.total_artists }}</p>
-                </div>
-                <div style="display: grid;grid-template-columns: 1fr 1fr;">
-                    <p>labels</p>
-                    <p>{{ stats.total_labels }}</p>
-                </div>
-                <div style="display: grid;grid-template-columns: 1fr 1fr;">
-                    <p>avg rating (%)</p>
-                    <p>{{ stats.average_rating }}</p>
-                </div>
-                <div style="display: grid;grid-template-columns: 1fr 1fr;">
-                    <p>avg runtime (m)</p>
-                    <p>{{ stats.average_runtime }}</p>
-                </div>
-                <div style="display: grid;grid-template-columns: 1fr 1fr;">
-                    <p>total runtime (h)</p>
-                    <p>{{ stats.total_runtime }}</p>
-                </div>
-                <div style="display: grid;grid-template-columns: 1fr 1fr;">
-                    <p>listens this year</p>
-                    <p>{{ stats.listens_this_year }}</p>
-                </div>
-                <div style="display: grid;grid-template-columns: 1fr 1fr;">
-                    <p>listens per day</p>
-                    <p>{{ stats.listens_per_day }}</p>
-                </div>
+        <aside id="home_aside">
+            <section>
+                <h4>STATS</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>
+                                <p>total</p>
+                            </th>
+                            <th>
+                                <p>yearly</p>
+                            </th>
+                            <th>
+                                <p>daily / avg</p>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>
+                            <p>releases</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.total_listens }}</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.listens_this_year}}</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.listens_per_day }}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>artists</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.total_artists }}</p>
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>labels</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.total_labels }}</p>
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>runtime</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.total_runtime }}h</p>
+                        </td>
+                        <td></td>
+                        <td>
+                            <p>{{ stats.average_runtime }}m</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>rating</p>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <p>{{ stats.average_rating }}%</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
             </section>
-            <section id="home_goals" style="display: grid; align-content: start;">
-                <h2>GOALS</h2>
-                {% for goal in goals %}
-                    <div style="display: grid; grid-template-columns: 1fr 1fr;">
-                        <p>{{ goal["amount"] }} {{ goal["type"] }}</p>
-                        <p>by {{ goal["end_goal"].date() }}</p>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr;">
-                        <p>start:</p>
-                        <p>{{ goal["start_date"].date() }}</p>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr;">
-                        <p>progress:</p>
-                        <p>{{ goal["progress"] }}% ({{ goal["current"] }}/{{ goal["amount"] }})</p>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr;">
-                        <p>target:</p>
-                        <p>{{ goal["target"] }} per day</p>
-                    </div>
-                {% endfor %}
+            <section id="home_goals">
+                <h4>GOALS</h4>
+                {% if goals[0] %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th colspan="2">
+                                <p>{{ goals[0]["amount"] }} {{ goals[0]["type"] }}s by {{ goals[0]["end_goal"].date() }}</p>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>
+                                <p>progress</p>
+                            </th>
+                            <td>
+                                <p>{{ goals[0]["progress"] }}%</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <p>target</p>
+                            </th>
+                            <td>
+                                <p>{{ goals[0]["target"] }} / day</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <p>remaining</p>
+                            </th>
+                            <td>
+                                <p>{{ goals[0]["amount"] - goals[0]["current"] }}</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <p>start</p>
+                            </th>
+                            <td>
+                                <p>{{ goals[0]["start_date"].date() }}</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                {% endif %}
             </section>
         </aside>
     </div>
