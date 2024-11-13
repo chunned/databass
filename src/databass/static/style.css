@@ -77,10 +77,11 @@ input, button {
 
 #home_table, #home_aside {
     width: 100%;
-    height: 100%;
     border-collapse: collapse;
     text-align: center;
 }
+
+
 
 /* Home <article> */
 #home_table td, #home_table th {
@@ -129,8 +130,10 @@ input, button {
 
 /* Home <aside> */
 #home_aside {
-    display: grid;
-    grid-template-rows: 1fr 1fr;
+    /*display: grid;*/
+    /*grid-template-rows: 1fr 1fr;*/
+    display: flex;
+    flex-direction: column;
 }
 
 #home_aside h4 {
