@@ -148,7 +148,9 @@ def get_all_stats():
         "top_rated_labels": Label.average_ratings_bayesian()[0:10],
         "top_rated_artists": Artist.average_ratings_bayesian()[0:10],
         "top_frequent_labels": Label.frequency_highest()[0:10],
-        "top_frequent_artists": Artist.frequency_highest()[0:10]
+        "top_frequent_artists": Artist.frequency_highest()[0:10],
+        "top_average_artists": Artist.average_ratings_and_total_counts()[0:10],
+        "top_average_labels": Label.average_ratings_and_total_counts()[0:10],
     }
     return stats
 

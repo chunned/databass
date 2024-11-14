@@ -257,3 +257,92 @@ input, button {
     width: 40%;
     text-align: center;
 }
+
+
+/* Stats */
+
+/* Quick stats */
+#stats {
+    width: 100%;
+    padding-right: 15px;
+}
+
+#stats_container {
+    height: 100%;
+}
+
+.stats_grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5rem;
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--color-grey);
+}
+
+.stat_item {
+    text-align: center;
+}
+
+/* Full stats */
+#stats_full {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.stats_column  {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 5vh 1fr;
+    border-collapse: collapse;
+    border: 2px solid var(--color-grey);
+    padding: 5px 20px 5px 20px;
+}
+
+.stats_column h2 {
+    text-align: center;
+    place-self: center;
+}
+
+.stats_inner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.stats_inner_column {
+    border: 1px solid var(--color-grey);
+    padding: 1vw 1vw 1vw 1vw;
+}
+
+.stats_table {
+    text-align: left;
+    display: grid;
+    grid-template-rows: 5vh 1fr;
+    width: 95%;
+    margin-top: 3vh;
+}
+
+.stats_table_head, .stats_table_body {
+    display: grid;
+    grid-template-columns: 1fr 4vw;
+}
+
+.stats_table_head_3, .stats_table_body_3 {
+    display: grid;
+    grid-template-columns: 1fr 3vw 2vw;
+}
+
+.stats_table_body p, .stats_table_body_3 p {
+    padding-top: 1vh;
+    padding-bottom: 1vh;
+}
+
+.bayesian {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.text_center {
+    text-align: center;
+}

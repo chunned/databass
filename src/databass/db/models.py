@@ -615,6 +615,7 @@ class ArtistOrLabel(MusicBrainzEntity):
             .where(cls.name not in ["[NONE]", "Various Artists"])
             .having(func.count(Release.id) > 1)
             .group_by(cls.name, cls.id)
+            .order_by(func.avg(Release.rating).desc())
             .all()
         )
         return entities

@@ -1,132 +1,270 @@
 {% extends '_base.html' %}
 {% block content %}
 
-<table style="width: 100%; text-align: center; border: 2px solid var(--color-grey); padding: 10px;">
-        <thead>
-            <tr>
-                <td>total listens</td>
-                <td>total artists</td>
-                <td>average rating (%)</td>
-                <td>total runtime (h)</td>
-                <td>listens this year</td>
-                <td>listens per day</td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{{ data["total_listens"] }}</td>
-                <td>{{ data["total_artists"] }}</td>
-                <td>{{ data["average_rating"] }}</td>
-                <td>{{ data["total_runtime"] }}</td>
-                <td>{{ data["listens_this_year"] }}</td>
-                <td>{{ data["listens_per_day"] }}</td>
-            </tr>
-        </tbody>
-    </table>
+<div id="stats">
+    <article id="stats_container">
+        <section id="stats_quick">
+            <div class="stats_grid">
+                <div class="stat_item">
+                    <div class="stat_label">total listens</div>
+                    <div class="stat_value">{{ data["total_listens"] }}</div>
+                </div>
+                <div class="stat_item">
+                    <div class="stat_label">total artists</div>
+                    <div class="stat_value">{{ data["total_artists"] }}</div>
+                </div>
+                <div class="stat_item">
+                    <div class="stat_label">total labels</div>
+                    <div class="stat_value">{{ data["total_labels"] }}</div>
+                </div>
+                <div class="stat_item">
+                    <div class="stat_label">average rating (%)</div>
+                    <div class="stat_value">{{ data["average_rating"] }}</div>
+                </div>
+                <div class="stat_item">
+                    <div class="stat_label">total runtime (h)</div>
+                    <div class="stat_value">{{ data["total_runtime"] }}</div>
+                </div>
+                <div class="stat_item">
+                    <div class="stat_label">listens this year</div>
+                    <div class="stat_value">{{ data["listens_this_year"] }}</div>
+                </div>
+                <div class="stat_item">
+                    <div class="stat_label">listens per day</div>
+                    <div class="stat_value">{{ data["listens_per_day"] }}</div>
+                </div>
+            </div>
 
-<div class="stats_container">
-    <table class="stats_table">
-        <thead>
-            <tr>
-                <th colspan="10" style="border: 1px solid var(--color-grey);"><h3>most frequent labels</h3></th>
-            </tr>
-            <tr>
-                <th>name</th>
-                <th>count</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for label in data["top_frequent_labels"] %}
-            <tr>
-                <td>{{ label["name"] }}</td>
-                <td>{{label["count"]}}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <table class="stats_table">
-        <thead>
-            <tr>
-                <th colspan="10" style="text-align: left; border: 1px solid var(--color-grey);">
-                    <h3>highest rated labels</h3>
-                </th>
-            </tr>
-            <tr>
-                <th>name</th>
-                <th>count</th>
-                <th>rating</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for label in data["top_rated_labels"] %}
-            <tr>
-                <td>
-                    {{ label["name"] }}
-                </td>
-                <td>
-                    {{ label["count"] }}
-                </td>
-                <td>
-                    {{ label["rating"] }}%
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <table class="stats_table">
-        <thead>
-            <tr>
-               <th colspan="10" style="text-align: left; border: 1px solid var(--color-grey);">
-                   <h3>most frequent artists</h3>
-               </th>
-            </tr>
-            <tr>
-                <th>name</th>
-                <th>count</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for artist in data["top_frequent_artists"] %}
-            <tr>
-                <td>
-                    {{ artist["name"] }}
-                </td>
-                <td>
-                    {{ artist["count"] }}
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <table class="stats_table">
-        <thead>
-            <tr>
-                <th colspan="10" style="text-align: left; border: 1px solid var(--color-grey);">
-                    <h3>highest rated artists</h3>
-                </th>
-            </tr>
-            <tr>
-                <th>name</th>
-                <th>count</th>
-                <th>rating</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for artist in data["top_rated_artists"] %}
-            <tr>
-                <td>
-                    {{ artist["name"] }}
-                </td>
-                <td>
-                    {{ artist["count"] }}
-                </td>
-                <td>
-                    {{ artist['rating'] }}%
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+        </section>
 
+        <section id="stats_full">
+
+            <div id="stats_labels" class="stats_column">
+                <h2>labels</h2>
+                <div class="stats_inner">
+                    <div class="stats_inner_column">
+                        <h3>most frequent</h3>
+                        <div class="stats_table">
+                            <div class="stats_table_head">
+                                <h4>NAME</h4>
+                                <h4 class="text_center">COUNT</h4>
+                            </div>
+                            <div class="stats_table_body">
+                                {% for label in data["top_frequent_labels"] %}
+                                    <p>{{  label["name"] }}</p>
+                                    <p class="text_center">{{  label["count"] }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats_inner_column">
+                        <h3>highest average</h3>
+                        <div class="stats_table">
+                            <div class="stats_table_head">
+                                <h4>NAME</h4>
+                                <h4 class="text_center">RATING</h4>
+                            </div>
+                            <div class="stats_table_body">
+                                {% for label in data["top_average_labels"] %}
+                                    <p>{{ label["name"] }}</p>
+                                    <p class="text_center">{{ label["average_rating"] | int}}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats_inner_column">
+                        <div class="bayesian">
+                            <h3>favourite</h3>
+                            <p>(bayesian average)</p>
+                        </div>
+                        <div class="stats_table">
+                            <div class="stats_table_head_3">
+                                <h4>NAME</h4>
+                                <h4 class="text_center">COUNT</h4>
+                                <h4 class="text_center">RATING</h4>
+                            </div>
+                            <div class="stats_table_body_3">
+                                {% for label in data["top_rated_labels"] %}
+                                    <p>{{  label["name"] }}</p>
+                                    <p class="text_center">{{  label["count"] }}</p>
+                                    <p class="text_center">{{  label["rating"] }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="stats_artists" class="stats_column">
+                <h2>artists</h2>
+                <div class="stats_inner">
+
+                    <div class="stats_inner_column">
+                        <h3>most frequent</h3>
+                        <div class="stats_table">
+                            <div class="stats_table_head">
+                                <h4>NAME</h4>
+                                <h4 class="text_center">COUNT</h4>
+                            </div>
+                            <div class="stats_table_body">
+                                {% for label in data["top_frequent_artists"] %}
+                                    <p>{{  label["name"] }}</p>
+                                    <p class="text_center">{{  label["count"] }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats_inner_column">
+                        <h3>highest average</h3>
+                        <div class="stats_table">
+                            <div class="stats_table_head">
+                                <h4>NAME</h4>
+                                <h4 class="text_center">RATING</h4>
+                            </div>
+                            <div class="stats_table_body">
+                                {% for artist in data["top_average_artists"] %}
+                                    <p>{{ artist["name"] }}</p>
+                                    <p class="text_center">{{ artist["average_rating"] | int}}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats_inner_column">
+                        <div class="bayesian">
+                            <h3>favourite</h3>
+                            <p>(bayesian average)</p>
+                        </div>
+                        <div class="stats_table">
+                            <div class="stats_table_head_3">
+                                <h4>NAME</h4>
+                                <h4 class="text_center">COUNT</h4>
+                                <h4 class="text_center">RATING</h4>
+                            </div>
+                            <div class="stats_table_body_3">
+                                {% for artist in data["top_rated_artists"] %}
+                                    <p>{{  artist["name"] }}</p>
+                                    <p class="text_center">{{  artist["count"] }}</p>
+                                    <p class="text_center">{{  artist["rating"] }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+    </article>
 </div>
+
+{#<div class="stats_container">#}
+{#    <table class="stats_table">#}
+{#        <thead>#}
+{#            <tr>#}
+{#                <th colspan="10" style="border: 1px solid var(--color-grey);"><h3>most frequent labels</h3></th>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <th>name</th>#}
+{#                <th>count</th>#}
+{#            </tr>#}
+{#        </thead>#}
+{#        <tbody>#}
+{#        {% for label in data["top_frequent_labels"] %}#}
+{#            <tr>#}
+{#                <td>{{ label["name"] }}</td>#}
+{#                <td>{{label["count"]}}</td>#}
+{#            </tr>#}
+{#        {% endfor %}#}
+{#        </tbody>#}
+{#    </table>#}
+{#    <table class="stats_table">#}
+{#        <thead>#}
+{#            <tr>#}
+{#                <th colspan="10" style="text-align: left; border: 1px solid var(--color-grey);">#}
+{#                    <h3>highest rated labels</h3>#}
+{#                </th>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <th>name</th>#}
+{#                <th>count</th>#}
+{#                <th>rating</th>#}
+{#            </tr>#}
+{#        </thead>#}
+{#        <tbody>#}
+{#        {% for label in data["top_rated_labels"] %}#}
+{#            <tr>#}
+{#                <td>#}
+{#                    {{ label["name"] }}#}
+{#                </td>#}
+{#                <td>#}
+{#                    {{ label["count"] }}#}
+{#                </td>#}
+{#                <td>#}
+{#                    {{ label["rating"] }}%#}
+{#                </td>#}
+{#            </tr>#}
+{#        {% endfor %}#}
+{#        </tbody>#}
+{#    </table>#}
+{#    <table class="stats_table">#}
+{#        <thead>#}
+{#            <tr>#}
+{#               <th colspan="10" style="text-align: left; border: 1px solid var(--color-grey);">#}
+{#                   <h3>most frequent artists</h3>#}
+{#               </th>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <th>name</th>#}
+{#                <th>count</th>#}
+{#            </tr>#}
+{#        </thead>#}
+{#        <tbody>#}
+{#        {% for artist in data["top_frequent_artists"] %}#}
+{#            <tr>#}
+{#                <td>#}
+{#                    {{ artist["name"] }}#}
+{#                </td>#}
+{#                <td>#}
+{#                    {{ artist["count"] }}#}
+{#                </td>#}
+{#            </tr>#}
+{#        {% endfor %}#}
+{#        </tbody>#}
+{#    </table>#}
+{#    <table class="stats_table">#}
+{#        <thead>#}
+{#            <tr>#}
+{#                <th colspan="10" style="text-align: left; border: 1px solid var(--color-grey);">#}
+{#                    <h3>highest rated artists</h3>#}
+{#                </th>#}
+{#            </tr>#}
+{#            <tr>#}
+{#                <th>name</th>#}
+{#                <th>count</th>#}
+{#                <th>rating</th>#}
+{#            </tr>#}
+{#        </thead>#}
+{#        <tbody>#}
+{#        {% for artist in data["top_rated_artists"] %}#}
+{#            <tr>#}
+{#                <td>#}
+{#                    {{ artist["name"] }}#}
+{#                </td>#}
+{#                <td>#}
+{#                    {{ artist["count"] }}#}
+{#                </td>#}
+{#                <td>#}
+{#                    {{ artist['rating'] }}%#}
+{#                </td>#}
+{#            </tr>#}
+{#        {% endfor %}#}
+{#        </tbody>#}
+{#    </table>#}
+{##}
+{#</div>#}
 {% endblock %}
