@@ -131,8 +131,8 @@ def add_review(release_id):
         return redirect("/error", code=302)
     # Ensure request has required data
     review_data = request.form.to_dict()
-    if "text" not in review_data.keys() or "id" not in review_data.keys():
-        error = "Request missing one of the required variables: text, id (release id)"
+    if "text" not in review_data.keys():
+        error = "Request missing one of the required variables: text"
         flash(error)
         return redirect("/error", code=302)
     # Perform deletion
