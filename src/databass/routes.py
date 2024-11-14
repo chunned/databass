@@ -1,11 +1,11 @@
 import flask
 from flask import render_template, request, redirect, abort, flash
-from flask_paginate import Pagination, get_page_parameter
 from .api import Util, MusicBrainz, Discogs
 from . import db
 from .db import models
 from .db.util import get_all_stats, handle_submit_data
 from datetime import datetime
+from .pagination import PaginationCustom
 
 def register_routes(app):
     @app.route('/', methods=['GET'])
@@ -17,32 +17,29 @@ def register_routes(app):
             goal_data = [process_goal_data(goal) for goal in active_goals]
         else:
             goal_data = []
+        return render_template(
+            'index.html',
+            stats=stats_data,
+            goals=goal_data,
+            active_page='home'
+        )
+
+    @app.route("/home_release_table")
+    def home_release_table():
+
         data = models.Release.home_data()
 
-        page = request.args.get(
-            get_page_parameter(),
-            type=int,
-            default=1
-        )
-        per_page = 5
-        start, end = Util.get_page_range(per_page, page)
-
-        paged_data = data[start:end]
-
-        flask_pagination = Pagination(
-            page=page,
-            total=len(data),
-            search=False,
-            record_name='latest_releases'
+        page = PaginationCustom.get_page_param(request)
+        paged_data, flask_pagination = PaginationCustom.paginate(
+            per_page=5,
+            current_page=page,
+            data=data
         )
 
         return render_template(
-            'index.html',
+            'home_release_table.html',
             data=paged_data,
-            stats=stats_data,
-            goals=goal_data,
             pagination=flask_pagination,
-            active_page='home'
         )
 
     @app.route("/new")
@@ -79,32 +76,19 @@ def register_routes(app):
             release_data = MusicBrainz.release_search(release=search_release,
                                                           artist=search_artist,
                                                           label=search_label)
-            data_length = len(release_data)
-            page = request.args.get(
-                get_page_parameter(),
-                type=int,
-                default=1
-            )
-            per_page = 10
-            start, end = Util.get_page_range(per_page, page)
-            paged_data = release_data[start:end]
+            page = PaginationCustom.get_page_param(request)
         elif origin == 'page_button':
             page = data["next_page"]
-            per_page = data["per_page"]
             release_data = data["data"]
-            data_length = len(release_data)
-            start, end = Util.get_page_range(per_page, page)
-            paged_data = release_data[start:end]
 
         if all(
-            var is not None for var in [page, data_length, paged_data, release_data, per_page]
+            var is not None for var in [page, release_data]
         ):
             # TODO: make generic pagination handler function
-            flask_pagination = Pagination(
-                page=page,
-                total=data_length,
-                search=False,
-                record_name='search_results'
+            paged_data, flask_pagination = PaginationCustom.paginate(
+                per_page=10,
+                current_page=page,
+                data=release_data
             )
             return render_template(
                 "search/static.html",

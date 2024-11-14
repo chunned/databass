@@ -348,8 +348,40 @@ function handleStatsSearch() {
     })
 }
 
+function loadHomeTable(direction) {
+    let currentPage;
+    try {
+        currentPage = document.getElementById('current_page').value;
+    } catch (e) {
+        currentPage = "1";
+    }
+    // currentPage = "1";
+    console.log("Current page: ", currentPage);
+    let targetPage = currentPage;
+    if (direction === 'prev') targetPage = parseInt(currentPage) - 1;
+    if (direction === 'next') targetPage = parseInt(currentPage) + 1;
+
+    console.log("Target page: ", targetPage)
+
+    fetch('/home_release_table?page=' + targetPage)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('home_release_table').innerHTML = html;
+        });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.pathname === "/" || window.location.pathname === "/home") {
+        loadHomeTable();
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('prev_page')) {
+                loadHomeTable('prev')
+            }
+            if (event.target.classList.contains('next_page')) {
+                loadHomeTable('next')
+            }
+        });
+    }
     document.addEventListener('click', function(event) {
         // Handle search button click
         if (event.target && event.target.classList.contains('new-release-search')) {

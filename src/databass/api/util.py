@@ -76,27 +76,6 @@ class Util:
         return datetime.datetime.today().strftime('%Y-%m-%d')
 
     @staticmethod
-    def get_page_range(per_page: int, current_page: int) -> Tuple[int, int]:
-        """
-        Get the start and end indices for a page of results given the page size and current page number.
-
-        Args:
-            per_page (int): The number of results to return per page.
-            current_page (int): The current page number (1-indexed).
-
-        Returns:
-            Tuple[int, int]: The start and end indices for the current page of results.
-
-        Raises:
-            ValueError: If `per_page` or `current_page` is less than or equal to 0.
-        """
-        if per_page <= 0 or current_page <= 0:
-            raise ValueError("per_page and current_page must be positive integers")
-        start = (current_page - 1) * per_page
-        end = start + per_page
-        return start, end
-
-    @staticmethod
     def get_image_type_from_url(url: str) -> str:
         """
         Determine the image file extension from the URL of an image file.
