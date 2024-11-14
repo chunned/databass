@@ -1,5 +1,12 @@
-<div>
-    {% for artist in data %}
-        <p>{{ artist.name }}, {{ artist.id }}</p>
+<div id="entity_search_results">
+    {% for artist in data[0:15] %}
+        <div class="search_result">
+            <a href="{{ artist.id }}">
+                <img src="{{ artist.image }}" alt="Album art" class="search_image">
+                <p>{{ artist.name }}</p>
+            </a>
+        </div>
+
     {% endfor %}
 </div>
+

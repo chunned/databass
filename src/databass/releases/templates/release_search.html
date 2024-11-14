@@ -1,5 +1,11 @@
-<div>
-    {% for release in data %}
-        <p>{{ release.name }}</p>
+<div id="release_search_results">
+    {% for release in data[0:15] %}
+        <div class="search_result">
+            <a href="{{ release.id }}">
+                <img src="{{ release.image }}" alt="Album art" class="search_image">
+                <p>{{ release.name }} ({{ release.release_year }})</p>
+            </a>
+        </div>
+
     {% endfor %}
 </div>

@@ -1,61 +1,63 @@
 {% extends '_base.html' %}
 {% block content %}
-<div class="search-bar">
-<form action="/dynamic_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
-    <table class="filter-table">
-        <thead>
-        <tr>
-            <td class="form-cell">
-                <label for="artist" class="form-label">name</label><br>
-                <input type="text" id="artist" name="artist" class="box">
-            </td>
-            <td class="form-cell">
-                <label for="country" class="form-label">country</label><br>
-                <select id="country" name="country" class="box">
-                    <option value="" selected></option>
-                    {% for country in data.countries %}
-                    <option value="{{ country }}">{{ country }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td class="form-cell">
-                <label for="begin_filter" class="form-label">begin</label>
-                <label for="begin_date">year</label>
-                <br>
-                <select id="begin_filter" name="begin_date" class="box">
-                    <option value="<"><</option>
-                    <option value="=">=</option>
-                    <option value=">">></option>
-                </select>
-                <input type="number" min=0 max="2100" id="begin_date" name="begin_date" class="box">
-            </td>
-            <td class="form-cell">
-                <label for="end_filter" class="form-label">end</label>
-                <label for="end_date">year</label>
-                <br>
-                <select id="end_filter" name="end_comparison" class="box">
-                    <option value="<"><</option>
-                    <option value="=">=</option>
-                    <option value=">">></option>
-                </select>
-                <input type="number" min=0 max="2100" id="end_date" name="end_date" class="box">
-            </td>
-            <td class="form-cell">
-                <label for="type" class="form-label">type</label><br>
-                <select id="type" name="type" class="box">
-                    <option value="" selected></option>
-                    <option value="group">group</option>
-                    <option value="person">person</option>
-                </select>
-            </td>
-            <td class="form-cell"><br>
-                <button type="button" class="box artist-search" value="submit">submit</button>
-            </td>
-        </tr>
-        </thead>
-    </table>
-</form>
-</div>
 
-<div id="search-results"></div>
+<article id="artist_search">
+    <section>
+        <form action="/dynamic_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
+            <div id="artist_search_bar">
+                <div class="search_div">
+                    <label for="artist">name</label>
+                    <input type="text" id="artist" name="artist">
+                </div>
+                <div class="search_div">
+                    <label for="country">country</label>
+                    <div>
+                        <select id="country" name="country" class="box">
+                            <option value="" selected></option>
+                            {% for country in data.countries %}
+                                <option value="{{ country }}">{{ country }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="search_div">
+                    <label for="begin_date">begin</label>
+                    <div>
+                        <select id="begin_filter" name="begin_date" class="box">
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                        </select>
+                        <input type="number" min=0 max="2100" id="begin_date" name="begin_date" class="box">
+                    </div>
+                </div>
+                <div class="search_div">
+                    <label for="end_date">end</label>
+                    <div>
+                        <select id="end_filter" name="end_comparison" class="box">
+                            <option value="<"><</option>
+                            <option value="=">=</option>
+                            <option value=">">></option>
+                        </select>
+                        <input type="number" min=0 max="2100" id="end_date" name="end_date" class="box">
+                    </div>
+                </div>
+                <div class="search_div">
+                    <label for="type">type</label>
+                    <select id="type" name="type" class="box">
+                        <option value="" selected></option>
+                        <option value="group">group</option>
+                        <option value="person">person</option>
+                    </select>
+                </div>
+                <div class="search_div">
+                    <p></p>
+                    <button type="button" class="box artist-search" value="submit">submit</button>
+                </div>
+            </div>
+        </form>
+    </section>
+    <div id="search-results"></div>
+</article>
+
 {% endblock %}

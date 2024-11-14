@@ -346,3 +346,63 @@ input, button {
 .text_center {
     text-align: center;
 }
+
+
+/* /labels, /artists, /releases */
+#label_search, #artist_search, #release_search {
+    width: 100%;
+    display: grid;
+    grid-template-rows: 10vh 1fr;
+    align-items: center;
+}
+
+#label_search_bar, #artist_search_bar {
+    width: 80%;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    margin: 0 auto;
+}
+
+#release_search_bar {
+    width: 80%;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    margin: 0 auto;
+}
+
+#artist_search section {
+    width: 100%;
+}
+
+.search_div {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    place-items: center;
+}
+
+#search-results {
+    height: 100%;
+}
+
+#entity_search_results {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(3, 25vh);
+    justify-content: center;
+    align-items: baseline;
+    height: 100%;
+    max-height: 100%;
+}
+
+.search_result {
+    text-align: center;
+    height: 25vh;
+    overflow: hidden;
+}
+
+.search_result img {
+    max-height: 250px;
+    width: auto;
+    object-fit: contain;
+}
+
