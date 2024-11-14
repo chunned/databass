@@ -74,10 +74,8 @@ def register_routes(app):
                 # TODO: move this error handling into errors/routes.py
                 return redirect('/error')
             if not search_release and not search_artist and not search_label:
-                error = "Search requires at least one search term"
-                flash(error)
-                # TODO: move this error handling into errors/routes.py
-                return redirect('/error')
+                error = "ERROR: Search requires at least one search term"
+                return error
             release_data = MusicBrainz.release_search(release=search_release,
                                                           artist=search_artist,
                                                           label=search_label)
@@ -123,6 +121,34 @@ def register_routes(app):
         try:
             # Check if this is a manual submission (i.e. manually entered data, no results found from MusicBrainz)
             if data["manual_submit"] == "true":
+                # try to grab optional fields
+                try:
+                    tags = data["tags"]
+                except KeyError:
+                    tags = ""
+                try:
+                    image = data["image"]
+                except KeyError:
+                    image = ""
+
+                try:
+                    runtime = int(data["runtime"])
+                except KeyError:
+                    runtime = 0
+
+                try:
+                    track_count = int(data["track_count"])
+                except KeyError:
+                    track_count = 0
+
+
+                try:
+                    country = data["country"]
+                except KeyError:
+                    country = "?"
+
+                # TODO: add to frontend: runtime, track_count, country
+
                 release_data = {
                     "name": data["name"],
                     "artist_name": data["artist"],
@@ -130,8 +156,12 @@ def register_routes(app):
                     "release_year": data["release_year"],
                     "genre": data["genre"],
                     "rating": data["rating"],
-                    "tags": data["tags"],
-                    "listen_date": Util.today()
+                    "tags": tags,
+                    "image": image,
+                    "listen_date": Util.today(),
+                    "runtime": runtime,
+                    "track_count": track_count,
+                    "country": country
                 }
                 # TODO: improve manual submission; check Discogs for Artist/Label images, let user provide release image URL and auto-fetch it
                 db.operations.submit_manual(release_data)

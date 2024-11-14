@@ -123,5 +123,8 @@ def submit_manual(data):
     release.genre = data["genre"]
     release.tags = data["tags"]
     release.image = data["image"]
+    release.runtime = data["runtime"]
+    release.track_count = data["track_count"]
     release.listen_date = datetime.now(local_timezone).strftime("%Y-%m-%d")
+    release.country = data["country"]
     insert(release)
