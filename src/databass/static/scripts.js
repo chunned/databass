@@ -147,30 +147,6 @@ function searchPopup(data) {
     }
 }
 
-function handleSearchSubmitButton() {
-    let form = document.getElementById("popup-form");
-    let form_data = {};
-    let inputs = form.querySelectorAll('input');
-    inputs.forEach(function(input) {
-        form_data[input.name] = input.value;
-    })
-    form_data['manual_submit'] = 'false';
-    fetch('/image_search', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(form_data)
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.text()
-        } else {
-            throw new Error('Failed to submit form')
-        }
-    })
-}
-
 function addPopupListeners(html) {
     document.querySelector("#search_results").innerHTML = html;
     let tableRows = document.querySelectorAll("#data_form table tbody tr");
@@ -371,7 +347,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 let direction = event.target.dataset.direction;
                 handleSearchPageButton(direction);
             }
-        })
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                handleSearchButton();
+            }
+        });
     }
 
     if (window.location.pathname === "/releases") {
@@ -422,30 +403,17 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     }
 
-
     document.addEventListener('click', function(event) {
         if (event.target && event.target.classList.contains('delete-btn')) {
             let deleteBtn = document.querySelector("#delete-btn");
             handleDeleteButton(deleteBtn);
         }
 
-        // Handle /releases, /labels, /artists pagination button clicks
-        if (event.target && event.target.classList.contains('dynamic-page-btn')) {
-            let direction = event.target.dataset.direction;
-            handleDynamicPageButton(direction);
-        }
         // Handle /stats search button
         if (event.target && event.target.classList.contains('stats-search')) {
             handleStatsSearch();
         }
     });
-    if (document.querySelector('#new_release')) {
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter') {
-                handleSearchButton();
-            }
-        })
-    }
 });
 
 
