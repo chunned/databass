@@ -401,8 +401,26 @@ input, button {
 }
 
 .search_result img {
-    max-height: 250px;
+    max-height: 20vh;
+    /*max-height: 250px;*/
     width: auto;
     object-fit: contain;
 }
 
+.search_result p {
+    margin-top: auto;
+}
+
+.pagination {
+    /* pagination should be a <nav> element that contains only the pagination buttons */
+    /* this styling will make the buttons appear in the horizontal center of the <nav> */
+    display: flex;
+    justify-content: center;
+}
+
+.pagination button {
+    /* make some space between the buttons */
+    margin-left: 1vw;
+    margin-right: 1vw;
+    margin-bottom: 1vw;
+}

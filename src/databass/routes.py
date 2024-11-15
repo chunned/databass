@@ -5,7 +5,6 @@ from . import db
 from .db import models
 from .db.util import get_all_stats, handle_submit_data
 from datetime import datetime
-from .pagination import PaginationCustom
 
 def register_routes(app):
     @app.route('/', methods=['GET'])
@@ -26,11 +25,12 @@ def register_routes(app):
 
     @app.route("/home_release_table")
     def home_release_table():
+        from .pagination import Pager
 
         data = models.Release.home_data()
 
-        page = PaginationCustom.get_page_param(request)
-        paged_data, flask_pagination = PaginationCustom.paginate(
+        page = Pager.get_page_param(request)
+        paged_data, flask_pagination = Pager.paginate(
             per_page=5,
             current_page=page,
             data=data
@@ -49,6 +49,7 @@ def register_routes(app):
 
     @app.route("/search", methods=["POST"])
     def search() -> str | flask.Response:
+        from .pagination import Pager
         # Initialize variables to None
         page = data_length = paged_data = release_data = per_page = None
 
@@ -76,7 +77,7 @@ def register_routes(app):
             release_data = MusicBrainz.release_search(release=search_release,
                                                           artist=search_artist,
                                                           label=search_label)
-            page = PaginationCustom.get_page_param(request)
+            page = Pager.get_page_param(request)
         elif origin == 'page_button':
             page = data["next_page"]
             release_data = data["data"]
@@ -84,14 +85,13 @@ def register_routes(app):
         if all(
             var is not None for var in [page, release_data]
         ):
-            # TODO: make generic pagination handler function
-            paged_data, flask_pagination = PaginationCustom.paginate(
+            paged_data, flask_pagination = Pager.paginate(
                 per_page=10,
                 current_page=page,
                 data=release_data
             )
             return render_template(
-                "search/static.html",
+                "search.html",
                 page=page,
                 data=paged_data,
                 pagination=flask_pagination,
@@ -178,96 +178,6 @@ def register_routes(app):
     def stats():
         statistics = get_all_stats()
         return render_template('stats.html', data=statistics, active_page='stats')
-
-    @app.route('/dynamic_search', methods=['POST'])
-    def dynamic_search():
-        # TODO: make a unique dynamic_search() in the routes.py for each entity (/release, /artist, /label); also simplify implementation
-
-        data = request.get_json()
-        origin = data["referrer"]
-        del data["referrer"]
-        if origin in ['release', 'artist', 'label']:
-            if origin == 'release':
-                search_data = db.models.Release.dynamic_search(data)
-            elif origin == 'artist':
-                search_data = db.models.Artist.dynamic_search(data)
-            elif origin == 'label':
-                search_data = db.models.Label.dynamic_search(data)
-            else:
-                raise ValueError("origin/referrer must be one of: release, artist, label")
-            page = request.args.get(
-                get_page_parameter(),
-                type=int,
-                default=1
-            )
-            search_type = search_data[0]
-            search_results = search_data[1]
-            # search_results is an array of SQLAlchemy objects; convert to array for use in JavaScript functions
-            full_data = []
-            for result in search_results:
-                temp = result.__dict__
-                if "_sa_instance_state" in temp:
-                    del temp["_sa_instance_state"]
-                for key in temp.keys():
-                    if not temp[key]:
-                        temp[key] = ""
-                if search_type == 'release':
-                    if "listen_date" in temp:
-                        day = temp["listen_date"].date()
-                        temp["listen_date"] = str(day)
-                if search_type in ['label', 'artist']:
-                    if "begin_date" in temp:
-                        begin_date = temp["begin_date"]
-                        if not begin_date:
-                            begin_date = ""
-                        else:
-                            begin_date = begin_date.strftime('%Y-%m-%d')
-                        temp["begin_date"] = begin_date
-                    if "end_date" in temp:
-                        end_date = temp["end_date"]
-                        if not end_date:
-                            end_date = ""
-                        else:
-                            end_date = end_date.strftime('%Y-%m-%d')
-                        temp["end_date"] = end_date
-                full_data.append(temp)
-            data_length = len(search_results)
-            per_page = 14
-            start, end = Util.get_page_range(per_page, page)
-
-            paged_data = full_data[start:end]
-
-        elif origin == 'page_button':
-            page = data["next_page"]
-            per_page = data["per_page"]
-            full_data = data["data"]
-            start, end = Util.get_page_range(per_page, page)
-            data_length = len(full_data)
-            paged_data = full_data[start:end]
-            for item in paged_data:
-                # Iterate through paged_data to check for 'amp;' substrings, remove these substrings
-                # Caused by '&' getting URL encoded
-                for key in item:
-                    if item[key] and isinstance(item[key], str) and 'amp;' in item[key]:
-                        original_value = item[key]
-                        new_value = original_value.replace('amp;', '')
-                        item[key] = new_value
-            search_type = data["search_type"]
-
-        flask_pagination = Pagination(
-            page=page,
-            total=data_length,
-            search=False,
-            record_name="search_results"
-        )
-        return render_template(
-            "search/dynamic.html",
-            items=paged_data,
-            pagination=flask_pagination,
-            data_full=full_data,
-            type=search_type,
-            per_page=per_page
-        )
 
     @app.route('/goals', methods=['GET'])
     def goals():
@@ -392,10 +302,10 @@ def register_routes(app):
         return redirect('/imgupdate/release/1')
 
     # TODO: see if still needed
-    @app.route('/backup', methods=['GET'])
-    def backup():
-        bkp()
-        return redirect('/', code=302)
+    # @app.route('/backup', methods=['GET'])
+    # def backup():
+    #     bkp()
+    #     return redirect('/', code=302)
 
 
 def process_goal_data(goal: models.Goal):

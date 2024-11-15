@@ -26,6 +26,24 @@ def artists():
     data = {"countries": countries}
     return render_template('artists.html', data=data, active_page='artists')
 
+@artist_bp.route('/artist_search', methods=['POST'])
+def artist_search():
+    from ..pagination import Pager
+    data = request.get_json()
+    search_results = Artist.dynamic_search(data)
+    page = Pager.get_page_param(request)
+    paged_data, flask_pagination = Pager.paginate(
+        per_page=15,
+        current_page=page,
+        data=search_results
+    )
+    return render_template(
+        'artist_search.html',
+        data=paged_data,
+        data_full=search_results,
+        pagination=flask_pagination
+    )
+
 # TODO: implement edit_artist
 # @artist_bp.route('/artist/<string:artist_id>', methods=['GET', 'POST'])
 # def edit_artist(artist_id):
@@ -36,8 +54,4 @@ def artists():
 
 # TODO: implement delete_artist
 
-@artist_bp.route('/artist_search', methods=['POST'])
-def artist_search():
-    data = request.get_json()
-    search_results = Artist.dynamic_search(data)
-    return render_template('artist_search.html', data=search_results)
+

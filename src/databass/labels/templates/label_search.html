@@ -1,11 +1,33 @@
+<nav class="pagination">
+    {% if pagination.has_prev %}
+        <button class="pagination_button prev_page">back</button>
+    {% else %}
+        <button disabled class="pagination_button">back</button>
+    {% endif %}
+
+    {% if pagination.has_next %}
+        <button class="pagination_button next_page">next</button>
+    {% else %}
+        <button disabled style="color: var(--color-black);" class="pagination_button">next</button>
+    {% endif %}
+</nav>
 <div id="entity_search_results">
     {% for label in data[0:15] %}
         <div class="search_result">
             <a href="{{ label.id }}">
-                <img src="{{ label.image }}" alt="Album art" class="search_image">
+                {%  if label.image is none %}
+                    <img src="" alt="Label image" class="search_image">
+                {% else %}
+                    <img src="{{ label.image }}" alt="Label image" class="search_image">
+                {% endif %}
                 <p>{{ label.name }}</p>
             </a>
         </div>
 
     {% endfor %}
 </div>
+
+<!-- Below are used by javascript function that handles pagination -->
+<input type="hidden" value="{{ pagination.page }}" id="current_page">
+<p hidden id="data_full">{{ data_full }}</p>
+<p hidden id="per_page">{{ per_page }}</p>

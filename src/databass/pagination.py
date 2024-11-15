@@ -3,7 +3,7 @@ from flask_paginate import Pagination, get_page_parameter
 from typing import Tuple
 
 
-class PaginationCustom:
+class Pager:
     @staticmethod
     def get_page_param(flask_request: request):
         """
@@ -42,7 +42,7 @@ class PaginationCustom:
             current_page: int,
             data,
     ):
-        start, end = PaginationCustom.get_page_range(per_page, current_page)
+        start, end = Pager.get_page_range(per_page, current_page)
         paged_data = data[start:end]
         flask_pagination = Pagination(
             page=current_page,

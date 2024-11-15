@@ -26,6 +26,24 @@ def labels():
     data = {"countries": countries, "types": types}
     return render_template('labels.html', data=data, active_page='labels')
 
+@label_bp.route('/label_search', methods=["POST"])
+def label_search():
+    from ..pagination import Pager
+    data = request.get_json()
+    search_results = Label.dynamic_search(data)
+    page = Pager.get_page_param(request)
+    paged_data, flask_pagination = Pager.paginate(
+        per_page=15,
+        current_page=page,
+        data=search_results
+    )
+    return render_template(
+        'label_search.html',
+        data=paged_data,
+        data_full=search_results,
+        pagination=flask_pagination
+    )
+
 # TODO: implement edit_label
 # @label_bp.route('/label/<string:label_id>', methods=['GET', 'POST'])
 # def edit_label(label_id):
@@ -34,9 +52,3 @@ def labels():
 #     elif request.method == 'POST':
 #         pass
 # TODO: implement delete_label
-
-@label_bp.route('/label_search', methods=["POST"])
-def label_search():
-    data = request.get_json()
-    search_results = Label.dynamic_search(data)
-    return render_template('label_search.html', data=search_results)

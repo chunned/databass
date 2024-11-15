@@ -183,11 +183,24 @@ function addPopupListeners(html) {
 }
 
 function handleSearchButton() {
+    let page;
+    try {
+        page = document.querySelector('#current_page').value;
+    } catch(e) {
+        page = "1";
+    }
+    let referrer;
+    try {
+        referrer = document.querySelector("#referrer").value;
+    } catch(e) {
+        referrer = "search"
+    }
     const data = {
         release: document.querySelector("#release").value,
         artist: document.querySelector("#artist").value,
         label: document.querySelector("#label").value,
-        "referrer": "search"
+        "referrer": referrer,
+        "page": page
     };
     fetch('/search', {
         method: 'POST',
@@ -198,6 +211,7 @@ function handleSearchButton() {
     })
     .then(response => response.text())
     .then(html => {
+        // add event listener to each table row
         addPopupListeners(html);
     })
     .catch(error => {
@@ -205,7 +219,7 @@ function handleSearchButton() {
     });
 }
 
-function handlePageButton(direction) {
+function handleSearchPageButton(direction) {
     // Retrieve next page and per_page numbers as integer
     let next = getPageButtonDirection(direction);
     let perPage = +document.querySelector("#per_page").innerHTML;
@@ -228,23 +242,6 @@ function handlePageButton(direction) {
     .then(html => {addPopupListeners(html)})
 }
 
-function handleDynamicPageButton(direction) {
-    let next = getPageButtonDirection(direction);
-    let perPage = +document.querySelector("#per_page").innerHTML;
-    let data = document.querySelector("#data_full").innerHTML;
-    let search_type = document.querySelector("#search_type").innerHTML;
-    let formatted = formatDataString(data);
-    let parsed = JSON.parse(formatted);
-    let requestData = {"next_page": next, "per_page": perPage, "data": parsed, "referrer": "page_button", "search_type": search_type}
-     fetch('/dynamic_search', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(requestData)
-    })
-    .then(response => response.text())
-    .then(html => {addPopupListeners(html)})
-}
-
 function getPageButtonDirection(direction) {
     let next;
     if (direction === 'next') {
@@ -253,78 +250,6 @@ function getPageButtonDirection(direction) {
         next = +document.querySelector("#prev_page").value;
     }
     return next;
-}
-
-function handleReleaseSearch() {
-    let data = {
-        name: document.querySelector("#name").value,
-        artist: document.querySelector("#artist").value,
-        label: document.querySelector("#label").value,
-        country: document.querySelector("#country").value,
-        rating_comparison: document.querySelector("#rating-filter").value,
-        rating: document.querySelector("#rating").value,
-        year_comparison: document.querySelector("#year-filter").value,
-        release_year: document.querySelector("#release_year").value,
-        genre: document.querySelector("#genre").value,
-        tags: [document.querySelector("#tags").value]
-    };
-    fetch('/release_search', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-    })
-    .then(function(response) {
-        return response.text();
-    })
-    .then(function(html) {
-        document.querySelector("#search-results").innerHTML = html;
-    })
-}
-
-function handleArtistSearch() {
-    let data = {
-        name: document.querySelector("#artist").value,
-        country: document.querySelector("#country").value,
-        begin_comparison: document.querySelector("#begin_filter").value,
-        begin_date: document.querySelector("#begin_date").value,
-        end_comparison: document.querySelector("#end_filter").value,
-        end_date: document.querySelector("#end_date").value,
-        type: document.querySelector("#type").value
-    };
-    fetch('/artist_search', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-    })
-        .then(function(response) {
-            return response.text();
-        })
-        .then(function(html) {
-            document.querySelector("#search-results").innerHTML = html;
-        })
-}
-
-function handleLabelSearch() {
-    let data = {
-        name: document.querySelector("#label").value,
-        country: document.querySelector("#country").value,
-        begin_comparison: document.querySelector("#begin_filter").value,
-        begin_date: document.querySelector("#begin_date").value,
-        end_comparison: document.querySelector("#end_filter").value,
-        end_date: document.querySelector("#end_date").value,
-        type: document.querySelector("#type").value,
-    }
-    fetch('/label_search', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-    })
-    .then(function(response) {
-        return response.text();
-    })
-    .then(function(html) {
-        document.querySelector("#search-results").innerHTML = html;
-    })
 }
 
 function handleStatsSearch() {
@@ -355,19 +280,73 @@ function loadHomeTable(direction) {
     } catch (e) {
         currentPage = "1";
     }
-    // currentPage = "1";
-    console.log("Current page: ", currentPage);
     let targetPage = currentPage;
     if (direction === 'prev') targetPage = parseInt(currentPage) - 1;
     if (direction === 'next') targetPage = parseInt(currentPage) + 1;
-
-    console.log("Target page: ", targetPage)
 
     fetch('/home_release_table?page=' + targetPage)
         .then(response => response.text())
         .then(html => {
             document.getElementById('home_release_table').innerHTML = html;
         });
+}
+
+function loadSearchTable(type, direction) {
+    let formData;
+    if (type === 'release') {
+        formData = {
+            name: document.querySelector("#name").value,
+            artist: document.querySelector("#artist").value,
+            label: document.querySelector("#label").value,
+            country: document.querySelector("#country").value,
+            rating_comparison: document.querySelector("#rating-filter").value,
+            rating: document.querySelector("#rating").value,
+            year_comparison: document.querySelector("#year-filter").value,
+            release_year: document.querySelector("#release_year").value,
+            genre: document.querySelector("#genre").value,
+            tags: [document.querySelector("#tags").value]
+        };
+    }
+    if (type === 'artist') {
+        formData = {
+            name: document.querySelector("#artist").value,
+            country: document.querySelector("#country").value,
+            begin_comparison: document.querySelector("#begin_filter").value,
+            begin_date: document.querySelector("#begin_date").value,
+            end_comparison: document.querySelector("#end_filter").value,
+            end_date: document.querySelector("#end_date").value,
+            type: document.querySelector("#type").value
+        };
+    }
+    if (type === 'label') {
+        formData = {
+            name: document.querySelector("#label").value,
+            country: document.querySelector("#country").value,
+            begin_comparison: document.querySelector("#begin_filter").value,
+            begin_date: document.querySelector("#begin_date").value,
+            end_comparison: document.querySelector("#end_filter").value,
+            end_date: document.querySelector("#end_date").value,
+            type: document.querySelector("#type").value,
+        }
+    }
+    let currentPage;
+    try {
+        currentPage = document.getElementById('current_page').value;
+    } catch(e) {
+        currentPage = "1";
+    }
+    let targetPage = currentPage;
+    if (direction === 'prev') targetPage = parseInt(currentPage) - 1;
+    if (direction === 'next') targetPage = parseInt(currentPage) + 1;
+    fetch('/' + type + '_search?page=' + targetPage, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(formData)
+    })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('search-results').innerHTML = html;
+        })
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -382,32 +361,74 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    if (window.location.pathname === "/new") {
+        document.addEventListener('click', function(event) {
+            if (event.target && event.target.classList.contains('new-release-search')) {
+                handleSearchButton();
+            }
+            if (event.target && event.target.classList.contains('page-btn')) {
+                let direction = event.target.dataset.direction;
+                handleSearchPageButton(direction);
+            }
+        })
+    }
+
+    if (window.location.pathname === "/releases") {
+        document.addEventListener('click', function (event) {
+            if (event.target && event.target.id === 'release-search') {
+                loadSearchTable('release');
+            }
+            if (event.target && event.target.classList.contains('pagination_button')) {
+                if (event.target.classList.contains('prev_page')) {
+                    loadSearchTable('release', 'prev')
+                }
+                if (event.target.classList.contains('next_page')) {
+                    loadSearchTable('release', 'next')
+                }
+            }
+        })
+    }
+
+    if (window.location.pathname === "/artists") {
+        document.addEventListener('click', function (event) {
+            if (event.target && event.target.id === 'artist-search') {
+                loadSearchTable('artist');
+            }
+            if (event.target && event.target.classList.contains('pagination_button')) {
+                if (event.target.classList.contains('prev_page')) {
+                    loadSearchTable('artist', 'prev')
+                }
+                if (event.target.classList.contains('next_page')) {
+                    loadSearchTable('artist', 'next')
+                }
+            }
+        })
+    }
+
+    if (window.location.pathname === "/labels") {
+        document.addEventListener('click', function (event) {
+            if (event.target && event.target.id === 'label-search') {
+                loadSearchTable('label');
+            }
+            if (event.target && event.target.classList.contains('pagination_button')) {
+                if (event.target.classList.contains('prev_page')) {
+                    loadSearchTable('label', 'prev')
+                }
+                if (event.target.classList.contains('next_page')) {
+                    loadSearchTable('label', 'next')
+                }
+            }
+        })
+    }
+
+
     document.addEventListener('click', function(event) {
-        // Handle search button click
-        if (event.target && event.target.classList.contains('new-release-search')) {
-            handleSearchButton();
-        }
-       if (event.target && event.target.classList.contains('search-submit-btn')) {
-           handleSearchSubmitButton();
-       }
         if (event.target && event.target.classList.contains('delete-btn')) {
             let deleteBtn = document.querySelector("#delete-btn");
             handleDeleteButton(deleteBtn);
         }
-        // Handle /search pagination button clicks
-        if (event.target && event.target.classList.contains('page-btn')) {
-            let direction = event.target.dataset.direction;
-            handlePageButton(direction);
-        }
-        if (event.target && event.target.id === 'release-search') {
-            handleReleaseSearch();
-        }
-        if (event.target && event.target.classList.contains('artist-search')) {
-            handleArtistSearch();
-        }
-        if (event.target && event.target.classList.contains('label-search')) {
-            handleLabelSearch();
-        }
+
         // Handle /releases, /labels, /artists pagination button clicks
         if (event.target && event.target.classList.contains('dynamic-page-btn')) {
             let direction = event.target.dataset.direction;

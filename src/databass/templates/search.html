@@ -1,7 +1,8 @@
 {% if data %}
 
-
+<input type="hidden" value="{{ pagination.page }}" id="current_page">
 <form id="data_form" action="/submit" method="post">
+<input type="hidden" name="referrer" value="page_button">
 <table>
     <thead>
     <tr>
