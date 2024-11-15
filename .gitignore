@@ -12,3 +12,5 @@ src/databass/static/img/*
 pg_data
 images*
 *backup*
+src/databass/static/dist/*
+*webassets-cache*
