@@ -25,7 +25,7 @@ services:
       - ./${SQLITE_DB}/:/databass/${SQLITE_DB}
       - ./images:/databass/static/img
   postgres:
-    image: postgres
+    image: postgres:16.5
     restart: always
     container_name: ${PG_HOSTNAME}
     environment:
