@@ -47,11 +47,22 @@ def register_routes(app):
         actions = ["search"]
         return render_template("new.html", actions=actions, active_page='new')
 
-    @app.route("/search", methods=["POST"])
+    @app.route("/search", methods=["POST", "GET"])
     def search() -> str | flask.Response:
         from .pagination import Pager
         # Initialize variables to None
         page = data_length = paged_data = release_data = per_page = None
+
+        if request.method == "GET":
+            return render_template(
+                "search.html",
+                page=page,
+                data=paged_data,
+                pagination=None,
+                data_full=release_data,
+                per_page=per_page
+            )
+
 
         data = request.get_json()
         try:

@@ -340,6 +340,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.location.pathname === "/new") {
         document.addEventListener('click', function(event) {
+            if (event.target && event.target.classList.contains('manual-entry')) {
+                fetch('/search', {
+                    method: 'GET'
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('search_results').innerHTML = html;
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
+            }
             if (event.target && event.target.classList.contains('new-release-search')) {
                 handleSearchButton();
             }
