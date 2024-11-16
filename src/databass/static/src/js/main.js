@@ -3,10 +3,13 @@ function handleDeleteButton(deleteButton) {
     let itemType = deleteButton.getAttribute('data-type');
     const popup = document.createElement('div');
     popup.className = 'popup';
+    popup.id = 'delete_popup';
     popup.innerHTML = `
-    <p>Are you sure? This cannot be undone.</p>
-    <button id="confirm" class="search-btn">yes</button>
-    <button id="cancel" class="search-btn">no</button>
+    <h1>Are you sure?&nbsp;This cannot be undone.</h1>
+    <div>
+    <button id="confirm" class="delete">delete</button>
+    <button id="cancel" class="delete">cancel</button>
+    </div>
     `;
     document.body.appendChild(popup);
     // If 'yes' button is pressed, delete the release
@@ -23,6 +26,23 @@ function handleDeleteButton(deleteButton) {
     popup.querySelector('#cancel').addEventListener('click', function() {
         document.body.removeChild(popup);
     });
+}
+
+function handleEditButton(editButton) {
+    let releaseId = editButton.getAttribute('data-id');
+    fetch('/release/' + releaseId + '/edit')
+        .then(response => response.text())
+        .then(html => {
+            let popup = document.createElement('div');
+            popup.id = 'edit_popup';
+            popup.className = 'popup';
+            popup.innerHTML = html;
+            document.body.appendChild(popup);
+
+            popup.querySelector('#edit_cancel').addEventListener('click', () => {
+                document.body.removeChild(popup);
+            });
+        })
 }
 
 function formatDataString(data) {
@@ -346,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                     .then(response => response.text())
                     .then(html => {
-                        document.getElementById('search_results').innerHTML = html;
+            document.getElementById('search_results').innerHTML = html;
                     })
                     .catch(error => {
                         console.error('Fetch error:', error);
@@ -419,6 +439,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target && event.target.classList.contains('delete-btn')) {
             let deleteBtn = document.querySelector("#delete-btn");
             handleDeleteButton(deleteBtn);
+        }
+
+        if (event.target && event.target.id === 'edit-btn') {
+            let editButton = document.querySelector('#edit-btn');
+            handleEditButton(editButton);
         }
 
         // Handle /stats search button

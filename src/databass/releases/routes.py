@@ -20,21 +20,28 @@ def release(release_id):
     artist_data = models.Artist.exists_by_id(release_data.artist_id)
     label_data = models.Label.exists_by_id(release_data.label_id)
     existing_reviews = models.Release.get_reviews(int(release_id))
-    data = {"release": release_data,
-            "artist": artist_data,
-            "label": label_data,
-            "reviews": existing_reviews}
+    label_releases = models.Label.get_releases(release_data.label_id)
+    artist_releases = models.Artist.get_releases(release_data.artist_id)
+    data = {
+        "release": release_data,
+        "artist": artist_data,
+        "label": label_data,
+        "reviews": existing_reviews,
+        "label_releases": label_releases,
+        "artist_releases": artist_releases
+    }
     return render_template('release.html', data=data)
 
+
 @release_bp.route('/release/<string:release_id>/edit', methods=['GET', 'POST'])
-def edit_release(release_id):
+def edit(release_id):
     # Check if release exists
     release_data = models.Release.exists_by_id(int(release_id))
     if not release_data:
         error = f"No release with id {release_id} found."
         flash(error)
         return redirect('/error', code=302)
-    # Handle actual request
+
     if request.method == 'GET':
         release_image = release_data.image[1:]
         label_data = models.Label.exists_by_id(release_data.label_id)
@@ -46,39 +53,80 @@ def edit_release(release_id):
                                image=release_image)
     elif request.method == 'POST':
         edit_data = request.form.to_dict()
-        image = edit_data["image"]
-        if "http" and "://" in image:
-            # If image is a URL, we need to download it
-            # TODO: move this into dedicated function when Util.get_image is rewritten
-            import requests
-            from dotenv import load_dotenv
-            from os import getenv
-            load_dotenv()
-            VERSION = getenv("VERSION")
+        submit_data = {}
 
-            response = requests.get(image, headers={
-                "Accept": "application/json",
-                "User-Agent": f"databass/{VERSION} (https://github.com/chunned/databass)"
-            })
-            if response:
-                ext = Util.get_image_type_from_url(image)
-                base_path = './databass/static/img'
-                image_filepath = base_path + '/release/' + edit_data["id"] + ext
-                with open(image_filepath, 'wb') as img_file:
-                    img_file.write(response.content)
+        # image
+        try:
+            if edit_data["image"]:
+                image = edit_data["image"]
+                if "http" and "://" in image:
+                    # If image is a URL, download it
+                    new_image = Util.get_image(
+                        item_type='release',
+                        item_id=release_id,
+                        url=image
+                    )
+                    submit_data["image"] = new_image
+                else:
+                    raise ValueError("Image value must be a URL")
+        except KeyError:
+            pass
 
-                edit_data["image"] = image_filepath.replace('databass/', '')
+        # release year
+        try:
+            year = edit_data["release_year"]
+            if year:
+                submit_data["release_year"] = year
+        except KeyError:
+            pass
 
-        updated_release = db.construct_item('release', edit_data)
+        # listen date
+        try:
+            listen_date = edit_data["listen_date"]
+            if listen_date:
+                from datetime import datetime
+                submit_data["listen_date"] = datetime.strptime(listen_date, "%Y-%m-%d")
+        except KeyError:
+            pass
+
+        # rating
+        try:
+            rating = edit_data["rating"]
+            if rating:
+                submit_data["rating"] = rating
+        except KeyError:
+            pass
+
+        # genre
+        try:
+            genre = edit_data["genre"]
+            if genre:
+                submit_data["genre"] = genre
+        except KeyError:
+            pass
+
+        updated_release = db.construct_item('release', submit_data)
         # construct_item() will produce a unique ID primary key, so we need to set it to the original one for update() to work
         try:
-            updated_release.id = edit_data['id']
+            updated_release.id = release_id
+            # grab the other release so we can inject the data that doesn't change
+            old_release = models.Release.exists_by_id(release_id)
+            updated_release.artist_id = old_release.artist_id
+            updated_release.label_id = old_release.label_id
+            updated_release.runtime = old_release.runtime
+            updated_release.track_count = old_release.track_count
+            updated_release.tags = old_release.tags # TODO: allow editing for tags
+            updated_release.country = old_release.country
+            updated_release.country = old_release.country
+
         except KeyError:
-            error = f"Edit data missing ID key, unable to update an existing entry without ID."
+            error = f"Edit data missing ID, unable to update an existing entry without ID."
             flash(error)
             return redirect('/error', code=302)
         db.update(updated_release)
         return redirect('/', 302)
+
+
 
 @release_bp.route('/delete', methods=['POST'])
 def delete():

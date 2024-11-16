@@ -14,6 +14,10 @@
 @row_height_small: 4vh;
 
 /* mixins */
+.grid {
+  display: grid;
+}
+
 .grey_border {
   border: 1px solid @grey;
 }
@@ -25,6 +29,69 @@
 .grey_bg {
   background: @grey;
 }
+
+.black_bg {
+  background: @black;
+}
+
+.entity_container {
+  width: 100%;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 1%;
+  .grid();
+  grid-template-columns: 20vw 1fr;
+  h1 {
+    font-size: 1.5rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+  }
+  #release, #artist, #label {
+    .grey_border();
+    padding: 5%;
+    overflow-y: scroll;
+    #top {
+      margin-bottom: 2vh;
+    }
+    #info {
+      justify-content: center;
+      text-align: center;
+      margin-bottom: 2vh;
+      .grey_border();
+      div {
+        margin-top: 1vh;
+        margin-bottom: 1vh;
+      }
+    }
+  }
+  aside {
+    .grey_border();
+    margin-right: 20px;
+    .grid();
+    #artist_info, #label_info, #release_info {
+      .grey_border();
+      padding: 1%;
+      max-height: 46vh;
+      overflow-y: scroll;
+      .grid();
+      grid-template-rows: @row_height_small auto;
+
+      div {
+        .grid();
+        grid-template-columns: repeat(5, 1fr);
+        //grid-template-rows: repeat(5, 1fr);
+
+        img {
+          height: 250px;
+          max-width: 250px;
+        }
+      }
+    }
+  }
+}
+
+
 
 /* generics */
 
@@ -43,13 +110,14 @@ body {
   height: 100vh;
   padding: 10px;
   overflow: hidden;
-  display: grid;
+  .grid();
   grid-template-rows: auto 1fr;
 }
 
 .content {
   width: 100%;
   height: 100%;
+  max-height: 92.5vh;
   margin: 10px;
   display: flex;
 }
@@ -106,7 +174,7 @@ input, button {
   width: 100%;
   height: 100%;
   flex: 1;
-  display: grid;
+  .grid();
   grid-template-columns: 1fr 22.5vw;
 
   #home_table, #home_aside {
@@ -117,7 +185,7 @@ input, button {
 
   #home_table {
     #home_table_pagination {
-      display: grid;
+      .grid();
       grid-template-columns: 1fr 1fr;
     }
     thead {
@@ -160,7 +228,7 @@ input, button {
     flex-direction: column;
 
     h4 {
-      display: grid;
+      .grid();
       align-items: center;
       height: @row_height_small;
     }
@@ -184,7 +252,7 @@ input, button {
 #new_release {
   width: 100%;
   height: 100%;
-  display: grid;
+  .grid();
   grid-template-rows: 5vh 1fr;
 
   #search_form {
@@ -194,7 +262,7 @@ input, button {
     form {
       height: 100%;
       width: 100%;
-      display: grid;
+      .grid();
       grid-template-columns: 5vw 10vw 5vw 10vw 4vw 10vw 5vw 10vw;
       align-items: center;
       text-align: center;
@@ -269,31 +337,236 @@ input, button {
   }
 }
 
-/* /releases, /artists, /labels */
 
+
+
+/* /release/# */
+#release_container {
+  .entity_container();
+  #release {
+    #top {
+      .grid();
+      grid-template-columns: 1.5fr 1fr;
+      #image {
+        height: 250px;
+        width: 250px;
+        img {
+          max-width: 100%;
+        }
+      }
+      #buttons {
+        .grid();
+        grid-template-rows: 1fr 1fr;
+        button {
+          .black_border();
+          font-size: larger;
+        }
+
+        #edit-btn {
+          margin-bottom: 1vh;
+        }
+
+        #delete-btn {
+          margin-top: 1vh;
+        }
+      }
+    }
+
+    #info {
+      .grid();
+      grid-template-rows: 0.5fr 1fr 0.75fr auto;
+      #rating {
+        .grid();
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        height: @row_height_small;
+      }
+      #genres {
+        ul {
+          list-style-type: none;
+        }
+      }
+    }
+
+    #reviews {
+      text-align: center;
+      .grey_border();
+      padding: 5%;
+
+      #new {
+        margin-bottom: 2%;
+        .grid();
+        align-items: center;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      #existing {
+        #review_table {
+          .grid();
+          grid-template-rows: 1fr auto;
+          align-items: start;
+          font-size: 0.75rem;
+
+          div {
+            .grid();
+            grid-template-columns: 1fr 4fr;
+            border-bottom: 1px solid @grey;
+            margin-bottom: 1vh;
+
+            #review_text {
+              margin-left: 1vw;
+              text-align: left;
+            }
+          }
+        }
+      }
+    }
+  }
+  aside {
+    grid-template-rows: 1fr 1fr;
+  }
+}
+
+#delete_popup {
+  height: 25vh;
+  .grid();
+  grid-template-rows: 1fr 1fr;
+
+  div {
+    .grid();
+    grid-template-columns: 1fr 1fr;
+
+    .delete {
+      .black_border();
+      font-size: larger;
+    }
+  }
+}
+
+#edit_popup {
+  height: 40vh;
+  .black_bg();
+  padding: 2%;
+
+  .grid();
+  grid-template-rows: @row_height_small auto;
+
+  #top {
+    .grid();
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+
+    button {
+      .black_border;
+      font-size: larger;
+    }
+
+    #edit_submit {
+      margin-right: 3vh;
+    }
+
+    #edit_cancel {
+      margin-left: 3vh;
+    }
+  }
+
+  #bottom {
+    margin-top: 3vh;
+    form {
+      .grid();
+      grid-template-rows: repeat(5, @row_height_small);
+      justify-content: center;
+
+      div {
+        .grid();
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        font-size: large;
+
+        label {
+          text-align: right;
+          margin-right: 0.6vw;
+        }
+
+        input {
+          height: @row_height_small;
+          .black_border();
+          padding-left: 0.2vw;
+        }
+      }
+    }
+  }
+}
+
+/* /artist/# */
+#artist_container {
+  .entity_container();
+  #artist {
+    #top {
+      #artist_image {
+        overflow: hidden;
+      }
+    }
+
+    #info {
+      #name {
+        .grid();
+        grid-template-columns: 1fr 1fr;
+        justify-content: center;
+      }
+    }
+  }
+  aside {
+    grid-template-rows: 100%;
+    #release_info {
+      max-height: 92vh;
+    }
+  }
+}
+
+
+/* /label/# */
+#label_container {
+  .entity_container();
+  #label {
+    #top {
+      #label_image {
+        overflow-y: scroll;
+      }
+    }
+  }
+  aside {
+    grid-template-rows: 100%;
+    #release_info {
+      max-height: 92vh;
+    }
+  }
+}
+
+
+/* /releases, /artists, /labels */
 #label_search, #artist_search, #release_search {
   width: 100%;
-  display: grid;
+  .grid();
   grid-template-rows: 10vh 1fr;
   align-items: center;
 
 
   .search_div {
-    display: grid;
+    .grid();
     grid-template-rows: 1fr 1fr;
     place-items: center;
   }
 
   #release_search_bar {
     width: 80%;
-    display: grid;
+    .grid();
     grid-template-columns: repeat(9, 1fr);
     margin: 0 auto;
   }
 
   #label_search_bar, #artist_search_bar {
     width: 80%;
-    display: grid;
+    .grid();
     grid-template-columns: repeat(6, 1fr);
     margin: 0 auto;
   }
@@ -304,7 +577,7 @@ input, button {
 }
 
 #entity_search_results {
-  display: grid;
+  .grid();
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(3, 25vh);
   justify-content: center;
@@ -338,7 +611,7 @@ input, button {
     height: 100%;
     #stats_quick {
       .stats_grid {
-        display: grid;
+        .grid();
         grid-template-columns: repeat(7, 1fr);
         gap: 5rem;
         width: 100%;
@@ -352,12 +625,12 @@ input, button {
     }
     #stats_full {
       height: 100%;
-      display: grid;
+      .grid();
       grid-template-columns: 1fr 1fr;
 
       .stats_column {
         height: 100%;
-        display: grid;
+        .grid();
         grid-template-rows: 5vh 1fr;
         .grey_border();
         padding: 5px 20px 5px 20px;
@@ -368,7 +641,7 @@ input, button {
         }
 
         .stats_inner {
-          display: grid;
+          .grid();
           grid-template-columns: repeat(3, 1fr);
 
           .stats_inner_column {
@@ -377,18 +650,18 @@ input, button {
 
             .stats_table {
               text-align: left;
-              display: grid;
+              .grid();
               grid-template-rows: 5vh 1fr;
               width: 95%;
               margin-top: 3vh;
 
               .stats_table_head, .stats_table_body {
-                display: grid;
+                .grid();
                 grid-template-columns: 1fr 4vw;
               }
 
               .stats_table_head_3, .stats_table_body_3 {
-                display: grid;
+                .grid();
                 grid-template-columns: 1fr 3vw 2vw;
               }
 
@@ -401,7 +674,7 @@ input, button {
             }
 
             .bayesian {
-              display: grid;
+              .grid();
               grid-template-columns: 1fr 1fr;
             }
           }

@@ -17,6 +17,9 @@ def artist(artist_id):
         return redirect('/error', code=302)
 
     artist_releases = Artist.get_releases(artist_id)
+
+
+
     data = {"artist": artist_data, "releases": artist_releases}
     return render_template('artist.html', data=data)
 

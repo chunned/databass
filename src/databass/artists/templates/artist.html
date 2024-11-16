@@ -1,55 +1,55 @@
 {% extends '_base.html' %}
 {% block content %}
-<div class="page-content">
-    <div>
-        <h1>{{ data.artist.name }}</h1>
-        {% if data.artist.image %}
-            {% set src = data.artist.image %}
-        {% else %}
-            {% set src = "/static/img/none.png" %}
-        {% endif %}
-        <img src="../{{ src }}" alt="Artist icon" style="max-height: 75vh; max-width: 100%;">
-    </div>
-    <div>
-        <div class="artist-table">
-            <table>
-                <tr>
-                    <td>
-                        {% if data.artist.type == 'person' %}born:
-                        {% elif data.artist.type == 'group' %}founded:
-                        {% endif %}
-                        {{ data.artist.begin_date }}
-                    </td>
-                    <td>
-                        {% if data.artist.type == 'person' %}died:
-                        {% elif data.artist.type == 'group' %}ended:
-                        {% endif %}
-                        {{ data.artist.end_date }}
-                    </td>
-                    <td>
-                        country: {{ data.artist.country }}
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <div class="data-grid" style="grid-template-columns: repeat(4, 25%); grid-auto-rows: 350px;">
-            {% for release in data.releases %}
-            <div class="grid-cell" style="height: 350px; width: 250px; overflow: hidden; border-collapse: collapse;">
 
-                {% if release[0].image %}
-                    {% set src = release[0].image %}
+<article id="artist_container">
+    <section id="artist">
+        <div id="top">
+            <div id="artist_image">
+                {% if data.artist.image %}
+                    {% set src = data.artist.image %}
                 {% else %}
-                    {% set src = "/static/img/none.png" %}
+                    {% set src = "static/img/none.png" %}
                 {% endif %}
-                <img src="../{{ src }}" style="height:250px; width:250px;" alt="Album art">
-
-
-
-                <p style="padding: 7px;"><a href="/release/{{ release[0].id }}" class="link">{{ release[0].name }}</a> ({{ release[0].release_year }}) - {{ release[0].rating }}%
-                <br><a href="/label/{{ release[0].label_id }}" class="link">{{ release[1] }}</a></p>
+                <img src="../{{ src }}" alt="Artist image">
             </div>
-            {% endfor %}
         </div>
-    </div>
-</div>
+        <div id="info">
+            <div id="name">
+                <h1>{{ data.artist.name }}</h1>
+                <h1>{{ data.artist.country }}</h1>
+            </div>
+            <div id="start">
+                {% if data.artist.type == 'person' %}born:
+                {% elif data.artist.type == 'group' %}founded:
+                {% endif %}
+                {{ data.artist.begin_date }}
+            </div>
+            <div id="end">
+                {% if data.artist.type == 'person' %}died:
+                {% elif data.artist.type == 'group' %}ended:
+                {% endif %}
+                {{ data.artist.end_date }}
+            </div>
+        </div>
+    </section>
+    <aside>
+        <div id="release_info">
+            <h1>releases</h1>
+            <div>
+                {% for item in data.releases %}
+                    <div>
+                        {% if item.Release.image %}
+                            {% set release_img = item.Release.image.lstrip('.') %}
+                        {% else %}
+                            {% set release_img = "/static/img/none.png" %}
+                        {% endif %}
+                        <a href="/release/{{ item.Release.id }}"><img src="{{ release_img }}" alt="Release image"></a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </aside>
+</article>
+
 {% endblock %}

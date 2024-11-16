@@ -138,9 +138,23 @@ class Util:
             mbid: str = None,
             release_name: str = None,
             artist_name: str = None,
-            label_name: str = None
+            label_name: str = None,
+            url: str = None,
     ):
         # TODO: refactor
+        if url:
+            # if we are provided the url, just grab it, don't check APIs
+            import requests
+            response = requests.get(url, headers={
+                "User-Agent": f"databass/{VERSION} (https://github.com/chunned/databass)"
+            })
+            if response:
+                ext = Util.get_image_type_from_url(url)
+                base_path = './databass/static/img'
+                img_filepath = base_path + '/release/' + str(item_id) + ext
+                with open(img_filepath, 'wb') as img_file:
+                    img_file.write(response.content)
+                return img_filepath.replace('databass/', '')
         img = img_type = img_url = None
         base_path = "./databass/static/img"
         subdir = item_type

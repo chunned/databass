@@ -3,10 +3,7 @@ venv
 __pycache__
 .env
 *.db
-db.bat
 *.drawio*
-test.py
-test2.html
 pyrightconfig.json
 src/databass/static/img/*
 pg_data
@@ -14,3 +11,5 @@ images*
 *backup*
 src/databass/static/dist/*
 *webassets-cache*
+style.css.map
+src/databass/static/src/less/style.css

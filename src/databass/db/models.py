@@ -161,6 +161,7 @@ class Release(MusicBrainzEntity):
     tags: Mapped[str | None] = mapped_column(String())
 
     tag_list = relationship("Tag", back_populates="release", cascade="all, delete-orphan")
+    reviews = relationship("Review", cascade="all, delete-orphan", back_populates="release")
     # Below is deprecated; can be removed, but need to deal with existing entries
     review: Mapped[str | None] = mapped_column(String())
 
@@ -954,6 +955,8 @@ class Review(app_db.Model):
     release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
     timestamp: Mapped[date] = mapped_column(DateTime, default=func.now())
     text: Mapped[str] = mapped_column(String())
+
+    release = relationship("Release", back_populates="reviews")
 
 
 class Tag(app_db.Model):
