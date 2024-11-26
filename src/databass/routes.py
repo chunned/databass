@@ -1,5 +1,5 @@
 import flask
-from flask import render_template, request, redirect, abort, flash
+from flask import render_template, request, redirect, abort, flash, make_response, send_file
 from .api import Util, MusicBrainz, Discogs
 from . import db
 from .db import models
@@ -222,6 +222,28 @@ def register_routes(app):
 
         db.insert(goal)
         return redirect('/goals', 302)
+
+    @app.route('/img/<string:itemtype>/<int:itemid>', methods=['GET'])
+    def serve_image(itemtype: str, itemid: int):
+        item = ''
+        if itemtype == 'artist':
+            item = models.Artist.exists_by_id(itemid)
+        if itemtype == 'label':
+            item = models.Label.exists_by_id(itemid)
+        if itemtype == 'release':
+            item = models.Release.exists_by_id(itemid)
+
+        try:
+            img_path = item.image
+        except KeyError:
+            img_path = "./static/img/none.png"
+        try:
+            resp = make_response(send_file(img_path))
+        except TypeError:
+            img_path = "./static/img/none.png"
+            resp = make_response(send_file(img_path))
+        resp.headers['Cache-Control'] = 'max-age'
+        return resp
 
     # TODO: see if still needed
     @app.route('/stats_search', methods=['GET'])

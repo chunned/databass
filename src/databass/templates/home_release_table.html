@@ -12,7 +12,7 @@
             {% if pagination.has_next %}
                 <button class="pagination_button next_page">next</button>
             {% else %}
-                <button disabled style="color: var(--color-black);" class="pagination_button">next</button>
+                <button disabled class="pagination_button">next</button>
             {% endif %}
         </th>
         <th>
@@ -39,11 +39,7 @@
     {% for release in data %}
         <tr>
             <td>
-                {% if release.image %}
-                    <img src="{{  release.image }}" alt="album art">
-                {% else %}
-                    <img src="./static/img/none.png" alt="album art missing">
-                {% endif %}
+                <img src="/img/release/{{ release.id }}" alt="album art">
             </td>
             <td>
                 <a href="/release/{{ release.id }}" class="link">{{ release.name }}</a>

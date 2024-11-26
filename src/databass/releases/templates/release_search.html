@@ -15,11 +15,7 @@
     {% for release in data[0:15] %}
         <div class="search_result">
             <a href="/release/{{ release.id }}">
-                {%  if release.image is none %}
-                    <img src="" alt="Album art" class="search_image">
-                {% else %}
-                    <img src="{{ release.image }}" alt="Album art" class="search_image">
-                {% endif %}
+                <img src="/img/release/{{ release.id }}" alt="Album art" class="search_image">
                 <p>{{ release.name }} ({{ release.release_year }})</p>
             </a>
         </div>

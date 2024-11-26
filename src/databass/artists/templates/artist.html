@@ -5,12 +5,7 @@
     <section id="artist">
         <div id="top">
             <div id="artist_image">
-                {% if data.artist.image %}
-                    {% set src = data.artist.image %}
-                {% else %}
-                    {% set src = "static/img/none.png" %}
-                {% endif %}
-                <img src="../{{ src }}" alt="Artist image">
+                <img src="/img/artist/{{ data.artist.id }}" alt="Artist image">
             </div>
         </div>
         <div id="info">
@@ -38,12 +33,7 @@
             <div>
                 {% for item in data.releases %}
                     <div>
-                        {% if item.Release.image %}
-                            {% set release_img = item.Release.image.lstrip('.') %}
-                        {% else %}
-                            {% set release_img = "/static/img/none.png" %}
-                        {% endif %}
-                        <a href="/release/{{ item.Release.id }}"><img src="{{ release_img }}" alt="Release image"></a>
+                        <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Release image"></a>
                     </div>
                 {% endfor %}
             </div>

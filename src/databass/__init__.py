@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from .db.base import app_db
 from .routes import register_routes
 from flask_assets import Environment, Bundle
+from flask_caching import Cache
 
 load_dotenv()
 VERSION = os.environ.get('VERSION')
@@ -13,6 +14,7 @@ print(f'App version: {VERSION}')
 def create_app():
     app = Flask(__name__, instance_relative_config=False)
     app.config.from_object('config.Config')
+    cache = Cache(app)
     app.static_folder = 'static'
     app_db.init_app(app)
 

@@ -4,12 +4,7 @@
     <section id="release">
         <div id="top">
             <div id="image">
-                {% if data.release.image %}
-                    {% set src = data.release.image %}
-                {% else %}
-                    {% set src = "static/img/none.png" %}
-                {% endif %}
-                <img src="../{{ src }}" alt="Album art">
+                <img src="/img/release/{{ data.release.id }}" alt="Album art">
             </div>
             <div id="buttons">
                 <button id="edit-btn" data-id="{{ data.release.id }}">edit</button>
@@ -94,12 +89,7 @@
                 {% for item in data.artist_releases %}
                     {% if not item.Release.id == data.release.id %}
                         <div>
-                            {% if item.Release.image %}
-                                {% set release_img = item.Release.image.lstrip('.') %}
-                            {% else %}
-                                {% set release_img = "/static/img/none.png" %}
-                            {% endif %}
-                            <a href="/release/{{ item.Release.id }}"><img src="{{ release_img }}" alt="Release image"></a>
+                            <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Release image"></a>
                         </div>
                     {% endif %}
                 {% endfor %}
@@ -111,12 +101,7 @@
                 {% for item in data.label_releases %}
                     {% if not item.Release.id == data.release.id %}
                         <div>
-                            {% if item.Release.image %}
-                                {% set release_img = item.Release.image.lstrip('.') %}
-                            {% else %}
-                                {% set release_img = "/static/img/none.png" %}
-                            {% endif %}
-                            <a href="/release/{{ item.Release.id }}"><img src="{{ release_img }}" alt="Album image"></a>
+                            <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Album image"></a>
                         </div>
                     {% endif %}
                 {% endfor %}

@@ -15,11 +15,7 @@
     {% for label in data[0:15] %}
         <div class="search_result">
             <a href="/label/{{ label.id }}">
-                {%  if label.image is none %}
-                    <img src="" alt="Label image" class="search_image">
-                {% else %}
-                    <img src="{{ label.image }}" alt="Label image" class="search_image">
-                {% endif %}
+                <img src="/img/label/{{ label.id }}" alt="Label image" class="search_image">
                 <p>{{ label.name }}</p>
             </a>
         </div>
