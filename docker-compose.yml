@@ -5,7 +5,7 @@ services:
     container_name: databass
     depends_on:
       - postgres
-    image: ghcr.io/chunned/databass:latest
+    build: .
     ports:
       - ${APP_PORT}:8080
     environment:
@@ -22,7 +22,6 @@ services:
       - VERSION=${VERSION}
       - DOCKER=True
     volumes:
-      - ./${SQLITE_DB}/:/databass/${SQLITE_DB}
       - ./images:/databass/static/img
   postgres:
     image: postgres:16.5
