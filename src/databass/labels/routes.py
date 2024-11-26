@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect
+from datetime import date
 from .. import db
 from ..db.models import Label
 
@@ -18,7 +19,14 @@ def label(label_id):
         flash(error)
         return redirect('/error', code=302)
     label_releases = Label.get_releases(label_id)
-    data = {"label": label_data, "releases": label_releases}
+    no_end = date(9999, 12, 31)
+    no_start = date(1, 1, 1)
+    data = {
+        "label": label_data,
+        "releases": label_releases,
+        "no_end": no_end,
+        "no_start": no_start
+    }
     return render_template('label.html', data=data)
 
 @label_bp.route('/labels', methods=["GET"])

@@ -14,13 +14,13 @@
                 <h1>{{ data.label.country }}</h1>
             </div>
             <div id="start">
-                started:
-                {{ data.label.begin_date }}
+                {% if data.label.begin_date != data.no_start %}
+                    started:
+                    {{ data.label.begin_date }}
+                {% endif %}
             </div>
             <div id="end">
-                {% if data.label.end_date.strftime('%Y-%m-%d') == '9999-12-31' %}
-
-                {% else %}
+                {% if data.label.end_date != data.no_end %}
                     ended:
                     {{ data.label.end_date }}
                 {% endif %}
