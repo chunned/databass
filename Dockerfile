@@ -10,7 +10,8 @@ RUN \
   pip3 install -r requirements.txt && \
   apk add --no-cache nodejs npm && \
   apk --purge del .build-deps && \
-  npm install -g less
+  npm install -g less && \
+  ln -s /usr/local/bin/lessc /usr/bin/lessc
 
 EXPOSE 8080
 
