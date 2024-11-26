@@ -23,7 +23,7 @@ class TestLabels:
         mock_db = mocker.patch("databass.db.models.Label.get_distinct_column_values", side_effect=mock_get_distinct_column_values)
         response = client.get("/labels")
         assert response.status_code == 200
-        assert b"search-bar" in response.data
+        assert b"label_search_bar" in response.data
         assert b"US" in response.data
         assert b"Imprint" in response.data
         assert mock_db.call_count == 2
@@ -38,7 +38,10 @@ class TestLabel:
         mock_label.id = 1
         mock_label.name = "Test Label"
         mock_db_label = mocker.patch("databass.db.models.Label.exists_by_id", return_value=mock_label)
-        mock_releases = mocker.patch("databass.db.models.Label.get_releases", return_value=[1, 2, 3])
+        mock_release = mocker.MagicMock()
+        mock_release.Release = mocker.MagicMock()
+        mock_release.Release.id = 1
+        mock_releases = mocker.patch("databass.db.models.Label.get_releases", return_value=[mock_release])
         response = client.get("/label/1")
         assert response.status_code == 200
         assert b"Test Label" in response.data

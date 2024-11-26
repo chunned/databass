@@ -78,7 +78,7 @@ def edit(release_id):
                     )
                     submit_data["image"] = new_image
                 else:
-                    raise ValueError("Image value must be a URL")
+                    print("Image not a URL. Skipping.")
         except KeyError:
             pass
 

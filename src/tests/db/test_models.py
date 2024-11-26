@@ -398,8 +398,8 @@ class TestReleaseAverageRuntime:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_query.return_value.scalar.side_effect = Exception("Database error")
 
-        with pytest.raises(Exception):
-            Release.average_runtime()
+        result = Release.average_runtime()
+        assert result == 0
 
 class TestReleaseTotalRuntime:
     """Test suite for Release.total_runtime class method"""
@@ -872,8 +872,13 @@ class TestReleaseDynamicSearch:
 
     def test_dynamic_search_empty_values(self, mocker):
         """Test that dynamic_search properly handles empty values in search criteria"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.order_by.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.filter.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.order_by.return_value = mock_query
+        mock_query.all.return_value = []
+
+        mocker.patch('databass.db.base.app_db.session.query', return_value=mock_query)
 
         result = Release.dynamic_search({"name": "", "genre": "NO VALUE"})
         assert isinstance(result, list)
@@ -884,7 +889,7 @@ class TestReleaseDynamicSearch:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_label = mocker.Mock()
         mock_label.id = 1
-        mock_exists = mocker.patch('databass.db.models.Label.exists_by_name')
+        mock_exists = mocker.patch('databass.db.models.Label.id_by_matching_name')
         mock_exists.return_value = [mock_label]
 
         Release.dynamic_search({"label": "Test Label"})
@@ -897,7 +902,7 @@ class TestReleaseDynamicSearch:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_artist = mocker.Mock()
         mock_artist.id = 1
-        mock_exists = mocker.patch('databass.db.models.Artist.exists_by_name')
+        mock_exists = mocker.patch('databass.db.models.Artist.id_by_matching_name')
         mock_exists.return_value = [mock_artist]
 
         Release.dynamic_search({"artist": "Test Artist"})
@@ -913,7 +918,7 @@ class TestReleaseDynamicSearch:
         Release.dynamic_search({
             "rating": "5",
             "rating_comparison": ">",
-            "year": "2023",
+            "release_year": "2023",
             "year_comparison": "="
         })
 
@@ -1233,8 +1238,15 @@ class TestArtistOrLabelAverageRatingsAndTotalCounts:
 
     def test_average_ratings_and_total_counts_returns_list(self, mocker):
         """Test that average_ratings_and_total_counts returns a list regardless of whether entries exist"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.where.return_value.having.return_value.group_by.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.join.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.having.return_value = mock_query
+        mock_query.group_by.return_value = mock_query
+        mock_query.order_by.return_value = mock_query
+        mock_query.all.return_value = []
+
+        mocker.patch('databass.db.base.app_db.session.query', return_value = mock_query)
 
         result = Artist.average_ratings_and_total_counts()
         assert isinstance(result, list)
@@ -1269,8 +1281,14 @@ class TestArtistOrLabelAverageRatingsAndTotalCounts:
     @pytest.mark.parametrize("model_class", [Artist, Label])
     def test_average_ratings_and_total_counts_works_for_both_models(self, mocker, model_class):
         """Test that average_ratings_and_total_counts works for both Artist and Label classes"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.where.return_value.having.return_value.group_by.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.join.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.having.return_value = mock_query
+        mock_query.group_by.return_value = mock_query
+        mock_query.order_by.return_value = mock_query
+        mock_query.all.return_value = []
+        mocker.patch('databass.db.base.app_db.session.query', return_value=mock_query)
 
         result = model_class.average_ratings_and_total_counts()
         assert isinstance(result, list)
@@ -1414,23 +1432,28 @@ class TestArtistOrLabelDynamicSearch:
         ({"name": "Test Artist"}, ["filter"]),
         ({"country": "US"}, ["filter"]),
         ({"type": "Group"}, ["filter"]),
-        ({"begin_date": "2000", "begin_comparison": "-1"}, ["filter"]),
-        ({"end_date": "2020", "end_comparison": "1"}, ["filter"])
+        ({"begin_date": "2000", "begin_comparison": "<"}, ["filter"]),
+        ({"end_date": "2020", "end_comparison": ">"}, ["filter"])
     ])
     def test_dynamic_search_query_construction(self, mocker, search_data, expected_calls):
         """Test that dynamic_search constructs appropriate queries based on search criteria"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_filter = mocker.Mock()
-        mock_query.return_value.filter = mock_filter
-        mock_filter.return_value.where.return_value.where.return_value.where.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.filter.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.all.return_value = []
 
+        mocker.patch('databass.db.base.app_db.session.query', return_value=mock_query)
         Artist.dynamic_search(search_data)
-        assert mock_filter.call_count >= len(expected_calls)
+        assert mock_query.filter.call_count >= len(expected_calls)
 
     def test_dynamic_search_empty_values(self, mocker):
         """Test that dynamic_search properly handles empty values in search criteria"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.where.return_value.where.return_value.where.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.filter.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.all.return_value = []
+
+        mocker.patch('databass.db.base.app_db.session.query', return_value=mock_query)
 
         result = Artist.dynamic_search({"name": "", "country": "NO VALUE"})
         assert isinstance(result, list)

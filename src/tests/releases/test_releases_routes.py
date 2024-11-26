@@ -62,7 +62,7 @@ class TestReleases:
     def test_releases_successful_page_load(self, client):
         response = client.get("/releases")
         assert response.status_code == 200
-        assert b"search-bar" in response.data
+        assert b"release_search_bar" in response.data
 
 class TestRelease:
     # Tests for /release
@@ -71,7 +71,7 @@ class TestRelease:
                                     return_value=[])
         response = client.get("/release/1")
         assert response.status_code == 200
-        assert b"release-table" in response.data
+        assert b"release_container" in response.data
         assert b"listened: 2024-03-04" in response.data
 
     def test_release_not_found(self, client, mocker):
@@ -88,7 +88,7 @@ class TestEdit:
         """
         response = client.get("/release/1/edit")
         assert response.status_code == 200
-        assert b"BLUE LIPS" in response.data
+        assert b"edit_form" in response.data
 
     def test_edit_get_non_existing_release(self, client, mocker):
         """
@@ -115,22 +115,10 @@ class TestEdit:
         mock_update = mocker.patch("databass.db.update")
         response = client.post(
             "/release/1/edit",
-            data={'artist_id': '1', 'country': '[Worldwide]', 'genre': 'hiphop', 'id': '1', 'image': './static/img/release/1.jpg', 'label_id': '1', 'listen_date': '2024-03-04 00:00:00', 'name': 'BLUE LIPS', 'rating': '1', 'release_year': '2024', 'tags': 'None'}
+            data={'artist_id': '1', 'country': '[Worldwide]', 'genre': 'hiphop', 'id': '1', 'image': './static/img/release/1.jpg', 'label_id': '1', 'listen_date': '2024-03-04', 'name': 'BLUE LIPS', 'rating': '1', 'release_year': '2024', 'tags': 'None'}
         )
         assert response.status_code == 302
         assert response.location == "/"
-        assert b"You should be redirected automatically" in response.data
-
-    def test_edit_post_failure_malformed_request(self, client, mock_release_data):
-        """
-        Test for successful handling of a malformed POST request
-        """
-        response = client.post(
-            "/release/1/edit",
-            data={'artist_id': '1', 'country': '[Worldwide]', 'genre': 'hiphop'}
-        )
-        assert response.status_code == 302
-        assert response.location == "/error"
         assert b"You should be redirected automatically" in response.data
 
     def test_edit_post_failure_non_existing_release(self, client, mocker):

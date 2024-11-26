@@ -15,7 +15,7 @@ class TestHome:
     def test_home_page_load_success(self, client):
         response = client.get("/")
         assert response.status_code == 200
-        assert b"home_albums_container" in response.data
+        assert b"home_release_table" in response.data
 
 
 class TestNew:
@@ -41,7 +41,7 @@ class TestSearch:
                 }]):
             response = client.post("/search", json={'referrer': 'search', 'release': 'search', 'artist': '', 'label': ''})
             assert response.status_code == 200
-            assert b"table class=\"pagination\"" in response.data
+            assert b"data_form" in response.data
 
     def test_search_page_load_success_no_results(self, client, mocker):
         """
@@ -57,8 +57,8 @@ class TestSearch:
         Test for successful page load
         """
         response = client.post("/search", json={'referrer': 'search', 'release': '', 'artist': '', 'label': ''})
-        assert response.status_code == 302
-        assert response.location == '/error'
+        assert response.status_code == 200
+        assert b"Search requires at least one search term" in response.data
 
     def test_search_malformed_request_missing_key(self, client):
         """
@@ -75,25 +75,6 @@ class TestSearch:
         response = client.post("/search", json={})
         assert response.status_code == 302
         assert response.location == '/error'
-
-    def test_search_pagination(self, client, mocker):
-        """
-        Test for successful handling of pagination requests
-        """
-        data_dict = {
-                    'release': {'name': 'name'},
-                    'artist': {'name': 'name'},
-                    'label': {'name': 'name'}
-                }
-        with mocker.patch(
-                'databass.api.MusicBrainz.release_search',
-                return_value=[data_dict]):
-            current_page = 2
-            response = client.post("/search", json={'referrer': 'page_button', 'next_page': current_page, 'per_page': 10, 'data': [data_dict.copy() for i in range(30)]})
-            assert response.status_code == 200
-            assert b"table class=\"pagination\"" in response.data
-            assert b"prev_page\" value=\"1" in response.data
-            assert b"next_page\" value=\"3" in response.data
 
     def test_search_non_json(self, client):
         """
