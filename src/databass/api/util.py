@@ -1,6 +1,5 @@
 import datetime
 import glob
-import requests
 from os import getenv
 from dotenv import load_dotenv
 import pathlib
@@ -203,6 +202,7 @@ class Util:
                 img_url = Discogs.get_label_image_url(name=label_name)
         response = ''
         if img_url is not None and img_url is not False:
+            import requests
             print(f'Discogs image URL: {img_url}')
             response = requests.get(img_url, headers={
                 "Accept": "application/json",

@@ -60,6 +60,8 @@ class Base(DeclarativeBase):
         except AttributeError as e:
             raise e
 
+app_db.Model = Base
+
 class MusicBrainzEntity(app_db.Model):
     # Release and ArtistOrLabel are built from this prototype
     __abstract__ = True
