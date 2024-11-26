@@ -565,7 +565,7 @@ class ArtistOrLabel(MusicBrainzEntity):
             )
             .join(Release, relation_id == cls.id)
             # Disregard Artist/Label entries that are not related to a specific real-world entity
-            .where(cls.name not in ["[NONE]", "Various Artists"])
+            .where(cls.name.notin_(["[NONE]", "Various Artists"]))
             .group_by(cls.name, cls.image)
             .order_by(func.count(relation_id).desc())
             .limit(limit)
@@ -613,7 +613,7 @@ class ArtistOrLabel(MusicBrainzEntity):
                 cls.image
             )
             .join(Release, relation_id == cls.id)
-            .where(cls.name not in ["[NONE]", "Various Artists"])
+            .where(cls.name.notin_(["[NONE]", "Various Artists"]))
             .having(func.count(Release.id) > 1)
             .group_by(cls.name, cls.id)
             .order_by(func.avg(Release.rating).desc())
