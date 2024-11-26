@@ -1,4 +1,4 @@
-FROM python:3.12-alpine
+FROM python:3.13.0-alpine3.20
 
 COPY ./src /databass
 WORKDIR /databass
@@ -8,7 +8,9 @@ RUN \
   apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
   pip3 install gunicorn && \
   pip3 install -r requirements.txt && \
-  apk --purge del .build-deps
+  apk add --no-cache nodejs npm && \
+  apk --purge del .build-deps && \
+  npm install -g less
 
 EXPOSE 8080
 
