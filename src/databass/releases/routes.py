@@ -56,11 +56,15 @@ def edit(release_id):
         release_image = release_data.image[1:]
         label_data = models.Label.exists_by_id(release_data.label_id)
         artist_data = models.Artist.exists_by_id(release_data.artist_id)
-        return render_template('edit.html',
-                               release=release_data,
-                               artist=artist_data,
-                               label=label_data,
-                               image=release_image)
+        countries = sorted(models.Release.get_distinct_column_values('country'))
+        return render_template(
+            'edit.html',
+            release=release_data,
+            artist=artist_data,
+            label=label_data,
+            image=release_image,
+            countries=countries
+        )
     elif request.method == 'POST':
         edit_data = request.form.to_dict()
         submit_data = {}
@@ -115,6 +119,14 @@ def edit(release_id):
         except KeyError:
             pass
 
+        # country
+        try:
+            country = edit_data["country"]
+            if country:
+                submit_data["country"] = country
+        except KeyError:
+            pass
+
         updated_release = db.construct_item('release', submit_data)
         # construct_item() will produce a unique ID primary key, so we need to set it to the original one for update() to work
         try:
@@ -126,8 +138,6 @@ def edit(release_id):
             updated_release.runtime = old_release.runtime
             updated_release.track_count = old_release.track_count
             updated_release.tags = old_release.tags # TODO: allow editing for tags
-            updated_release.country = old_release.country
-            updated_release.country = old_release.country
 
         except KeyError:
             error = f"Edit data missing ID, unable to update an existing entry without ID."

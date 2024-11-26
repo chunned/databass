@@ -32,6 +32,15 @@
                 <input id="listen_date" name="listen_date" value="{{ release.listen_date.strftime('%Y-%m-%d') }}" type="date">
             </div>
 
+            <div>
+                <label for="country">country</label>
+                <select id="country" name="country">
+                    {% for country in countries %}
+                        <option value="{{ country}}">{{ country|country_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
         </form>
     </div>
 </div>
