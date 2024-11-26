@@ -35,8 +35,10 @@ def create_app():
     js_bundle.build()
 
     with app.app_context():
-        app_db.Model = models.Base
+        from .db.models import Base, Release, Artist, Label, Tag, Review, Goal
+        Base.metadata.bind = app_db.engine
         app_db.create_all()
+        app_db.session.commit()
         from .releases.routes import release_bp
         app.register_blueprint(release_bp)
 

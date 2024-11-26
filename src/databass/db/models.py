@@ -6,12 +6,23 @@ from sqlalchemy.engine.row import Row
 from typing import Any, Optional, List
 
 from .base import app_db
-from ..api import MusicBrainz
 
 
 class Base(DeclarativeBase):
     """Base class which all other database model classes are built from"""
     id: Mapped[int] = mapped_column(primary_key=True)
+
+
+
+
+class MusicBrainzEntity(app_db.Model):
+    # Release and ArtistOrLabel are built from this prototype
+    __abstract__ = True
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    mbid: Mapped[str | None] = mapped_column(String, unique=True)
+    name: Mapped[str] = mapped_column(String())
+    image: Mapped[str | None] = mapped_column(String())
 
     @classmethod
     def get_all(cls) -> list[Any]:
@@ -60,17 +71,6 @@ class Base(DeclarativeBase):
         except AttributeError as e:
             raise e
 
-app_db.Model = Base
-
-class MusicBrainzEntity(app_db.Model):
-    # Release and ArtistOrLabel are built from this prototype
-    __abstract__ = True
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    mbid: Mapped[str | None] = mapped_column(String, unique=True)
-    name: Mapped[str] = mapped_column(String())
-    image: Mapped[str | None] = mapped_column(String())
-
     @classmethod
     def exists_by_mbid(
             cls,
@@ -87,7 +87,11 @@ class MusicBrainzEntity(app_db.Model):
         """
         if not mbid or not isinstance(mbid, str):
             return None
-        result = app_db.session.query(cls).filter(cls.mbid == mbid).one_or_none()
+        try:
+            result = app_db.session.query(cls).filter(cls.mbid == mbid).one_or_none()
+        except Exception:
+            app_db.session.rollback()
+            return None
         if result:
             return result
         else:
@@ -203,7 +207,7 @@ class Release(MusicBrainzEntity):
             total_runtime_ms = app_db.session.query(func.sum(cls.runtime)).scalar()
             total_runtime_hours = total_runtime_ms / 3600000
             result = round(total_runtime_hours, 2)
-        except TypeError:
+        except Exception:
             result = 0
         return result
 
@@ -297,26 +301,29 @@ class Release(MusicBrainzEntity):
 
         The data is ordered by the release ID in descending order.
         """
-        results = (
-            app_db.session.query(
-                Artist.id.label('artist_id'),
-                Artist.name.label('artist_name'),
-                cls.id,
-                cls.name,
-                cls.rating,
-                cls.listen_date,
-                cls.genre,
-                cls.image,
-                func.array_agg(func.concat(Tag.name)).label('tags')
-            )
-            .join(Artist, Artist.id == cls.artist_id)
-            .outerjoin(Tag, Tag.release_id == cls.id)
-            .group_by(
-                Artist.id,
-                cls.id,
-            )
-            .order_by(cls.id.desc())
-        ).all()
+        try:
+            results = (
+                app_db.session.query(
+                    Artist.id.label('artist_id'),
+                    Artist.name.label('artist_name'),
+                    cls.id,
+                    cls.name,
+                    cls.rating,
+                    cls.listen_date,
+                    cls.genre,
+                    cls.image,
+                    func.array_agg(func.concat(Tag.name)).label('tags')
+                )
+                .join(Artist, Artist.id == cls.artist_id)
+                .outerjoin(Tag, Tag.release_id == cls.id)
+                .group_by(
+                    Artist.id,
+                    cls.id,
+                )
+                .order_by(cls.id.desc())
+            ).all()
+        except Exception as e:
+            return []
         return results
 
     @classmethod
@@ -557,20 +564,23 @@ class ArtistOrLabel(MusicBrainzEntity):
             raise ValueError("Limit must be a positive integer.")
         relation_id = Release.artist_id if cls.__tablename__ == "artist" else Release.label_id
 
-        query = (
-            app_db.session.query(
-                cls.name,
-                func.count(relation_id).label('count'),
-                cls.image
+        try:
+            query = (
+                app_db.session.query(
+                    cls.name,
+                    func.count(relation_id).label('count'),
+                    cls.image
+                )
+                .join(Release, relation_id == cls.id)
+                # Disregard Artist/Label entries that are not related to a specific real-world entity
+                .where(cls.name.notin_(["[NONE]", "Various Artists"]))
+                .group_by(cls.name, cls.image)
+                .order_by(func.count(relation_id).desc())
+                .limit(limit)
+                .all()
             )
-            .join(Release, relation_id == cls.id)
-            # Disregard Artist/Label entries that are not related to a specific real-world entity
-            .where(cls.name.notin_(["[NONE]", "Various Artists"]))
-            .group_by(cls.name, cls.image)
-            .order_by(func.count(relation_id).desc())
-            .limit(limit)
-            .all()
-        )
+        except Exception:
+            return []
         results = [
             {
                 "name": result.name,
@@ -604,21 +614,24 @@ class ArtistOrLabel(MusicBrainzEntity):
             relation_id= Release.label_id
         else:
             raise TypeError("Method only supported by Artist and Label classes.")
-        entities = (
-            app_db.session.query(
-                cls.id,
-                cls.name,
-                func.avg(Release.rating).label('average_rating'),
-                func.count(Release.id).label('release_count'),
-                cls.image
+        try:
+            entities = (
+                app_db.session.query(
+                    cls.id,
+                    cls.name,
+                    func.avg(Release.rating).label('average_rating'),
+                    func.count(Release.id).label('release_count'),
+                    cls.image
+                )
+                .join(Release, relation_id == cls.id)
+                .where(cls.name.notin_(["[NONE]", "Various Artists"]))
+                .having(func.count(Release.id) > 1)
+                .group_by(cls.name, cls.id)
+                .order_by(func.avg(Release.rating).desc())
+                .all()
             )
-            .join(Release, relation_id == cls.id)
-            .where(cls.name.notin_(["[NONE]", "Various Artists"]))
-            .having(func.count(Release.id) > 1)
-            .group_by(cls.name, cls.id)
-            .order_by(func.avg(Release.rating).desc())
-            .all()
-        )
+        except Exception:
+            return []
         return entities
 
     @classmethod
@@ -925,12 +938,15 @@ class Goal(app_db.Model):
         Query database for goals without an end_actual date, meaning they have not been completed
         Returns a list of the goals if found; none otherwise
         """
-        query = app_db.session.query(cls).where(cls.end_actual.is_(None))
-        results = query.all()
+        try:
+            query = app_db.session.query(cls).where(cls.end_actual.is_(None))
+            results = query.all()
+        except Exception:
+            return []
         if results:
             return results
         else:
-            return None
+            return []
 
     @classmethod
     def check_goals(cls) -> None:
@@ -972,6 +988,21 @@ class Tag(app_db.Model):
         UniqueConstraint('release_id', 'name', name='unique_release_tag'),
     )
 
+    @classmethod
+    def get_distinct_column_values(
+            cls,
+            column: str
+    ) -> list:
+        """
+        Get all distinct values of a given column
+        :param column: String representing the column's name
+        :return: List of the unique values of the given column
+        """
+        try:
+            attribute = getattr(cls, column)
+            return [value for (value,) in app_db.session.query(distinct(attribute))]
+        except AttributeError as e:
+            raise e
 
     @staticmethod
     def create_tags(tags: str, release_id: int) -> None:
