@@ -21,10 +21,11 @@
                 </h4>
             </div>
             <div id="title">
-                <h1>
+                <h1>{{ data.release.name }} </h1>
+                <h2>
                     <a href="/artist/{{  data.artist.id }}">{{ data.artist.name }}</a>
-                    - {{ data.release.name }} ({{ data.release.release_year }})
-                </h1>
+                </h2>
+                <p>({{ data.release.release_year }})</p>
             </div>
             <div id="release_label">
                 {% if data.release.country %}
@@ -33,9 +34,9 @@
                     {% set country = "?" %}
                 {% endif %}
                 <h2>
-                    {{ country }} -
                     <a href="/label/{{ data.label.id }}">{{ data.label.name }}</a>
                 </h2>
+                <p>{{ country|country_name }}</p>
             </div>
             <div id="genres">
                 <h3>

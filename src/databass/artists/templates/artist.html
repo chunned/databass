@@ -11,7 +11,7 @@
         <div id="info">
             <div id="name">
                 <h1>{{ data.artist.name }}</h1>
-                <h1>{{ data.artist.country }}</h1>
+                <p>{{ data.artist.country|country_name }}</p>
             </div>
             <div id="start">
                 {% if data.artist.begin_date != data.no_start %}

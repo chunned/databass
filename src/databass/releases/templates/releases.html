@@ -27,7 +27,7 @@
                         <select id="country" name="country">
                             <option value="" selected></option>
                             {% for country in data.countries %}
-                                <option value="{{ country }}">{{ country }}</option>
+                                <option value="{{ country }}">{{ country|country_name }}</option>
                             {% endfor %}
                         </select>
                     </div>

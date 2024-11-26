@@ -334,12 +334,26 @@ def register_routes(app):
         # Starts the imgupdate process; imgupdate() will recursively call itself and update all images 1 by 1
         return redirect('/imgupdate/release/1')
 
-    # TODO: see if still needed
-    # @app.route('/backup', methods=['GET'])
-    # def backup():
-    #     bkp()
-    #     return redirect('/', code=302)
+    @app.template_filter('country_name')
+    def country_name(country_code: str) -> str | None:
+        """
+        Converts a two-letter country code to the full country name.
+        If the country code is `None` or not found in the `pycountry` library, the original country code is returned.
 
+        Args:
+            country_code (str): The two-letter ISO 3166-1 alpha-2 country code.
+
+        Returns:
+            str | None: The full country name if found, otherwise the original country code.
+        """
+        if country_code is None:
+            return country_code
+        import pycountry
+        try:
+            country = pycountry.countries.get(alpha_2=country_code.upper())
+            return country.name if country else country_code
+        except KeyError:
+            return country_code
 
 def process_goal_data(goal: models.Goal):
     """
@@ -374,3 +388,4 @@ def process_goal_data(goal: models.Goal):
         "target": target,
         "current": current
     }
+
