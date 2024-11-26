@@ -10,6 +10,8 @@ label_bp = Blueprint(
 
 @label_bp.route('/label/<int:label_id>', methods=['GET'])
 def label(label_id):
+    if label_id == 0:
+        return redirect("/")
     label_data = Label.exists_by_id(label_id)
     if not label_data:
         error = f"No label with ID {label_id} found."

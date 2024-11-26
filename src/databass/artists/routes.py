@@ -7,9 +7,11 @@ artist_bp = Blueprint(
 )
 
 
-@artist_bp.route('/artist/<string:artist_id>', methods=['GET'])
+@artist_bp.route('/artist/<int:artist_id>', methods=['GET'])
 def artist(artist_id):
     # Displays all info related to a particular artist
+    if artist_id == 0:
+        return redirect("/")
     artist_data = Artist.exists_by_id(item_id=artist_id)
     if not artist_data:
         error = f"No release with id {artist_id} found."

@@ -20,8 +20,18 @@ def release(release_id):
     artist_data = models.Artist.exists_by_id(release_data.artist_id)
     label_data = models.Label.exists_by_id(release_data.label_id)
     existing_reviews = models.Release.get_reviews(int(release_id))
-    label_releases = models.Label.get_releases(release_data.label_id)
-    artist_releases = models.Artist.get_releases(release_data.artist_id)
+    label = models.Label.exists_by_id(release_data.label_id)
+    if label.name == '[NONE]':
+        label_releases = []
+    else:
+        label_releases = models.Label.get_releases(label.id)
+
+    artist = models.Artist.exists_by_id(release_data.artist_id)
+    if artist.name in ('Various Artists', '[NONE]'):
+        artist_releases = []
+    else:
+        artist_releases = models.Artist.get_releases(release_data.artist_id)
+
     data = {
         "release": release_data,
         "artist": artist_data,
