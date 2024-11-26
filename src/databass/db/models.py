@@ -26,7 +26,7 @@ class Base(DeclarativeBase):
             results = app_db.session.query(cls).count()
             return results if isinstance(results, int) else None
         except Exception as e:
-            raise RuntimeError(f"Failed to count {cls.__name__} entries") from e
+            return 0
 
     @classmethod
     def exists_by_id(
@@ -59,8 +59,6 @@ class Base(DeclarativeBase):
             return [value for (value,) in app_db.session.query(distinct(attribute))]
         except AttributeError as e:
             raise e
-
-app_db.Model = Base
 
 class MusicBrainzEntity(app_db.Model):
     # Release and ArtistOrLabel are built from this prototype
@@ -188,7 +186,7 @@ class Release(MusicBrainzEntity):
         except TypeError:
             result = 0
         except Exception as e:
-            raise e
+            result = 0
         return result
 
     @classmethod

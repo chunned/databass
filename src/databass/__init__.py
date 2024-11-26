@@ -2,6 +2,7 @@ from flask import Flask, g
 import os
 from dotenv import load_dotenv
 from .db.base import app_db
+from .db import models
 from .routes import register_routes
 from flask_assets import Environment, Bundle
 
@@ -34,8 +35,8 @@ def create_app():
     js_bundle.build()
 
     with app.app_context():
+        app_db.Model = models.Base
         app_db.create_all()
-
         from .releases.routes import release_bp
         app.register_blueprint(release_bp)
 
