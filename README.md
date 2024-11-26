@@ -22,3 +22,18 @@ Rename `.env.example` to `.env` and fill out the required values. Unless you req
 
 Then, run `docker compose up -d` and visit the application at `localhost:<port>`
 
+## Getting Discogs API Key
+
+
+# Backup and restore
+Backup:
+```shell
+# Note: change '-U postgres' if you change your databass user
+sudo docker exec -it databass-postgres-1 pg_dump -U postgres databass > ./backup.sql
+```
+Restore:
+```shell
+sudo docker cp ./backup.yml databass-postgres-1:/backup.sql
+sudo docker exec -it databass-postgres-1 /bin/sh 
+psql databass < backup.sql
+```
