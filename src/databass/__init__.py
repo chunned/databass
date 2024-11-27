@@ -39,7 +39,8 @@ def create_app():
     with app.app_context():
         from .db.models import Base, Release, Artist, Label, Tag, Review, Goal
         Base.metadata.bind = app_db.engine
-        app_db.create_all()
+        Base.metadata.create_all(app_db.engine)
+        # app_db.create_all()
         app_db.session.commit()
         from .releases.routes import release_bp
         app.register_blueprint(release_bp)
