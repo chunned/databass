@@ -13,3 +13,4 @@ src/databass/static/dist/*
 *webassets-cache*
 style.css.map
 src/databass/static/src/less/style.css
+*migrations*

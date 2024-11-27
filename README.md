@@ -49,3 +49,8 @@ sudo docker cp ./backup.yml databass-postgres-1:/backup.sql
 sudo docker exec -it databass-postgres-1 /bin/sh 
 psql databass < backup.sql
 ```
+
+Migrating the database (seldom required in new releases):
+```shell
+sudo docker exec -it databass-postgres-1 bash -c "cd src && flask db init && flask db migrate && flask db upgrade"
+```
