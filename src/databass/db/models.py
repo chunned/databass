@@ -23,6 +23,7 @@ class MusicBrainzEntity(app_db.Model):
     mbid: Mapped[str | None] = mapped_column(String, unique=True)
     name: Mapped[str] = mapped_column(String())
     image: Mapped[str | None] = mapped_column(String())
+    date_added: Mapped[date] = mapped_column(default=date.today(), nullable=True)
 
     @classmethod
     def get_all(cls) -> list[Any]:
@@ -902,6 +903,7 @@ class Goal(app_db.Model):
     end_actual: Mapped[datetime | None] = mapped_column(DateTime())
     type: Mapped[str] = mapped_column(String()) # i.e. release, album, label
     amount: Mapped[int] = mapped_column(Integer())
+    date_added: Mapped[date] = mapped_column(default=date.today(), nullable=True)
 
     @property
     def new_releases_since_start_date(self):
@@ -964,22 +966,22 @@ class Goal(app_db.Model):
                     from .operations import update
                     update(goal)
 
-
 class Review(app_db.Model):
     __tablename__ = "review"
     id: Mapped[int] = mapped_column(primary_key=True)
     release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
     timestamp: Mapped[date] = mapped_column(DateTime, default=func.now())
     text: Mapped[str] = mapped_column(String())
+    date_added: Mapped[date] = mapped_column(default=date.today(), nullable=True)
 
     release = relationship("Release", back_populates="reviews")
-
 
 class Tag(app_db.Model):
     __tablename__ = "tag"
     id: Mapped[int] = mapped_column(primary_key=True)
     release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
     name: Mapped[str] = mapped_column(String())
+    date_added: Mapped[date] = mapped_column(default=date.today(), nullable=True)
 
     release = relationship("Release", back_populates="tag_list")
 

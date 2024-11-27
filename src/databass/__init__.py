@@ -5,6 +5,7 @@ from .db.base import app_db
 from .db import models
 from .routes import register_routes
 from flask_assets import Environment, Bundle
+from flask_migrate import Migrate
 
 load_dotenv()
 VERSION = os.environ.get('VERSION')
@@ -16,6 +17,7 @@ def create_app():
     app.config.from_object('config.Config')
     app.static_folder = 'static'
     app_db.init_app(app)
+    migrate = Migrate(app, app_db)
 
     assets = Environment(app)
     style_bundle = Bundle(
