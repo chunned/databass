@@ -33,7 +33,7 @@ Rename `.env.example` to `.env` and fill out the required values:
   - Copy and paste`Consumer Key` -> `DISCOGS_KEY` 
   - Copy and paste`Consumer Secret` -> `DISCOGS_SECRET`
 
-Then, run `docker compose up -d` and visit the application at `localhost:<port>`
+Then, run `docker compose up --build -d` and visit the application at `localhost:<port>`
 
 
 
