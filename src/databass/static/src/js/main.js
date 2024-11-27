@@ -364,10 +364,9 @@ document.addEventListener('DOMContentLoaded', () => {
             handleEditButton(editButton);
         }
 
-        // Handle /stats search button
-        if (event.target && event.target.classList.contains('stats-search')) {
-            handleStatsSearch();
-        }
+        // if (event.target && event.target.classList.contains('stats-search')) {
+        //     handleStatsSearch();
+        // }
     });
 });
 
