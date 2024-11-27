@@ -336,6 +336,14 @@ def register_routes(app):
         # Starts the imgupdate process; imgupdate() will recursively call itself and update all images 1 by 1
         return redirect('/imgupdate/release/1')
 
+    @app.route('/new_release', methods=["POST"])
+    def new_release_popup():
+        data = request.get_json()
+        return render_template(
+            "new_release_popup.html",
+            data=data
+        )
+
     @app.template_filter('country_name')
     def country_name(country_code: str) -> str | None:
         """

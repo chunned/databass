@@ -1,0 +1,50 @@
+<div class="popup_content">
+    <button class="close-btn">&times;</button>
+    <form action="/submit" method="POST" id="popup-form">
+        <input type="hidden" name="manual_submit" value="false">
+        <input type="hidden" name="release_group_id" value="">
+        <input type="hidden" name="release_name" value="">
+        <input type="hidden" name="artist" value="">
+        <input type="hidden" name="label" value="">
+        <input type="hidden" name="release_mbid" value="">
+        <input type="hidden" name="artist_mbid" value="">
+        <input type="hidden" name="label_mbid" value="">
+        <input type="hidden" name="track_count" value="">
+        <input type="hidden" name="country" value="">
+        <div>
+            <div>
+                <p class="left_side">RELEASE</p>
+                <p class="right_side">{{ data.release.name }}</p>
+            </div>
+            <div>
+                <p class="left_side">ARTIST</p>
+                <p class="right_side">{{ data.artist.name }}</p>
+            </div>
+            <div>
+                <p class="left_side">LABEL</p>
+                <p class="right_side">{{ data.label.name }}</p>
+            </div>
+            <div>
+                <p class="left_side">TRACKS</p>
+                <p class="right_side">{{ data.track_count }}</p>
+            </div>
+            <div>
+                <label for="rating" class="left_side">RATING</label>
+                <input type="number" min="0" max="100" required id="rating" name="rating" class="right_side">
+            </div>
+            <div>
+                <label for="year" class="left_side">YEAR</label>
+                <input type="number" min="0" max="3000" required id="year" name="release_year" value="{{ data.date }}" class="right_side">
+            </div>
+            <div>
+                <label for="genre" class="left_side">GENRE</label>
+                <input type="text" required id="genre" name="genre" class="right_side">
+            </div>
+            <div>
+                <label for="tags" class="left_side">SUBGENRES</label>
+                <input type="text" id="tags" name="tags" class="right_side">
+            </div>
+            <button type="submit" id="submit-btn" class="search-submit-btn">SUBMIT</button>
+        </div>
+    </form>
+</div>

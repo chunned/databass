@@ -66,114 +66,32 @@ function formatDataString(data) {
         .replace(/(12|10|7)" Vinyl/g, '$1\\" Vinyl');
 }
 
-function popupHTML(parsed_data) {
-    console.log(parsed_data);
-    return `
-    <div class="popup_content">
-        <span class="close-btn">&times;</span>
-        <form action="/submit" method="POST" id="popup-form">
-            <input type="hidden" name="manual_submit" value="false">
-            <input type="hidden" name="release_group_id" value="${parsed_data.release_group_id}">
-            <input type="hidden" name="release_name" value="${parsed_data.release.name}">
-            <input type="hidden" name="artist" value="${parsed_data.artist.name}">
-            <input type="hidden" name="label" value="${parsed_data.label.name}">
-            <input type="hidden" name="release_mbid" value="${parsed_data.release.mbid}">
-            <input type="hidden" name="artist_mbid" value="${parsed_data.artist.mbid}">
-            <input type="hidden" name="label_mbid" value="${parsed_data.label.mbid}">
-            <input type="hidden" name="track_count" value="${parsed_data.track_count}">
-            <input type="hidden" name="country" value="${parsed_data.country}">
-            <table id="popup_table">
-                <tr>
-                    <td>RELEASE</td>
-                    <td>${parsed_data.release.name}</td>
-                </tr>
-                <tr>
-                    <td>ARTIST</td>
-                    <td>${parsed_data.artist.name}</td>
-                </tr>
-                </tr>
-                <tr>
-                    <td>LABEL</td>
-                    <td>${parsed_data.label.name}</td>
-                </tr>
-                <tr>
-                    <td>TRACKS</td>
-                    <td>${parsed_data["track_count"]}</td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="rating">RATING</label>
-                    </td>
-                    <td>
-                        <input type="number" min="0" max="100" required id="rating" name="rating">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="release_year">YEAR</label>
-                    </td>
-                    <td>
-                        <input type="number" min="0" required id="year" name="release_year" value="${parsed_data.date}">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="genre">GENRE</label>
-                    </td>
-                    <td>
-                        <input type="text" required id="genre" name="genre">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label for="tags">TAGS</label>
-                    </td>
-                    <td>
-                        <input type="text" id="tags" name="tags">
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <button type="submit" id="submit-btn" class="search-submit-btn">submit</button>
-                    </td>
-                </tr>
-            </table>
-        </form>
-    </div>
-    `;
-}
-
-function searchPopup(data) {
-    // Used in static.html to show popup before release is inserted
-    try {
-        let jsonStr = formatDataString(data);
-        try {
-            const parsed_data = JSON.parse(jsonStr) // Create the pop-up container
-            const popup = document.createElement('div');
-            popup.className = 'popup';
-            popup.innerHTML = popupHTML(parsed_data)
-            // Append the pop-up to the body
-            document.body.appendChild(popup);
-            // Close the pop-up when the close button is clicked
-            popup.querySelector('.close-btn').addEventListener('click', function() {
-                document.body.removeChild(popup);
-            });
-        } catch (error) {
-            console.error(error);
-            console.log(jsonStr);
-        }
-    } catch (error) {
-        console.error('Failed to parse data-item:', error);
-    }
-}
 
 function addPopupListeners(html) {
     document.querySelector("#search_results").innerHTML = html;
     let tableRows = document.querySelectorAll("#data_form table tbody tr");
     tableRows.forEach((tableRow) => {
         tableRow.addEventListener("click", function() {
-            let data = tableRow.dataset.item;
-            searchPopup(data);
+            let data = formatDataString(tableRow.dataset.item);
+            let parsed_data = JSON.parse(data)
+            fetch("/new_release", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(parsed_data)
+            })
+                .then(response => response.text())
+                .then(html => {
+                    let popup = document.createElement('div')
+                    popup.className = 'popup';
+                    popup.innerHTML = html;
+                    document.body.appendChild(popup);
+                    popup.querySelector('.close-btn').addEventListener('click', function() {
+                        document.body.removeChild(popup);
+                    });
+                })
+                .catch(err => { console.log(err) })
         });
     });
 }
