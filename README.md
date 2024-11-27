@@ -46,11 +46,12 @@ sudo docker exec -it databass-postgres-1 pg_dump -U postgres databass > ./backup
 Restore:
 ```shell
 sudo docker cp ./backup.yml databass-postgres-1:/backup.sql
-sudo docker exec -it databass-postgres-1 /bin/sh 
-psql databass < backup.sql
+sudo docker exec --user postgres -it databass-postgres-1 /bin/sh -c "psql databass < backup.sql"
 ```
 
 Migrating the database (seldom required in new releases):
+
+**Make sure you take a backup before doing this**
 ```shell
-sudo docker exec -it databass-postgres-1 bash -c "cd src && flask db init && flask db migrate && flask db upgrade"
+sudo docker exec -it databass-databass-1 sh -c "flask db init && flask db migrate && flask db upgrade"
 ```
