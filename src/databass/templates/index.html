@@ -18,7 +18,7 @@
                                 <p>total</p>
                             </th>
                             <th>
-                                <p>yearly</p>
+                                <p>{{ year }}</p>
                             </th>
                             <th>
                                 <p>daily</p>
@@ -33,10 +33,10 @@
                             <p>{{ stats.total_listens }}</p>
                         </td>
                         <td>
-                            <p>{{ stats.listens_this_year}}</p>
+                            <p>{{ stats.releases_this_year}}</p>
                         </td>
                         <td>
-                            <p>{{ stats.listens_per_day }}</p>
+                            <p>{{ stats.releases_per_day }}</p>
                         </td>
                     </tr>
                     <tr>
@@ -46,8 +46,8 @@
                         <td>
                             <p>{{ stats.total_artists }}</p>
                         </td>
-                        <td></td>
-                        <td></td>
+                        <td><p>{{ stats.artists_this_year }}</p></td>
+                        <td><p>{{ stats.artists_per_day }}</p></td>
                     </tr>
                     <tr>
                         <td>
@@ -56,8 +56,8 @@
                         <td>
                             <p>{{ stats.total_labels }}</p>
                         </td>
-                        <td></td>
-                        <td></td>
+                        <td><p>{{ stats.labels_this_year }}</p></td>
+                        <td><p>{{ stats.labels_per_day }}</p></td>
                     </tr>
                     <tr>
                         <td>
@@ -75,11 +75,11 @@
                         <td>
                             <p>rating</p>
                         </td>
-                        <td></td>
-                        <td></td>
                         <td>
                             <p>{{ stats.average_rating }}%</p>
                         </td>
+                        <td></td>
+                        <td></td>
                     </tr>
 
                 </table>

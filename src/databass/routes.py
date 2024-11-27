@@ -16,10 +16,12 @@ def register_routes(app):
             goal_data = [process_goal_data(goal) for goal in active_goals]
         else:
             goal_data = []
+        year = datetime.now().year
         return render_template(
             'index.html',
             stats=stats_data,
             goals=goal_data,
+            year=year,
             active_page='home'
         )
 

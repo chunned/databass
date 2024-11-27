@@ -5,6 +5,7 @@ from .db.base import app_db
 from .db import models
 from .routes import register_routes
 from flask_assets import Environment, Bundle
+from flask_migrate import Migrate
 
 load_dotenv()
 VERSION = os.environ.get('VERSION')
@@ -16,6 +17,7 @@ def create_app():
     app.config.from_object('config.Config')
     app.static_folder = 'static'
     app_db.init_app(app)
+    migrate = Migrate(app, app_db)
 
     assets = Environment(app)
     style_bundle = Bundle(
@@ -37,7 +39,8 @@ def create_app():
     with app.app_context():
         from .db.models import Base, Release, Artist, Label, Tag, Review, Goal
         Base.metadata.bind = app_db.engine
-        app_db.create_all()
+        Base.metadata.create_all(app_db.engine)
+        # app_db.create_all()
         app_db.session.commit()
         from .releases.routes import release_bp
         app.register_blueprint(release_bp)

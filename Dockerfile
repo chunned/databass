@@ -14,5 +14,8 @@ RUN \
   ln -s /usr/local/bin/lessc /usr/bin/lessc
 
 EXPOSE 8080
+ENV FLASK_APP=databass:create_app
+ENV FLASK_ENV=development
+ENV VERSION=0.6
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "databass:create_app()"]
