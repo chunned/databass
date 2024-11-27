@@ -4,7 +4,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from datetime import datetime, date
 from sqlalchemy.engine.row import Row
 from typing import Any, Optional, List
-
+from datetime import datetime
 from .base import app_db
 
 
@@ -13,8 +13,34 @@ class Base(DeclarativeBase):
     id: Mapped[int] = mapped_column(primary_key=True)
     date_added: Mapped[date] = mapped_column(default=date.today(), nullable=True)
 
+    @classmethod
+    def added_this_year(cls):
+        # Returns the number of entries where date_added is within current year
+        current_year = datetime.now().year
+        try:
+            results = app_db.session.query(cls).filter(extract('year', cls.date_added) == current_year).count()
+            if current_year == 2024:
+                # This section is required for backwards compatibility with entries added before 2024/11/26,
+                # when the date_added column was added
+                results += app_db.session.query(cls).filter(cls.date_added == None).count()
+        except Exception:
+            results = 0
+        return results
 
+    @classmethod
+    def added_per_day_this_year(cls):
+        """
+        Calculates the average number of listens per day so far this year.
 
+        Returns:
+            float: The average number of listens per day so far this year, rounded to 2 decimal places.
+        """
+        days_this_year: int = date.today().timetuple().tm_yday
+        if days_this_year == 0:
+            return 0.0
+        count = cls.added_this_year()
+        result = count / days_this_year
+        return round(result, 2)
 
 class MusicBrainzEntity(Base):
     # Release and ArtistOrLabel are built from this prototype
@@ -345,22 +371,6 @@ class Release(MusicBrainzEntity):
         except Exception as e:
             return 0
         return results
-
-    @classmethod
-    def listens_per_day(cls) -> float:
-        """
-        Calculates the average number of listens per day so far this year.
-
-        Returns:
-            float: The average number of listens per day so far this year, rounded to 2 decimal places.
-        """
-        days_this_year: int = date.today().timetuple().tm_yday
-        if days_this_year == 0:
-            return 0.0
-        total_listens_this_year = cls.listens_this_year()
-        # Round to 2 decimals
-        result = total_listens_this_year / days_this_year
-        return round(result, 2)
 
     @classmethod
     def dynamic_search(
