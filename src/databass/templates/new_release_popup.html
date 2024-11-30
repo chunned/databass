@@ -2,15 +2,15 @@
     <button class="close-btn">&times;</button>
     <form action="/submit" method="POST" id="popup-form">
         <input type="hidden" name="manual_submit" value="false">
-        <input type="hidden" name="release_group_id" value="">
-        <input type="hidden" name="release_name" value="">
-        <input type="hidden" name="artist" value="">
-        <input type="hidden" name="label" value="">
-        <input type="hidden" name="release_mbid" value="">
-        <input type="hidden" name="artist_mbid" value="">
-        <input type="hidden" name="label_mbid" value="">
-        <input type="hidden" name="track_count" value="">
-        <input type="hidden" name="country" value="">
+        <input type="hidden" name="release_group_id" value="{{ data.release_group_id }}">
+        <input type="hidden" name="release_name" value="{{ data.release.name }}">
+        <input type="hidden" name="artist" value="{{ data.artist.name }}">
+        <input type="hidden" name="label" value="{{ data.label.name }}">
+        <input type="hidden" name="release_mbid" value="{{ data.release.mbid }}">
+        <input type="hidden" name="artist_mbid" value="{{ data.artist.mbid }}">
+        <input type="hidden" name="label_mbid" value="{{ data.label.mbid }}">
+        <input type="hidden" name="track_count" value="{{ data.track_count }}">
+        <input type="hidden" name="country" value="{{ data.country }}">
         <div>
             <div>
                 <p class="left_side">RELEASE</p>
