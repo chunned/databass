@@ -1,17 +1,34 @@
 from __future__ import annotations
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Date, func, UniqueConstraint, extract, distinct
+from sqlalchemy import String, Integer, Table, Column, ForeignKey, DateTime, Date, func, UniqueConstraint, extract, distinct, CheckConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from datetime import datetime, date
 from sqlalchemy.engine.row import Row
 from typing import Any, Optional, List
-from datetime import datetime
 from .base import app_db
 
+# Relationship tables
+label_artist_association = Table(
+    'label_artist_association', app_db.Model.metadata,
+    Column('label_id', ForeignKey('label.id', ondelete='CASCADE'), primary_key=True),
+    Column('artist_id', ForeignKey('artist.id', ondelete='CASCADE'), primary_key=True)
+)
+
+label_genre_association = Table(
+    'label_genre_association', app_db.Model.metadata,
+    Column('label_id', ForeignKey('label.id', ondelete='CASCADE'), primary_key=True),
+    Column('genre_id', ForeignKey('genre.id', ondelete='CASCADE'), primary_key=True)
+)
+
+artist_genre_association = Table(
+    'artist_genre_association', app_db.Model.metadata,
+    Column('artist_id', ForeignKey('artist.id', ondelete='CASCADE'), primary_key=True),
+    Column('genre_id', ForeignKey('genre.id', ondelete='CASCADE'), primary_key=True)
+)
 
 class Base(DeclarativeBase):
     """Base class which all other database model classes are built from"""
     id: Mapped[int] = mapped_column(primary_key=True)
-    date_added: Mapped[date] = mapped_column(default=date.today(), nullable=True)
+    date_added: Mapped[date | None] = mapped_column(default=date.today(), nullable=True)
 
     @classmethod
     def added_this_year(cls):
@@ -46,10 +63,10 @@ class MusicBrainzEntity(Base):
     # Release and ArtistOrLabel are built from this prototype
     __abstract__ = True
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    mbid: Mapped[str | None] = mapped_column(String, unique=True)
+    mbid: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     name: Mapped[str] = mapped_column(String())
-    image: Mapped[str | None] = mapped_column(String())
+    image: Mapped[str | None] = mapped_column(String(), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(), nullable=True)
 
     @classmethod
     def get_all(cls) -> list[Any]:
@@ -182,19 +199,17 @@ class Release(MusicBrainzEntity):
     __tablename__ = "release"
     artist_id: Mapped[int] = mapped_column(ForeignKey("artist.id"))
     label_id: Mapped[int] = mapped_column(ForeignKey("label.id"))
-    release_year: Mapped[int] = mapped_column(Integer())
-    runtime: Mapped[int] = mapped_column(Integer())
-    rating: Mapped[int] = mapped_column(Integer())
-    listen_date: Mapped[datetime] = mapped_column(DateTime())
-    track_count: Mapped[int] = mapped_column(Integer())
-    country: Mapped[str] = mapped_column(String())
-    genre: Mapped[str] = mapped_column(String())
-    tags: Mapped[str | None] = mapped_column(String())
+    year: Mapped[int] = mapped_column(Integer)
+    runtime: Mapped[int] = mapped_column(Integer)
+    rating: Mapped[int] = mapped_column(Integer, CheckConstraint('rating >= 0 AND rating <= 100'))
+    listen_date: Mapped[datetime] = mapped_column(DateTime)
+    track_count: Mapped[int] = mapped_column(Integer)
+    main_genre: Mapped[int] = mapped_column(ForeignKey("genre.id"))
 
-    tag_list = relationship("Tag", back_populates="release", cascade="all, delete-orphan")
+    artist = relationship("Artist", back_populates="releases")
+    label = relationship("Label", back_populates="releases")
+    genres = relationship("Genre", back_populates="releases", cascade="all, delete-orphan")
     reviews = relationship("Review", cascade="all, delete-orphan", back_populates="release")
-    # Below is deprecated; can be removed, but need to deal with existing entries
-    review: Mapped[str | None] = mapped_column(String())
 
     def __init__(self, mbid: str | None = None, artist_id: int = 0, label_id: int = 0, **kwargs):
         super().__init__()
@@ -262,7 +277,6 @@ class Release(MusicBrainzEntity):
             cls.label_id
         ).limit(limit).order_by(cls.rating.asc()).all())
         return result
-
 
     @classmethod
     def ratings_highest(cls, limit: int = 10) -> list[Release | None]:
@@ -337,12 +351,12 @@ class Release(MusicBrainzEntity):
                     cls.name,
                     cls.rating,
                     cls.listen_date,
-                    cls.genre,
+                    cls.main_genre,
+                    cls.genres,
                     cls.image,
-                    func.array_agg(func.concat(Tag.name)).label('tags')
+                    func.array_agg(func.concat(Genre.name)).label('genres')
                 )
                 .join(Artist, Artist.id == cls.artist_id)
-                .outerjoin(Tag, Tag.release_id == cls.id)
                 .group_by(
                     Artist.id,
                     cls.id,
@@ -443,10 +457,7 @@ class Release(MusicBrainzEntity):
                 )
             elif key == 'tags':
                 # Retrieve all tags related to the Release ID
-                query = query.join(Tag, Tag.release_id == cls.id)
-                # Filter to only show results with matching tag name
-                for tag in value:
-                    query = query.filter(Tag.name == tag)
+                query = query.filter(Genre.name == value)
             else:
                 # generic handler for any other search key not matching above (country, genre)
                 query = query.filter(
@@ -454,33 +465,6 @@ class Release(MusicBrainzEntity):
                 )
         results = query.order_by(cls.id).all()
         return results
-
-    @classmethod
-    def get_reviews(
-            cls,
-            release_id: int,
-    ) -> list[Row]:
-        """
-        Retrieves a list of reviews for the specified release ID.
-
-        Args:
-            release_id (int): The ID of the release to retrieve reviews for.
-
-        Returns:
-            list[Row]: A list of review objects, where each object contains the timestamp and text of the review.
-
-        Raises:
-            ValueError: If `release_id` is a non-integer or an integer less than 0.
-        """
-        if not isinstance(release_id, int) or release_id < 0:
-            raise ValueError("Release ID must be a positive integer.")
-        reviews = (
-            app_db.session.query(
-                func.to_char(Review.timestamp, 'YYYY-MM-DD HH24:MI').label('timestamp'),
-                Review.text
-            ).where(Review.release_id == release_id)
-        ).all()
-        return reviews
 
     @staticmethod
     def create_new(data: dict) -> int:
@@ -532,14 +516,10 @@ class ArtistOrLabel(MusicBrainzEntity):
         image: Optional image file path
     """
     __abstract__ = True
-    id: Mapped[int] = mapped_column(primary_key=True)
-    mbid: Mapped[str | None] = mapped_column(String(), unique=True)
-    name: Mapped[str] = mapped_column(String())
-    country: Mapped[str | None] = mapped_column(String())
-    type: Mapped[str | None] = mapped_column(String())
-    begin_date: Mapped[date | None] = mapped_column(Date())
-    end_date: Mapped[date | None] = mapped_column(Date())
-    image: Mapped[str | None] = mapped_column(String())
+
+    type: Mapped[str | None] = mapped_column(String)
+    begin: Mapped[date | None] = mapped_column(Date, nullable=True)
+    end: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__()
@@ -867,52 +847,24 @@ class ArtistOrLabel(MusicBrainzEntity):
 class Label(ArtistOrLabel):
     __tablename__ = "label"
 
-    @classmethod
-    def get_releases(
-            cls,
-            label_id: int
-    ) -> list[Row]:
-        """
-        Get all releases related to a given label_id
-        :param label_id: Integer representing the Label's ID (primary key)
-        :return: SQLAlchemy Row objects representing the releases related to the given label_id; empty list if none are found
-        """
-        releases = (
-            app_db.session.query(Release, Artist)
-            .join(Artist, Artist.id == Release.artist_id)
-            .where(Release.label_id == label_id)
-        ).all()
-        return releases
+    releases = relationship("Release", back_populates="label", cascade="all, delete-orphan")
+    artists = relationship("Artist", secondary=label_artist_association, back_populates="labels")
+    genres = relationship("Genre", secondary=label_genre_association, back_populates="labels")
 
 class Artist(ArtistOrLabel):
     __tablename__ = "artist"
 
-    @classmethod
-    def get_releases(
-            cls,
-            artist_id: int
-    ) -> list[Row]:
-        """
-        Get all releases related to a given artist_id
-        :param artist_id: Integer representing the Artist's ID (primary key)
-        :return: SQLAlchemy Row objects representing the releases related to the given artist_id; empty list if none are found
-        """
-        releases = (
-            app_db.session.query(Release, Label.name, Label.id)
-            .join(Label, Release.label_id == Label.id)
-            .join(cls, cls.id == Release.artist_id)
-            .where(cls.id == artist_id)
-        ).all()
-        return releases
+    releases = relationship("Release", back_populates="label", cascade="all, delete-orphan")
+    labels = relationship("Label", secondary=label_artist_association, back_populates="artists")
+    genres = relationship("Genre", secondary=artist_genre_association, back_populates="artists")
 
 class Goal(Base):
     __tablename__ = "goal"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    start_date: Mapped[datetime] = mapped_column(DateTime())
-    end_goal: Mapped[datetime] = mapped_column(DateTime())
-    end_actual: Mapped[datetime | None] = mapped_column(DateTime())
-    type: Mapped[str] = mapped_column(String()) # i.e. release, album, label
-    amount: Mapped[int] = mapped_column(Integer())
+    start: Mapped[datetime] = mapped_column(DateTime)
+    end: Mapped[datetime] = mapped_column(DateTime)
+    completed: Mapped[datetime | None] = mapped_column(DateTime)
+    type: Mapped[str] = mapped_column(String) # i.e. release, album, label
+    amount: Mapped[int] = mapped_column(Integer)
 
     @property
     def new_releases_since_start_date(self):
@@ -922,7 +874,7 @@ class Goal(Base):
         """
         return (
             app_db.session.query(func.count(Release.id))
-            .filter(Release.listen_date >= self.start_date)
+            .filter(Release.listen_date >= self.start)
             .scalar()
         )
 
@@ -936,7 +888,7 @@ class Goal(Base):
         if self.type == 'release':
             if self.new_releases_since_start_date >= self.amount:
                 print('Updating end_actual to current time')
-                self.end_actual = datetime.now()
+                self.completed = datetime.now()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -950,7 +902,7 @@ class Goal(Base):
         Returns a list of the goals if found; none otherwise
         """
         try:
-            query = app_db.session.query(cls).where(cls.end_actual.is_(None))
+            query = app_db.session.query(cls).where(cls.completed.is_(None))
             results = query.all()
         except Exception:
             return []
@@ -970,27 +922,25 @@ class Goal(Base):
         if active_goals is not None:
             for goal in active_goals:
                 goal.update_goal()
-                if goal.end_actual:
+                if goal.completed:
                     # Goal is complete; updating db entry
                     from .operations import update
                     update(goal)
 
 class Review(Base):
     __tablename__ = "review"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
     timestamp: Mapped[date] = mapped_column(DateTime, default=func.now())
-    text: Mapped[str] = mapped_column(String())
+    text: Mapped[str] = mapped_column(String)
 
     release = relationship("Release", back_populates="reviews")
 
-class Tag(Base):
-    __tablename__ = "tag"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
-    name: Mapped[str] = mapped_column(String())
+class Genre(Base):
+    __tablename__ = "genre"
+    name: Mapped[str] = mapped_column(String)
 
-    release = relationship("Release", back_populates="tag_list")
+    releases = relationship("Release", back_populates="genres")
+    artists = relationship("Artist", secondary=artist_genre_association, back_populates="genres")
+    labels = relationship("Label", secondary=label_genre_association, back_populates="genres")
 
     __table_args__ = (
         # Make sure release can't have multiple of the same tag
@@ -1015,6 +965,7 @@ class Tag(Base):
 
     @staticmethod
     def create_tags(tags: str, release_id: int) -> None:
+        # TODO: review
         """
         Create tags for a given release in the database.
 
