@@ -764,15 +764,16 @@ class TestReleaseListensThisYear:
         assert 'count' in str(query_args[0]).lower()
         assert 'release.id' in str(query_args[0]).lower()
 
-class TestReleaseListensPerDay:
+class TestReleaseAddedPerDayThisYear:
     """Test suite for Release.listens_per_day class method"""
+    # TODO: move this to tests for Base class
 
-    def test_listens_per_day_returns_float(self, mocker):
-        """Test that listens_per_day returns a float value"""
+    def test_added_per_day_this_year_returns_float(self, mocker):
+        """Test that added_per_day_this_year returns a float value"""
         mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
         mock_listens.return_value = 10
 
-        result = Release.listens_per_day()
+        result = Release.added_per_day_this_year()
         assert isinstance(result, float)
 
     @pytest.mark.parametrize("listens,days,expected", [
@@ -782,44 +783,44 @@ class TestReleaseListensPerDay:
         (10, 100, 0.10),  # Less than one listen per day
         (1, 1, 1.00),  # Single day, single listen
     ])
-    def test_listens_per_day_calculation(self, mocker, listens, days, expected):
-        """Test that listens_per_day correctly calculates average listens"""
-        mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
+    def test_added_per_day_this_year_calculation(self, mocker, listens, days, expected):
+        """Test that added_per_day_this_year correctly calculates average listens"""
+        mock_listens = mocker.patch('databass.db.models.Release.added_this_year')
         mock_listens.return_value = listens
 
         mock_date = mocker.patch('databass.db.models.date')
         mock_date.today.return_value.timetuple.return_value.tm_yday = days
 
-        result = Release.listens_per_day()
+        result = Release.added_per_day_this_year()
         assert result == expected
 
-    def test_listens_per_day_handles_zero_days(self, mocker):
-        """Test that listens_per_day returns 0.0 when days_this_year is 0"""
-        mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
+    def test_added_per_day_this_year_handles_zero_days(self, mocker):
+        """Test that added_per_day_this_year returns 0.0 when days_this_year is 0"""
+        mock_listens = mocker.patch('databass.db.models.Release.added_this_year')
         mock_date = mocker.patch('databass.db.models.date')
         mock_date.today.return_value.timetuple.return_value.tm_yday = 0
 
-        result = Release.listens_per_day()
+        result = Release.added_per_day_this_year()
         assert result == 0.0
-        # Verify listens_this_year was never called
+        # Verify added_this_year was never called
         mock_listens.assert_not_called()
 
-    def test_listens_per_day_rounds_to_two_decimals(self, mocker):
-        """Test that listens_per_day rounds to 2 decimal places"""
-        mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
+    def test_added_per_day_this_year_rounds_to_two_decimals(self, mocker):
+        """Test that added_per_day_this_year rounds to 2 decimal places"""
+        mock_listens = mocker.patch('databass.db.models.Release.added_this_year')
         mock_listens.return_value = 100
 
         mock_date = mocker.patch('databass.db.models.date')
         mock_date.today.return_value.timetuple.return_value.tm_yday = 33
         # Should result in 3.0303... before rounding
 
-        result = Release.listens_per_day()
+        result = Release.added_per_day_this_year()
         assert str(result).split('.')[-1] <= '99'
         assert len(str(result).split('.')[-1]) <= 2
 
-    def test_listens_per_day_uses_correct_year_day(self, mocker):
-        """Test that listens_per_day uses the correct day of year"""
-        mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
+    def test_added_per_day_this_year_uses_correct_year_day(self, mocker):
+        """Test that added_per_day_this_year uses the correct day of year"""
+        mock_listens = mocker.patch('databass.db.models.Release.added_this_year')
         mock_date = mocker.patch('databass.db.models.date')
         mock_timetuple = mocker.Mock()
         mock_timetuple.tm_yday = 100
@@ -827,7 +828,7 @@ class TestReleaseListensPerDay:
         mock_date.today.return_value.timetuple.return_value = mock_timetuple
         mock_listens.return_value = 200
 
-        Release.listens_per_day()
+        Release.added_per_day_this_year()
         mock_date.today.assert_called_once()
         mock_date.today.return_value.timetuple.assert_called_once()
 

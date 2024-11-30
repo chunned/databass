@@ -37,11 +37,17 @@ class TestLabel:
         mock_label = mocker.MagicMock()
         mock_label.id = 1
         mock_label.name = "Test Label"
+        mock_label.country = "US"
         mock_db_label = mocker.patch("databass.db.models.Label.exists_by_id", return_value=mock_label)
         mock_release = mocker.MagicMock()
         mock_release.Release = mocker.MagicMock()
         mock_release.Release.id = 1
         mock_releases = mocker.patch("databass.db.models.Label.get_releases", return_value=[mock_release])
+
+        mock_country = mocker.MagicMock()
+        mock_country.name = "United States"
+        mock_get_country = mocker.patch("pycountry.countries.get", return_value=mock_country)
+
         response = client.get("/label/1")
         assert response.status_code == 200
         assert b"Test Label" in response.data
