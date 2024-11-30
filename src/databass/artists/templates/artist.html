@@ -14,19 +14,19 @@
                 <p>{{ data.artist.country|country_name }}</p>
             </div>
             <div id="start">
-                {% if data.artist.begin_date != data.no_start %}
+                {% if data.artist.begin != data.no_start %}
                     {% if data.artist.type == 'person' %}born:
                     {% elif data.artist.type == 'group' %}founded:
                     {% endif %}
-                    {{ data.artist.begin_date }}
+                    {{ data.artist.begin }}
                 {% endif %}
             </div>
             <div id="end">
-                {% if data.artist.end_date != data.no_end %}
+                {% if data.artist.end != data.no_end %}
                     {% if data.artist.type == 'person' %}died:
                     {% elif data.artist.type == 'group' %}ended:
                     {% endif %}
-                {{ data.artist.end_date }}
+                {{ data.artist.end }}
                 {% endif %}
             </div>
         </div>

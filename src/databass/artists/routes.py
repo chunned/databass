@@ -20,13 +20,11 @@ def artist(artist_id):
         flash(error)
         return redirect('/error', code=302)
 
-    artist_releases = Artist.get_releases(artist_id)
-
     no_end = date(9999, 12, 31)
     no_start = date(1, 1, 1)
     data = {
         "artist": artist_data,
-        "releases": artist_releases,
+        "releases": artist_data.releases,
         "no_end": no_end,
         "no_start": no_start
     }

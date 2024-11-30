@@ -17,12 +17,11 @@ def label(label_id):
         error = f"No label with ID {label_id} found."
         flash(error)
         return redirect('/error', code=302)
-    label_releases = Label.get_releases(label_id)
     no_end = date(9999, 12, 31)
     no_start = date(1, 1, 1)
     data = {
         "label": label_data,
-        "releases": label_releases,
+        "releases": label_data.releases,
         "no_end": no_end,
         "no_start": no_start
     }

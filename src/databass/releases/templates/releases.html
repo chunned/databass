@@ -63,12 +63,12 @@
                     </select>
                 </div>
                 <div class="search_div">
-                    <label for="tags">subgenres</label>
+                    <label for="genres">subgenres</label>
                     <div class="checkbox-form">
-                        <select id="tags">
+                        <select id="genres">
                             <option value="" selected></option>
-                            {% for tag in data.tags %}
-                                <option value="{{ tag }}">{{ tag }}</option>
+                            {% for genre in data.genres %}
+                                <option value="{{ genre }}">{{ genre }}</option>
                             {% endfor %}
                         </select>
                     </div>

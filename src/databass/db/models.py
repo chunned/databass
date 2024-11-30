@@ -99,7 +99,7 @@ class MusicBrainzEntity(Base):
     def exists_by_id(
             cls,
             item_id: int
-    ) -> Optional[Base]:
+    ):
         """
         Check if an item exists in the database by its ID
         :param item_id: Item's ID (primary key)
@@ -550,6 +550,17 @@ class Release(MusicBrainzEntity):
                 label_name=data["label_name"],
                 mbid=data["release_group_mbid"]
             )
+        try:
+            image_filepath = Util.get_image(
+                item_type='release',
+                item_id=release_id,
+                release_name=data["name"],
+                artist_name=data["artist_name"],
+                label_name=data["label_name"],
+                mbid=data["release_group_mbid"]
+            )
+        except KeyError:
+            image_filepath = "/static/img/none.png"
         new_release.image = image_filepath
         update(new_release)
         return new_release.id
@@ -1023,21 +1034,23 @@ class Genre(Base):
             raise e
 
     @staticmethod
-    def create_tags(tags: str, release_id: int) -> None:
-        # TODO: review
+    def create_genres(genres: str) -> list:
         """
-        Create tags for a given release in the database.
+        Create genres for a given release in the database.
 
         Args:
-            tags (str): A comma-separated string of tag names to create.
-            release_id (int): The ID of the release to associate the tags with.
+            genres (str): A comma-separated string of genre names to create.
 
-        This function splits the `tags` string on commas to get a list of individual tag names.
-        For each tag name, it constructs a new `Tag` object with the tag name and the given `release_id`,
-        and inserts the new tag into the database using the `insert` function from the `operations` module.
+        Returns:
+            List of IDs of the newly created genres
+
+        This function splits the `genres` string on commas to get a list of individual genre names.
+        For each genre name, it constructs a new `Genre` object with the genre name and inserts it.
         """
-        from ..db import construct_item, insert
-        for tag in tags.split(','):
-            tag_data = {"name": tag, "release_id": release_id}
-            tag_obj = construct_item('tag', tag_data)
-            insert(tag_obj)
+        from .util import construct_item
+        from .operations import insert
+        ids = []
+        for genre in genres.split(','):
+            tag_obj = construct_item('tag', {"name": genre})
+            ids.append(insert(tag_obj))
+        return ids

@@ -14,15 +14,15 @@
                 <h2>{{ data.label.country|country_name }}</h2>
             </div>
             <div id="start">
-                {% if data.label.begin_date != data.no_start %}
+                {% if data.label.begin != data.no_start %}
                     started:
-                    {{ data.label.begin_date }}
+                    {{ data.label.begin }}
                 {% endif %}
             </div>
             <div id="end">
-                {% if data.label.end_date != data.no_end %}
+                {% if data.label.end != data.no_end %}
                     ended:
-                    {{ data.label.end_date }}
+                    {{ data.label.end }}
                 {% endif %}
             </div>
         </div>

@@ -54,11 +54,11 @@
                 {{ release.listen_date.date() }}
             </td>
             <td>
-                {{ release.genre }}
+                {{ release.main_genre }}
             </td>
             <td style="white-space: normal!important;">
                 <p>
-                    {{ release.tags | join(', ') }}
+                    {{ release.genres | join(', ') }}
                 </p>
             </td>
         </tr>

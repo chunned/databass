@@ -83,3 +83,5 @@ def delete(item_type: str,
     except Exception as err:
         app_db.session.rollback()
         raise Exception(f'Unexpected error: {err}')
+
+

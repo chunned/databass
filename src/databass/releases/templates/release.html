@@ -25,7 +25,7 @@
                 <h2>
                     <a href="/artist/{{  data.artist.id }}">{{ data.artist.name }}</a>
                 </h2>
-                <p>({{ data.release.release_year }})</p>
+                <p>({{ data.release.year }})</p>
             </div>
             <div id="release_label">
                 {% if data.release.country %}
@@ -40,15 +40,15 @@
             </div>
             <div id="genres">
                 <h3>
-                    primary genre: {{ data.release.genre }}
+                    genre: {{ data.release.main_genre }}
                 </h3>
                 {% if data.release.tags %}
                     <h3>
-                        secondary genre(s):
+                        subgenres:
                     </h3>
-                    {% set tags = data.release.tags.split(',') %}
+                    {% set genres = data.release.genres.split(',') %}
                     <ul>
-                        {% for genre in tags %}
+                        {% for genre in genres %}
                             <li>{{ genre }}</li>
                         {% endfor %}
                     </ul>

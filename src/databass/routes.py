@@ -131,9 +131,9 @@ def register_routes(app):
             if data["manual_submit"] == "true":
                 # try to grab optional fields
                 try:
-                    tags = data["tags"]
+                    genres = data["genres"]
                 except KeyError:
-                    tags = ""
+                    genres = ""
                 try:
                     image = data["image"]
                 except KeyError:
@@ -165,8 +165,10 @@ def register_routes(app):
                     "label_mbid": None,
                     "release_year": data["release_year"],
                     "genre": data["genre"],
+                    "year": data["release_year"],
+                    "main_genre": data["main_genre"],
                     "rating": data["rating"],
-                    "tags": tags,
+                    "genres": genres,
                     "image": image,
                     "listen_date": Util.today(),
                     "runtime": runtime,
@@ -184,15 +186,16 @@ def register_routes(app):
                     "artist_mbid": data["artist_mbid"],
                     "label_name": data["label"],
                     "label_mbid": data["label_mbid"],
-                    "release_year": int(data["release_year"]),
-                    "genre": data["genre"],
+                    "year": int(data["year"]),
+                    "main_genre": data["main_genre"],
                     "rating": int(data["rating"]),
                     "track_count": data["track_count"],
                     "listen_date": Util.today(),
                     "country": data["country"],
-                    "tags": data["tags"],
+                    "genres": data["genres"],
                     "image": None
                 }
+            if release_data:
 
             try:
                 handle_submit_data(release_data)
@@ -406,8 +409,8 @@ def process_goal_data(goal: models.Goal):
 
     Returns:
         dict: A dictionary containing the following keys:
-            - start_date (datetime): The start date of the goal.
-            - end_goal (datetime): The end date of the goal.
+            - start (datetime): The start date of the goal.
+            - end (datetime): The end date of the goal.
             - type (str): The type of the goal.
             - amount (int): The total amount of the goal.
             - progress (float): The current progress of the goal as a percentage.
@@ -416,14 +419,14 @@ def process_goal_data(goal: models.Goal):
     """
     current = goal.new_releases_since_start_date
     remaining = goal.amount - current
-    days_left = (goal.end_goal - datetime.today()).days
+    days_left = (goal.end - datetime.today()).days
     try:
         target = round((remaining / days_left), 2)
     except ZeroDivisionError:
         target = 0
     return {
-        "start_date": goal.start_date,
-        "end_goal": goal.end_goal,
+        "start": goal.start,
+        "end": goal.end,
         "type": goal.type,
         "amount": goal.amount,
         "progress": round((current / goal.amount) * 100),

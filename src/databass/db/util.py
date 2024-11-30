@@ -2,7 +2,7 @@ from typing import Type
 from sqlalchemy import extract, Integer
 from sqlalchemy.orm import query as sql_query
 from sqlalchemy.engine.row import Row
-from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Tag
+from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Genre
 
 def get_model(model_name: str) -> Base | None:
     """
@@ -60,7 +60,7 @@ def apply_comparison_filter(query,
                       operator: str,
                       value: str) -> sql_query:
     """
-    Used by dynamic_search to perform comparisons on begin_date, end_date, year, or rating
+    Used by dynamic_search to perform comparisons on begin, end, year, or rating
     :param query: An SQLAlchemy query class
     :param model: The database model class to filter on
     :param key: The column to filter on - begin_date or end_date
@@ -79,12 +79,12 @@ def apply_comparison_filter(query,
     if operator not in ['<', '=', '>']:
         raise ValueError(f"Unrecognized operator value for year_comparison: {operator}")
 
-    if key in ('begin_date', 'end_date'):
+    if key in ('begin', 'end'):
         query = query.filter(extract('year', attribute).cast(Integer).op(operator)(val))
     elif key == 'rating':
         query = query.filter(Release.rating.op(operator)(value))
-    elif key == 'release_year':
-        query = query.filter(Release.release_year.op(operator)(value))
+    elif key == 'year':
+        query = query.filter(Release.year.op(operator)(value))
     return query
 
 
@@ -187,12 +187,19 @@ def handle_submit_data(submit_data: dict) -> None:
             name=submit_data["artist_name"],
         )
     else:
-        artist_id = Artist.create_if_not_exist(name=submit_data["artist_name"])
+        artist_id = Artist.create_if_not_exist(
+            name=submit_data["artist_name"]
+        )
 
     submit_data["artist_id"] = artist_id
 
-    release_id = Release.create_new(submit_data)
+    if submit_data["main_genre"] is not None:
+        main_genre = Genre.create_genres(submit_data["main_genre"])[0]
+        submit_data["main_genre"] = main_genre  # swaps name for id
 
-    if submit_data["tags"] is not None:
-        Tag.create_tags(submit_data["tags"], release_id)
+    if submit_data["genres"] is not None:
+        genres = Genre.create_genres(submit_data["genres"])
+        submit_data["genres"] = genres  # swaps names for ids
+
+    Release.create_new(submit_data)
     Goal.check_goals()

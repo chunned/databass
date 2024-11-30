@@ -42,8 +42,8 @@
         {% for goal in data.existing_goals %}
             <div>
                 <button class="box delete-btn" id="delete-btn" data-id="{{ goal.id }}" data-type="goal">x</button>
-                <p>{{ goal.start_date.date() }}</p>
-                <p>{{ goal.end_goal.date() }}</p>
+                <p>{{ goal.start.date() }}</p>
+                <p>{{ goal.end.date() }}</p>
                 <p>{{ goal.type }}</p>
                 <p>{{ goal.amount }}</p>
                 <p>{{ goal.new_releases_since_start_date }}</p>

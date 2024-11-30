@@ -18,18 +18,18 @@ def release(release_id):
         return redirect('/error', code=302)
     artist_data = models.Artist.exists_by_id(release_data.artist_id)
     label_data = models.Label.exists_by_id(release_data.label_id)
-    existing_reviews = models.Release.get_reviews(int(release_id))
+    existing_reviews = models.Release.reviews
     label = models.Label.exists_by_id(release_data.label_id)
     if label.name == '[NONE]':
         label_releases = []
     else:
-        label_releases = models.Label.get_releases(label.id)
+        label_releases = models.Label.releases
 
     artist = models.Artist.exists_by_id(release_data.artist_id)
     if artist.name in ('Various Artists', '[NONE]'):
         artist_releases = []
     else:
-        artist_releases = models.Artist.get_releases(release_data.artist_id)
+        artist_releases = models.Artist.releases
 
     data = {
         "release": release_data,
@@ -87,9 +87,9 @@ def edit(release_id):
 
         # release year
         try:
-            year = edit_data["release_year"]
+            year = edit_data["year"]
             if year:
-                submit_data["release_year"] = year
+                submit_data["year"] = year
         except KeyError:
             pass
 
@@ -112,9 +112,9 @@ def edit(release_id):
 
         # genre
         try:
-            genre = edit_data["genre"]
-            if genre:
-                submit_data["genre"] = genre
+            main_genre = edit_data["main_genre"]
+            if main_genre:
+                submit_data["main_genre"] = main_genre
         except KeyError:
             pass
 
@@ -136,7 +136,7 @@ def edit(release_id):
             updated_release.label_id = old_release.label_id
             updated_release.runtime = old_release.runtime
             updated_release.track_count = old_release.track_count
-            updated_release.tags = old_release.tags # TODO: allow editing for tags
+            updated_release.genres = old_release.genres # TODO: allow editing for genres
 
         except KeyError:
             error = "Edit data missing ID, unable to update an existing entry without ID."
@@ -187,7 +187,7 @@ def add_review(release_id):
 @release_bp.route('/releases', methods=["GET"])
 def releases():
     genres = sorted(models.Release.get_distinct_column_values('genre'))
-    tags = sorted(models.Tag.get_distinct_column_values('name'))
+    tags = sorted(models.Genre.get_distinct_column_values('name'))
     countries = sorted(models.Release.get_distinct_column_values('country'))
     all_labels = sorted(models.Label.get_distinct_column_values('name'))
     all_artists = sorted(models.Artist.get_distinct_column_values('name'))
