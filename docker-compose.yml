@@ -21,7 +21,7 @@ services:
       - VERSION=${VERSION}
       - DOCKER=True
     volumes:
-      - ./images:/databass/static/img
+      - ./images:/databass/databass/static/img
   postgres:
     image: postgres:16.5
     restart: always
