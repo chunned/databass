@@ -3,49 +3,47 @@
 <input type="hidden" value="{{ pagination.page }}" id="current_page">
 <form id="data_form" action="/submit" method="post">
 <input type="hidden" name="referrer" value="page_button">
-<table>
-    <thead>
-    <tr>
-        <th>RELEASE</th>
-        <th>ARTIST</th>
-        <th>LABEL</th>
-        <th>DATE</th>
-        <th>TRACKS</th>
-        <th>FORMAT</th>
-        <th>
-            <nav class="pagination">
-                {% if pagination.has_prev %}
-                    <button type="button" class="page-btn pagination_button" data-direction="prev" id="prev_page" value="{{ pagination.page - 1 }}">back</button>
-                {% else %}
-                    <button type="button" disabled class="pagination_button">back</button>
-                {% endif %}
-                {% if pagination.has_next %}
-                    <button type="button" class="page-btn pagination_button" data-direction="next" id="next_page" value="{{ pagination.page + 1 }}">next</button>
-                {% else %}
-                    <button type="button" class="box pagination_button" disabled style="color: var(--color-black);">next</button>
-                {% endif %}
-            </nav>
-        </th>
-    </tr>
-    </thead>
-    <tbody>
+
+
+<div id="search_table">
+    <div class="row" id="head">
+        <div class="pagination">
+            {% if pagination.has_prev %}
+                <button type="button" class="page-btn pagination_button" id="prev_page" value="{{ pagination.page - 1 }}">back</button>
+            {% else %}
+                <button type="button" disabled class="pagination_button">back</button>
+            {% endif %}
+            {% if pagination.has_next %}
+                <button type="button" class="page-btn pagination_button" id="next_page" value="{{ pagination.page + 1 }}">next</button>
+            {% else %}
+                <button type="button" class="box pagination_button" disabled>next</button>
+            {% endif %}
+        </div>
+        <h3>RELEASE</h3>
+        <h3>ARTIST</h3>
+        <h3>LABEL</h3>
+        <h3>DATE</h3>
+        <h3>TRACKS</h3>
+        <h3>FORMAT</h3>
+        <h3>COUNTRY</h3>
+    </div>
+    <div id="rows">
     {% for item in data %}
-    <tr data-item="{{ item }}">
-        <td style="display: none;">
-            <input hidden value="{{ item }}" type="radio" name="selected_item">
-        </td>
-        <td><div>{{ item['release']['name'] }}</div></td>
-        <td>{{ item['artist']['name'] }}</td>
-        <td>{{ item['label']['name'] }}</td>
-        <td>{{ item['date'] }}</td>
-        <td>{{ item['track_count'] }}</td>
-        <td>{{ item['format'] }}</td>
-        <td></td>
-    </tr>
+    <div class="row" data-item="{{ item }}">
+        <span></span>
+        <input value="{{ item }}" type="radio" name="selected_item" style="display: none;">
+        <p>{{ item['release']['name'] }}</p>
+        <p>{{ item['artist']['name'] }}</p>
+        <p>{{ item['label']['name'] }}</p>
+        <p>{{ item['date'] }}</p>
+        <p>{{ item['track_count'] }}</p>
+        <p>{{ item['format'] }}</p>
+        <p>{{ item['country'] }}</p>
+    </div>
     {% endfor %}
-    </tbody>
-</table>
-    <input type="hidden" id="selected_item" name="selected_item">
+    </div>
+</div>
+<input type="hidden" id="selected_item" name="selected_item">
 </form>
 </div>
 

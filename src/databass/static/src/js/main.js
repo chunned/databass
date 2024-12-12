@@ -69,7 +69,7 @@ function formatDataString(data) {
 
 function addPopupListeners(html) {
     document.querySelector("#search_results").innerHTML = html;
-    let tableRows = document.querySelectorAll("#data_form table tbody tr");
+    let tableRows = document.querySelectorAll(".row");
     tableRows.forEach((tableRow) => {
         tableRow.addEventListener("click", function() {
             let data = formatDataString(tableRow.dataset.item);
