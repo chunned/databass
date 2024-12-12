@@ -489,14 +489,17 @@ class Release(MusicBrainzEntity):
         new_release = construct_item('release', data)
         release_id = insert(new_release)
 
-        image_filepath = Util.get_image(
-            item_type='release',
-            item_id=release_id,
-            release_name=data["name"],
-            artist_name=data["artist_name"],
-            label_name=data["label_name"],
-            mbid=data["release_group_mbid"]
-        )
+        if data["image"] is not None:
+            image_filepath = Util.get_image(item_type="release", item_id=release_id, url=data["image"])
+        else:
+            image_filepath = Util.get_image(
+                item_type='release',
+                item_id=release_id,
+                release_name=data["name"],
+                artist_name=data["artist_name"],
+                label_name=data["label_name"],
+                mbid=data["release_group_mbid"]
+            )
         new_release.image = image_filepath
         update(new_release)
         return new_release.id
@@ -799,13 +802,13 @@ class ArtistOrLabel(MusicBrainzEntity):
         return results
 
     @classmethod
-    def create_if_not_exist(cls, mbid: str, name: str) -> int:
+    def create_if_not_exist(cls, name: str, mbid: str = None) -> int:
         """
         Create a new instance of the model if it does not already exist in the database.
 
         Args:
-            mbid (str): The MusicBrainz ID of the item to create.
             name (str): The name of the item to create.
+            mbid (str): [optional] The MusicBrainz ID of the item to create.
 
         Returns:
             int: The ID of the created or existing item.
@@ -820,9 +823,13 @@ class ArtistOrLabel(MusicBrainzEntity):
             # Grab image, start/end date, type, and insert
             if cls.__name__ == 'Label':
                 item_search = MusicBrainz.label_search(name=name, mbid=mbid)
+                if item_search is None:
+                    item_search = {"name": name}
                 new_item = construct_item(model_name='label', data_dict=item_search)
             elif cls.__name__ == 'Artist':
                 item_search = MusicBrainz.artist_search(name=name, mbid=mbid)
+                if item_search is None:
+                    item_search = {"name": name}
                 new_item = construct_item(model_name='artist', data_dict=item_search)
             else:
                 raise ValueError(f"Unsupported class: {cls} - supported classes are Label and Artist")

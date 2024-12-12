@@ -116,6 +116,7 @@ def register_routes(app):
     def submit():
         data = request.form.to_dict()
         try:
+            release_data = {}
             # Check if this is a manual submission (i.e. manually entered data, no results found from MusicBrainz)
             if data["manual_submit"] == "true":
                 # try to grab optional fields
@@ -129,7 +130,7 @@ def register_routes(app):
                     image = ""
 
                 try:
-                    runtime = int(data["runtime"])
+                    runtime = int(data["runtime"]) * 60000  # convert to frontend value (minutes) to ms
                 except KeyError:
                     runtime = 0
 
@@ -140,16 +141,17 @@ def register_routes(app):
 
 
                 try:
-                    country = data["country"]
+                    country = country_code(data["country"])
                 except KeyError:
                     country = "?"
 
-                # TODO: add to frontend: runtime, track_count, country
-
                 release_data = {
                     "name": data["name"],
+                    "mbid": None,
                     "artist_name": data["artist"],
+                    "artist_mbid": None,
                     "label_name": data["label"],
+                    "label_mbid": None,
                     "release_year": data["release_year"],
                     "genre": data["genre"],
                     "rating": data["rating"],
@@ -158,10 +160,9 @@ def register_routes(app):
                     "listen_date": Util.today(),
                     "runtime": runtime,
                     "track_count": track_count,
-                    "country": country
+                    "country": country,
+                    "release_group_mbid": None
                 }
-                # TODO: improve manual submission; check Discogs for Artist/Label images, let user provide release image URL and auto-fetch it
-                db.operations.submit_manual(release_data)
             elif data["manual_submit"] == "false":
                 # Grab variables from request
                 release_data = {
@@ -178,9 +179,10 @@ def register_routes(app):
                     "track_count": data["track_count"],
                     "listen_date": Util.today(),
                     "country": data["country"],
-                    "tags": data["tags"]
+                    "tags": data["tags"],
+                    "image": None
                 }
-                handle_submit_data(release_data)
+            handle_submit_data(release_data)
         except KeyError:
             error = "Request missing one of the expected keys"
             flash(error)
@@ -345,25 +347,40 @@ def register_routes(app):
         )
 
     @app.template_filter('country_name')
-    def country_name(country_code: str) -> str | None:
+    def country_name(code: str) -> str | None:
         """
         Converts a two-letter country code to the full country name.
         If the country code is `None` or not found in the `pycountry` library, the original country code is returned.
 
         Args:
-            country_code (str): The two-letter ISO 3166-1 alpha-2 country code.
+            code (str): The two-letter ISO 3166-1 alpha-2 country code.
 
         Returns:
             str | None: The full country name if found, otherwise the original country code.
         """
-        if country_code is None:
-            return country_code
+        if code is None:
+            return code
         import pycountry
         try:
-            country = pycountry.countries.get(alpha_2=country_code.upper())
-            return country.name if country else country_code
+            country = pycountry.countries.get(alpha_2=code.upper())
+            return country.name if country else code
         except KeyError:
-            return country_code
+            return code
+
+    @app.template_filter('country_code')
+    def country_code(country: str) -> str | None:
+        """
+        Converts a country string to the corresponding two-letter country code
+        If country is `None` or not found in `pycountry`, original value is returned.
+        """
+        if country is None:
+            return country
+        import pycountry
+        try:
+            code = pycountry.countries.lookup(country)
+            return code.alpha_2 if code else None
+        except (KeyError, LookupError):
+            return country
 
 def process_goal_data(goal: models.Goal):
     """

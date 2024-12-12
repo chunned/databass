@@ -160,11 +160,23 @@ def get_all_stats():
 
 
 def handle_submit_data(submit_data: dict) -> None:
+    """
+    Process dictionary data from routes.submit()
+    - Fetches release runtime from MusicBrainz, if a MBID is provided
+    - Checks if matching label/artist exists in the db, creates one if it doesn't
+    - Inserts the new release and subgenres (tags)
+    :param submit_data:
+    :return:
+    """
     from ..api import MusicBrainz
     from .models import Goal, Tag, Release, Artist, Label
-    runtime = MusicBrainz.get_release_length(submit_data["mbid"])
 
-    submit_data["runtime"] = runtime
+    if submit_data["mbid"]:
+        runtime = MusicBrainz.get_release_length(submit_data["mbid"])
+        submit_data["runtime"] = runtime
+        # If we aren't handling a MusicBrainz release,
+        # the user can optionally pass in the runtime and it's already in submit_data
+
 
     if submit_data["label_mbid"]:
         label_id = Label.create_if_not_exist(
@@ -172,7 +184,7 @@ def handle_submit_data(submit_data: dict) -> None:
             name=submit_data["label_name"],
         )
     else:
-        label_id = 0
+        label_id = Label.create_if_not_exist(name=submit_data["label_name"])
 
     submit_data["label_id"] = label_id
 
@@ -182,9 +194,10 @@ def handle_submit_data(submit_data: dict) -> None:
             name=submit_data["artist_name"],
         )
     else:
-        artist_id = 0
+        artist_id = Artist.create_if_not_exist(name=submit_data["artist_name"])
 
     submit_data["artist_id"] = artist_id
+
     release_id = Release.create_new(submit_data)
 
     if submit_data["tags"] is not None:
