@@ -1,6 +1,6 @@
+from typing import Tuple
 from flask import request
 from flask_paginate import Pagination, get_page_parameter
-from typing import Tuple
 
 
 class Pager:

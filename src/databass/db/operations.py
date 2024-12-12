@@ -1,12 +1,8 @@
-from .base import app_db
-from .util import get_model
-from .models import Artist, Label, Release
-from flask_sqlalchemy import SQLAlchemy
+from os import getenv
 from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
-from os import getenv
-from pytz import timezone
-from datetime import datetime
+from .base import app_db
+from .util import get_model
 
 load_dotenv()
 TIMEZONE = getenv('TIMEZONE')

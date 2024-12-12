@@ -1,14 +1,15 @@
-from re import search
+"""
+Implements Discogs API-related functions via Discogs class methods
+"""
 
-from dotenv import load_dotenv
 from os import getenv
-import requests
-import re
-import urllib.parse
-import time
 from typing import Dict, Optional, Any
+from urllib.parse import urljoin, urlencode
+import time
+import re
+import requests
+from dotenv import load_dotenv
 
-from flask import request
 
 load_dotenv()
 DISCOGS_KEY = getenv("DISCOGS_KEY")
@@ -37,14 +38,17 @@ class Discogs:
 
     @classmethod
     def update_rate_limit(cls, response: requests.Response):
+        """
+        Updates rate limit remaining requests based on response header
+        """
         limit = response.headers.get("x-discogs-ratelimit-remaining")
         cls.remaining_requests = int(limit)
 
     @classmethod
     def is_throttled(cls) -> bool:
         """
-        Checks if we have enough remaining requests to make a new request per rate limiting guidelines
-        If Discogs.remaining_requests is None, no requests have been sent yet and thus we are not throttled
+        Checks if we have enough remaining requests to make new request per rate limiting guidelines
+        If remaining_requests is None, no requests have been sent yet and thus we are not throttled
         If we have 1.1 or fewer remaining requests, we are throttled
         """
         return cls.remaining_requests is not None and cls.remaining_requests <= RATE_LIMIT_THRESHOLD
@@ -55,15 +59,14 @@ class Discogs:
         Sends request to an endpoint then updates rate limit count
         Returns json if response code is 200
         """
-        from urllib.parse import urljoin
-        resp = requests.get(urljoin(Discogs.url, endpoint), headers=Discogs.headers)
+        resp = requests.get(urljoin(Discogs.url, endpoint), headers=Discogs.headers, timeout=60)
         Discogs.update_rate_limit(resp)
         if Discogs.is_throttled() is True:
             time.sleep(5)   # Sleep for 5s to avoid exceeding rate limit
         if resp.status_code == 200:
             return resp.json()
-        else:
-            raise requests.exceptions.RequestException(f'Status code != 200: {resp}')
+
+        raise requests.exceptions.RequestException(f'Status code != 200: {resp}')
 
     @staticmethod
     def get_item_id(
@@ -96,24 +99,24 @@ class Discogs:
                 "q": name,
                 "type": item_type
             }
-        encoded_params = urllib.parse.urlencode(query_params)
+        encoded_params = urlencode(query_params)
         endpoint = f"/database/search?{encoded_params}"
         print(f'Search endpoint: {endpoint}')
 
         try:
             res = Discogs.request(endpoint)
-        except requests.RequestException as e:
+        except requests.RequestException:
             return None
 
         item_id = None
         try:
             for result in res["results"]:
                 try:
+                    # Skip bluray releases
                     if "Blu-ray" not in result["format"]:
                         item_id = result["id"]
                         break
-                    else:
-                        pass # Skip bluray releases
+
                 except KeyError:
                     pass # If we get KeyError when checking format, move onto next result
         except IndexError:
@@ -123,8 +126,8 @@ class Discogs:
         if item_id:
             print(f'ID for {item_type} {name}: {item_id}')
             return item_id
-        else:
-            return None
+
+        return None
 
     @staticmethod
     def get_item_image_url(endpoint: str) -> Optional[str]:
@@ -135,20 +138,22 @@ class Discogs:
                 endpoint (str): The Discogs API endpoint to fetch image data from.
 
             Returns:
-                Optional[str]: The URL of the first square image found, or None if no square images are found.
+                Optional[str]:  The URL of the first square image found,
+                                or None if no square images are found.
         """
 
         try:
             response = Discogs.request(endpoint)
             results = response["results"]
-        except (TypeError, requests.RequestException) as e:
+        except (TypeError, requests.RequestException):
             return None
         for item in results:
             try:
                 image_url = item["cover_image"]
                 # Attempt to determine image dimensions from the URL
                 # Should contain a string like /h:500/w:500/ to denote the height and width
-                # Below regex first extracts that entire substring; the next extract the height and width themselves
+                # Below regex first extracts that entire substring;
+                # the next extract the height and width themselves
 
                 # IN: https://........../h:250/w:500/......  OUT: "/h:250/w:500"
                 dimensions = re.findall(DIMENSIONS_PATTERN, image_url)[0]
@@ -160,9 +165,7 @@ class Discogs:
                 # Make sure image is square; if not, try next result
                 if height == width:
                     return image_url
-                else:
-                    pass
-            except Exception as e:
+            except Exception:
                 return None
         print('INFO: No square images found.')
 
@@ -177,7 +180,11 @@ class Discogs:
         Returns:
             Optional[str]: The URL of the first square image found, or None if no square images are found.
         """
-        if not search_results or "images" not in search_results.keys() or type(search_results["images"]) != list:
+        if (
+            not search_results or
+            "images" not in search_results.keys() or
+            not isinstance(search_results["images"], list)
+        ):
             return None
         try:
             print(f'{len(search_results["images"])} candidates found')
@@ -190,9 +197,7 @@ class Discogs:
                     if height == width:
                         print(f'Square image found: {image_url}')
                         return image_url
-                    else:
-                        print(f'Non-square image: H:{height}/W:{width} | {image_url}')
-                        pass
+                    print(f'Non-square image: H:{height}/W:{width} | {image_url}')
                 except KeyError:
                     pass
             try:
@@ -214,7 +219,8 @@ class Discogs:
             artist (str): The name of the Discogs artist associated with the release.
 
         Returns:
-            Optional[str]: The URL of the image associated with the release, or None if no image is found or an error occurs.
+            Optional[str]:  The URL of the image associated with the release,
+                            or None if no image is found or an error occurs.
         """
         if not name or not isinstance(name, str) or not artist or not isinstance(artist, str):
             return None
@@ -225,13 +231,13 @@ class Discogs:
             item_type='release'
         )
         if release_id:
-            print(f'Got release ID. Checking for images...')
+            print('Got release ID. Checking for images...')
             endpoint = f"/releases/{release_id}"
             try:
                 res = Discogs.request(endpoint)
                 img = Discogs.find_image(res)
                 return img if img else None
-            except requests.exceptions.RequestException as e:
+            except requests.exceptions.RequestException:
                 return None
         else:
             print('No search results found.')
@@ -246,7 +252,8 @@ class Discogs:
             name (str): The name of the Discogs artist to search for.
 
         Returns:
-            Optional[str]: The URL of the image associated with the artist, or None if no image is found or an error occurs.
+            Optional[str]: The URL of the image associated with the artist,
+                            or None if no image is found or an error occurs.
         """
         if not name or not isinstance(name, str):
             return None
@@ -256,7 +263,7 @@ class Discogs:
             try:
                 res = Discogs.request(endpoint)
                 return Discogs.find_image(res)
-            except requests.exceptions.RequestException as e:
+            except requests.exceptions.RequestException:
                 return None
         else:
             print('No search results found.')
@@ -271,7 +278,8 @@ class Discogs:
             name (str): The name of the Discogs label to search for.
 
         Returns:
-            Optional[str]: The URL of the image associated with the label, or None if no image is found or an error occurs.
+            Optional[str]: The URL of the image associated with the label,
+                            or None if no image is found or an error occurs.
         """
         if not name or not isinstance(name, str):
             return None
@@ -281,7 +289,7 @@ class Discogs:
             try:
                 res = Discogs.request(endpoint)
                 return Discogs.find_image(res)
-            except requests.exceptions.RequestException as e:
+            except requests.exceptions.RequestException:
                 return None
         else:
             print('No search results found.')

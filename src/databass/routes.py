@@ -1,10 +1,20 @@
+"""
+Implements the main routes for the databass application, including
+- home page
+- new release page
+- stats page
+- goals page
+"""
+from datetime import datetime
 import flask
 from flask import render_template, request, redirect, abort, flash, make_response, send_file
-from .api import Util, MusicBrainz, Discogs
+import pycountry
+from .api import Util, MusicBrainz
 from . import db
 from .db import models
 from .db.util import get_all_stats, handle_submit_data
-from datetime import datetime
+from .pagination import Pager
+
 
 def register_routes(app):
     @app.route('/', methods=['GET'])
@@ -27,7 +37,6 @@ def register_routes(app):
 
     @app.route("/home_release_table")
     def home_release_table():
-        from .pagination import Pager
 
         data = models.Release.home_data()
 
@@ -51,9 +60,7 @@ def register_routes(app):
 
     @app.route("/search", methods=["POST", "GET"])
     def search() -> str | flask.Response:
-        from .pagination import Pager
-        # Initialize variables to None
-        page = data_length = paged_data = release_data = per_page = None
+        page = paged_data = release_data = per_page = None
 
         if request.method == "GET":
             return render_template(
@@ -70,7 +77,9 @@ def register_routes(app):
         try:
             origin = data["referrer"]
         except KeyError:
-            error = "Request referrer missing. You should only be coming to this page from /new or from the pagination buttons."
+            error = (
+                "Request referrer missing. You should only be coming to "
+                "this page from /new or from the pagination buttons.")
             flash(error)
             # TODO: move this error handling into errors/routes.py
             return redirect('/error')
@@ -117,7 +126,7 @@ def register_routes(app):
         data = request.form.to_dict()
         try:
             release_data = {}
-            # Check if this is a manual submission (i.e. manually entered data, no results found from MusicBrainz)
+            # Check if this is a manual submission
             if data["manual_submit"] == "true":
                 # try to grab optional fields
                 try:
@@ -130,7 +139,8 @@ def register_routes(app):
                     image = ""
 
                 try:
-                    runtime = int(data["runtime"]) * 60000  # convert to frontend value (minutes) to ms
+                    # convert minutes to ms
+                    runtime = int(data["runtime"]) * 60000
                 except KeyError:
                     runtime = 0
 
@@ -308,34 +318,33 @@ def register_routes(app):
                     mbid=item.mbid,
                     label_name=label_name
                 )
-        finally:
-            if item.image != img_path:
-                item.image = img_path
-                print(f'Updating database entry: {item_type}.image => {img_path}')
-                db.update(item)
-            # Define the mappings for the order of items. All releases are fixed 1 by 1, then artists, then labels
-            next_type = {
-                'release': 'artist',
-                'artist': 'label',
-                'label': None
-            }
-            next_item = db.util.next_item(item_type=item_type, prev_id=item_id)
-            if next_item:
-                return redirect(f'/imgupdate/{item_type}/{next_item.id}')
-            else:
-                # No next item; move onto next item type
-                next_item = next_type.get(item_type)
-                if next_item:
-                    return redirect(f'/imgupdate/{next_item}/0')
-                else:
-                    # Complete, redirect to home
-                    return redirect('/', code=302)
+        if item.image != img_path:
+            item.image = img_path
+            print(f'Updating database entry: {item_type}.image => {img_path}')
+            db.update(item)
+        # Define the mappings for the order of items.
+        # All releases are fixed 1 by 1, then artists, then labels
+        next_type = {
+            'release': 'artist',
+            'artist': 'label',
+            'label': None
+        }
+        next_item = db.util.next_item(item_type=item_type, prev_id=item_id)
+        if next_item:
+            return redirect(f'/imgupdate/{item_type}/{next_item.id}')
+
+        # No next item; move onto next item type
+        next_item = next_type.get(item_type)
+        if next_item:
+            return redirect(f'/imgupdate/{next_item}/0')
+        # Complete, redirect to home
+        return redirect('/', code=302)
 
     # TODO: see if still needed
     @app.route('/fix_images')
     def fix_images():
         print('Fixing images.')
-        # Starts the imgupdate process; imgupdate() will recursively call itself and update all images 1 by 1
+        # Starts the imgupdate process; recursively calls itself and update all images 1 by 1
         return redirect('/imgupdate/release/1')
 
     @app.route('/new_release', methods=["POST"])
@@ -350,7 +359,8 @@ def register_routes(app):
     def country_name(code: str) -> str | None:
         """
         Converts a two-letter country code to the full country name.
-        If the country code is `None` or not found in the `pycountry` library, the original country code is returned.
+        If the country code is `None` or not found in the `pycountry` library,
+        the original country code is returned.
 
         Args:
             code (str): The two-letter ISO 3166-1 alpha-2 country code.
@@ -360,7 +370,6 @@ def register_routes(app):
         """
         if code is None:
             return code
-        import pycountry
         try:
             country = pycountry.countries.get(alpha_2=code.upper())
             return country.name if country else code
@@ -375,7 +384,6 @@ def register_routes(app):
         """
         if country is None:
             return country
-        import pycountry
         try:
             code = pycountry.countries.lookup(country)
             return code.alpha_2 if code else None
@@ -384,7 +392,8 @@ def register_routes(app):
 
 def process_goal_data(goal: models.Goal):
     """
-    Processes the data for a given goal, calculating the current progress, remaining amount, and daily target.
+    Processes the data for a given goal, calculating the current progress,
+    remaining amount, and daily target.
 
     Args:
         goal (models.Goal): The goal object to process.
@@ -415,4 +424,3 @@ def process_goal_data(goal: models.Goal):
         "target": target,
         "current": current
     }
-

@@ -1,4 +1,3 @@
-from venv import create
 
 from databass import create_app
 

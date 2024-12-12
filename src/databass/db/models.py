@@ -1,10 +1,12 @@
 from __future__ import annotations
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Date, func, UniqueConstraint, extract, distinct
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from datetime import datetime, date
-from sqlalchemy.engine.row import Row
 from typing import Any, Optional, List
-from datetime import datetime
+from sqlalchemy import (
+    String, Integer, ForeignKey, DateTime, Date,
+    func, UniqueConstraint, extract, distinct
+)
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.engine.row import Row
 from .base import app_db
 
 
@@ -18,11 +20,18 @@ class Base(DeclarativeBase):
         # Returns the number of entries where date_added is within current year
         current_year = datetime.now().year
         try:
-            results = app_db.session.query(cls).filter(extract('year', cls.date_added) == current_year).count()
+            results = (
+                app_db.session.query(cls)
+                .filter(extract('year', cls.date_added) == current_year)
+                .count()
+            )
             if current_year == 2024:
-                # This section is required for backwards compatibility with entries added before 2024/11/26,
-                # when the date_added column was added
-                results += app_db.session.query(cls).filter(cls.date_added == None).count()
+                # This section is required for backwards compatibility
+                results += (
+                    app_db.session.query(cls)
+                    .filter(cls.date_added is None)
+                    .count()
+                )
         except Exception:
             results = 0
         return results
@@ -33,7 +42,8 @@ class Base(DeclarativeBase):
         Calculates the average number of listens per day so far this year.
 
         Returns:
-            float: The average number of listens per day so far this year, rounded to 2 decimal places.
+            float: The average number of listens per day so far this year,
+            rounded to 2 decimal places.
         """
         days_this_year: int = date.today().timetuple().tm_yday
         if days_this_year == 0:
@@ -121,8 +131,7 @@ class MusicBrainzEntity(Base):
             return None
         if result:
             return result
-        else:
-            return None
+        return None
 
     @classmethod
     def exists_by_name(
@@ -154,7 +163,8 @@ class MusicBrainzEntity(Base):
             item_id (int): The ID of the MusicBrainzEntity to get the name of.
 
         Returns:
-            Optional[MusicBrainzEntity.name]: The name (str) of the MusicBrainzEntity, or None if no entry with the specified ID is found.
+            Optional[MusicBrainzEntity.name]: The name (str) of the MusicBrainzEntity,
+            or None if no entry with the specified ID is found.
         """
         if not isinstance(item_id, int) or item_id <= 0:
             return None
@@ -164,18 +174,21 @@ class MusicBrainzEntity(Base):
     @classmethod
     def id_by_matching_name(cls, name: str) -> list[MusicBrainzEntity.id]:
         """
-        Get all MusicBrainzEntity IDs of a given type (Release, Artist, Label) where the name matches the `name` argument.
+        Get all MusicBrainzEntity IDs of a given type (Release, Artist, Label)
+        where the name matches the `name` argument.
 
         Args:
             name (str): The name to match on.
 
         Returns:
-            list[MusicBrainzEntity.id]: A list of MusicBrainzEntity IDs (int) with names that match the `name` argument.
+            list[MusicBrainzEntity.id]: A list of MusicBrainzEntity IDs (int) with names
+                                        that match the `name` argument.
         """
         if not isinstance(name, str):
             return []
         result = app_db.session.query(cls.id).filter(cls.name.ilike(f'%{name}%')).all()
-        # .all() returns a list of tuples like [(1,), (2,)] so return list comprehension unpacks it to [1, 2]
+        # .all() returns a list of tuples like [(1,), (2,)]
+        # below list comprehension unpacks it to [1, 2]
         return [r[0] for r in result]
 
 class Release(MusicBrainzEntity):
@@ -210,7 +223,8 @@ class Release(MusicBrainzEntity):
         Calculate the average runtime of all Release entries.
 
         Returns:
-            float: The average runtime of all Release entries, rounded to 2 decimal places. If there are no Release entries, returns 0.
+            float: The average runtime of all Release entries,
+                    rounded to 2 decimal places. If there are no Release entries, returns 0.
         """
         try:
             avg_runtime_ms = app_db.session.query(func.avg(cls.runtime)).scalar()
@@ -228,7 +242,8 @@ class Release(MusicBrainzEntity):
         Calculate the total runtime of all Release entries.
 
         Returns:
-            float: The total runtime of all Release entries, rounded to 2 decimal places. If there are no Release entries, returns 0.
+            float: The total runtime of all Release entries, rounded to 2 decimal places.
+                    If there are no Release entries, returns 0.
         """
         try:
             total_runtime_ms = app_db.session.query(func.sum(cls.runtime)).scalar()
@@ -244,7 +259,8 @@ class Release(MusicBrainzEntity):
         Return a list of the lowest rated releases, up to the specified limit.
 
         Args:
-            limit (int, optional): The maximum number of releases to return. If not provided, the default is 10. Must be a positive integer.
+            limit (int, optional): The maximum number of releases to return.
+            If not provided, the default is 10. Must be a positive integer.
 
         Returns:
             list[Release | None]: A list of Release objects, ordered by rating in ascending order.
@@ -270,7 +286,8 @@ class Release(MusicBrainzEntity):
         Return a list of the highest rated releases, up to the specified limit.
 
         Args:
-            limit (int, optional): The maximum number of releases to return. If not provided, the default is 10. Must be a positive integer.
+            limit (int, optional): The maximum number of releases to return.
+            If not provided, the default is 10. Must be a positive integer.
 
         Returns:
             list[Release | None]: A list of Release objects, ordered by rating in descending order.
@@ -312,7 +329,8 @@ class Release(MusicBrainzEntity):
     @classmethod
     def home_data(cls) -> list[Row]:
         """
-        Retrieves a list of data for the home page, including artist information, release information, and associated tags.
+        Retrieves a list of data for the home page, including artist information,
+        release information, and associated tags.
 
         Returns:
             list[Row]: A list of database rows containing the following fields:
@@ -359,7 +377,8 @@ class Release(MusicBrainzEntity):
         Counts the number of releases listened to during the current year.
 
         Returns:
-            int: The total number of releases listened to during the current year. Returns 0 if an exception is encountered.
+            int: The total number of releases listened to during the current year.
+                 Returns 0 if an exception is encountered.
         """
         try:
             current_year = datetime.now().year
@@ -409,7 +428,10 @@ class Release(MusicBrainzEntity):
             raise ValueError("Search criteria must be a dictionary")
         from .util import apply_comparison_filter
         query = app_db.session.query(cls)
-        search_keys = ["name", "artist", "country", "genre", "label", "rating", "tags", "release_year"]
+        search_keys = [
+            "name", "artist", "country", "genre",
+            "label", "rating", "tags", "release_year"
+        ]
         for key, value in data.items():
             if value == '' or value == [''] or key not in search_keys:
                 pass # Empty value or key not meant for searching, do nothing
@@ -467,7 +489,7 @@ class Release(MusicBrainzEntity):
             release_id (int): The ID of the release to retrieve reviews for.
 
         Returns:
-            list[Row]: A list of review objects, where each object contains the timestamp and text of the review.
+            list[Row]: List of review objects, where each contains timestamp & text of the review.
 
         Raises:
             ValueError: If `release_id` is a non-integer or an integer less than 0.
@@ -488,14 +510,11 @@ class Release(MusicBrainzEntity):
         Creates a new release record in the database and retrieves the assigned ID.
 
         Args:
-            data (dict): A dictionary containing the data for the new release, including the name, artist name, label name, and release group MBID.
+            data (dict): A dictionary containing the data for the new release,
+                         including the name, artist name, label name, and release group MBID.
 
         Returns:
             int: The ID of the newly created release.
-
-        Raises:
-            ValueError: If `data` is not a dictionary.
-            Any exceptions that may be raised by the `construct_item`, `insert`, `update`, or `get_image` functions.
         """
         if not isinstance(data, dict):
             raise ValueError("data argument must be a dictionary")
@@ -506,7 +525,9 @@ class Release(MusicBrainzEntity):
         release_id = insert(new_release)
 
         if data["image"] is not None:
-            image_filepath = Util.get_image(item_type="release", item_id=release_id, url=data["image"])
+            image_filepath = Util.get_image(
+                item_type="release", item_id=release_id, url=data["image"]
+            )
         else:
             image_filepath = Util.get_image(
                 item_type='release',
@@ -558,7 +579,8 @@ class ArtistOrLabel(MusicBrainzEntity):
             limit: int = 10
     ) -> list[dict]:
         """
-        Retrieve the top `limit` most frequently occurring Artists or Labels, along with the count of their associated Releases and their image file paths.
+        Retrieve the top `limit` most frequently occurring Artists or Labels,
+        along with the count of their associated Releases and their image file paths.
 
         This method is a class method, so it can be called on either the Artist or Label model classes.
 
@@ -586,7 +608,6 @@ class ArtistOrLabel(MusicBrainzEntity):
                     cls.image
                 )
                 .join(Release, relation_id == cls.id)
-                # Disregard Artist/Label entries that are not related to a specific real-world entity
                 .where(cls.name.notin_(["[NONE]", "Various Artists"]))
                 .group_by(cls.name, cls.image)
                 .order_by(func.count(relation_id).desc())
@@ -676,47 +697,44 @@ class ArtistOrLabel(MusicBrainzEntity):
             raise ValueError(f"Unrecognized sort order: {sort_order}. Valid orders are: 'desc', 'asc'")
 
         entities = cls.average_ratings_and_total_counts()
-        # Calculate the mean average and mean length (i.e. average number of releases, and average of rating averages)
         entity_count = len(entities)
         if entity_count == 0:
-            # If entities list has length 0, there are no releases in the database
             return []
-        else:
-            from .util import mean_avg_and_count, bayesian_avg
-            mean_avg, mean_count = mean_avg_and_count(entities)
-            items = []
-            # Iterate through the entries and calculate their Bayesian averages
-            for entity in entities:
-                entity_avg = int(entity.average_rating)
-                entity_count = int(entity.release_count)
 
-                weight = entity_count / (entity_count + mean_count)
-                bayesian = bayesian_avg(
-                    item_weight=weight,
-                    item_avg=entity_avg,
-                    mean_avg=mean_avg
-                )
-                items.append({
-                    "id": entity.id,
-                    "name": entity.name,
-                    "rating": round(bayesian),
-                    "image": entity.image,
-                    "count": entity.release_count
-                })
+        from .util import mean_avg_and_count, bayesian_avg
+        mean_avg, mean_count = mean_avg_and_count(entities)
+        items = []
+        for entity in entities:
+            entity_avg = int(entity.average_rating)
+            entity_count = int(entity.release_count)
 
-            # Sort results by Bayesian average
-            # 'order' is used for sorted(reverse=..)
-            # Hence, order = True means descending; False means ascending
-            order = True
-            if sort_order == 'asc':
-                order = False
-
-            sorted_entities = sorted(
-                items,
-                key=lambda k: k['rating'],
-                reverse=order
+            weight = entity_count / (entity_count + mean_count)
+            bayesian = bayesian_avg(
+                item_weight=weight,
+                item_avg=entity_avg,
+                mean_avg=mean_avg
             )
-            return sorted_entities
+            items.append({
+                "id": entity.id,
+                "name": entity.name,
+                "rating": round(bayesian),
+                "image": entity.image,
+                "count": entity.release_count
+            })
+
+        # Sort results by Bayesian average
+        # 'order' is used for sorted(reverse=..)
+        # Hence, order = True means descending; False means ascending
+        order = True
+        if sort_order == 'asc':
+            order = False
+
+        sorted_entities = sorted(
+            items,
+            key=lambda k: k['rating'],
+            reverse=order
+        )
+        return sorted_entities
 
     @classmethod
     def statistic(
@@ -744,13 +762,13 @@ class ArtistOrLabel(MusicBrainzEntity):
         if metric == 'average':
             if item_property == 'rating':
                 return sorted(result, key=lambda k: k['rating'], reverse=order)
-            elif item_property == 'runtime':
+            if item_property == 'runtime':
                 return sorted(result, key=lambda k: k['runtime'], reverse=order)
 
         elif metric == 'total':
             if item_property == 'count':
                 return sorted(result, key=lambda k: k['count'], reverse=order)
-            elif item_property == 'runtime':
+            if item_property == 'runtime':
                 return sorted(result, key=lambda k: k['runtime'], reverse=order)
 
     @classmethod
@@ -786,27 +804,27 @@ class ArtistOrLabel(MusicBrainzEntity):
                     cls.name.ilike(f'%{value}%')
                 )
             elif key == 'begin_date':
-                    operator = filters["begin_comparison"]
-                    if operator not in ['<', '=', '>']:
-                        raise ValueError(f"Unexpected operator value for begin_comparison: {operator}")
-                    query = apply_comparison_filter(
-                        query=query,
-                        model=cls,
-                        key=key,
-                        operator=operator,
-                        value=value
-                    )
+                operator = filters["begin_comparison"]
+                if operator not in ['<', '=', '>']:
+                    raise ValueError(f"Unexpected operator value for begin_comparison: {operator}")
+                query = apply_comparison_filter(
+                    query=query,
+                    model=cls,
+                    key=key,
+                    operator=operator,
+                    value=value
+                )
             elif key == 'end_date':
-                    operator = filters["end_comparison"]
-                    if operator not in ['<', '=', '>']:
-                        raise ValueError(f"Unexpected operator value for end_comparison: {operator}")
-                    query = apply_comparison_filter(
-                        query=query,
-                        model=cls,
-                        key=key,
-                        operator=operator,
-                        value=value
-                    )
+                operator = filters["end_comparison"]
+                if operator not in ['<', '=', '>']:
+                    raise ValueError(f"Unexpected operator value for end_comparison: {operator}")
+                query = apply_comparison_filter(
+                    query=query,
+                    model=cls,
+                    key=key,
+                    operator=operator,
+                    value=value
+                )
             else:
                 query = query.filter(
                     getattr(cls, key) == value
@@ -935,9 +953,12 @@ class Goal(Base):
 
     def update_goal(self):
         """
-        Updates the `end_actual` attribute of the `Goal` instance if the number of new releases since the goal's `start_date` is greater than or equal to the `amount` attribute.
+        Updates the `end_actual` attribute of the `Goal` instance if the number of new releases
+        since the goal's `start_date` is greater than or equal to the `amount` attribute.
 
-        This method is used to check if a goal has been met, based on the number of new releases since the goal's start date. If the goal has been met, the `end_actual` attribute is updated to the current time.
+        This method is used to check if a goal has been met, based on the number of new releases since
+        the goal's start date. If the goal has been met, the `end_actual` attribute is updated
+        to the current time.
         """
         print(f'Target amount: {self.amount} - Actual amount: {self.new_releases_since_start_date}')
         if self.type == 'release':
@@ -963,8 +984,7 @@ class Goal(Base):
             return []
         if results:
             return results
-        else:
-            return []
+        return []
 
     @classmethod
     def check_goals(cls) -> None:
@@ -1033,8 +1053,7 @@ class Tag(Base):
         For each tag name, it constructs a new `Tag` object with the tag name and the given `release_id`,
         and inserts the new tag into the database using the `insert` function from the `operations` module.
         """
-        from .util import construct_item
-        from .operations import insert
+        from ..db import construct_item, insert
         for tag in tags.split(','):
             tag_data = {"name": tag, "release_id": release_id}
             tag_obj = construct_item('tag', tag_data)

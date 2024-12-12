@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, get_flashed_messages
+from flask import Blueprint, render_template, request, get_flashed_messages
 
 error_bp = Blueprint(
     'error_bp', __name__,

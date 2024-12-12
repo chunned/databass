@@ -1,11 +1,10 @@
+from os import getenv
+from dateutil import parser as dateparser
+from typing import Optional, Dict, Any
+from dotenv import load_dotenv
 import musicbrainzngs as mbz
 import musicbrainzngs.musicbrainz
-
 from .util import Util
-from dateutil import parser as dateparser
-from dotenv import load_dotenv
-from os import getenv
-from typing import Optional, Dict, Any
 from .types import ArtistInfo, LabelInfo, ReleaseInfo, EntityInfo, SearchResult
 
 load_dotenv()
@@ -112,12 +111,11 @@ class MusicBrainz:
                 )
                 search_data.append(rel)
             return search_data
-        else:
-            try:
-                MusicBrainz.initialize()
-                return MusicBrainz.release_search(release, artist, label)
-            except RecursionError:
-                return None
+        try:
+            MusicBrainz.initialize()
+            return MusicBrainz.release_search(release, artist, label)
+        except RecursionError:
+            return None
 
     @staticmethod
     def label_search(name: str, mbid: str = None) -> Optional[LabelInfo]:
@@ -150,7 +148,7 @@ class MusicBrainz:
                     # Now that we have an MBID, recursively call this function using that ID to grab the label data
                     # This call is required because begin_date/end_date are not included in search results
                     return MusicBrainz.label_search(name=name, mbid=label_id)
-                except (KeyError, IndexError) as e:
+                except (KeyError, IndexError):
                     return None
         else:
             # MusicBrainz class not initialized; call initialize function, then re-call function
@@ -181,7 +179,7 @@ class MusicBrainz:
                     artist_result = mbz.get_artist_by_id(mbid, includes=['area-rels'])["artist"]
                     artist = MusicBrainz.parse_search_result(artist_result)
                     return artist
-                except KeyError as e:
+                except KeyError:
                     return None
             else:
                 # No MBID, have to search. Assume first result is correct
@@ -191,7 +189,7 @@ class MusicBrainz:
                     # Now that we have an MBID, recursively call this function using that ID to grab the label data
                     # This call is required because begin_date/end_date are not included in search results
                     return MusicBrainz.artist_search(name=name, mbid=artist_id)
-                except (KeyError, IndexError) as e:
+                except (KeyError, IndexError):
                     return None
         else:
             # MusicBrainz class not initialized; call initialize function, then re-call function
@@ -280,11 +278,10 @@ class MusicBrainz:
                 for track in tracks:
                     try:
                         length += int(track["length"])
-                    except (KeyError, TypeError) as e:
+                    except (KeyError, TypeError):
                         pass
-                    finally:
-                        return length
-            except Exception as e:
+                    return length
+            except Exception:
                 return 0
         else:
             try:
@@ -322,6 +319,5 @@ class MusicBrainz:
                         pass
             except musicbrainzngs.musicbrainz.ResponseError:
                 return None
-        except Exception as e:
+        except Exception:
             return None
-
