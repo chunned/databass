@@ -106,14 +106,10 @@ class TestSubmit:
         Test for successful submission and redirection 
         """
         mock_handler = mocker.patch("databass.routes.handle_submit_data")
-        mock_submitter = mocker.patch("databass.db.operations.submit_manual")
         response = client.post("/submit", data=data_dict)
         assert b"redirected" in response.data
         assert response.status_code == 302
-        if data_dict["manual_submit"] == "true":
-            mock_submitter.assert_called_once()
-        elif data_dict["manual_submit"] == "false":
-            mock_handler.assert_called_once()
+        mock_handler.assert_called_once()
 
 class TestStats:
     # Tests for /stats

@@ -218,8 +218,7 @@ class TestMusicBrainzLabelSearch:
         Test label search when no results are found
         """
         mocker.patch.object(mbz, 'search_labels', return_value={"label-list": []})
-        with pytest.raises(Exception):
-            MusicBrainz.label_search(name="Nonexistent Label")
+        assert MusicBrainz.label_search(name="Nonexistent Label") is None
 
     def test_label_search_api_error(self, mocker):
         """

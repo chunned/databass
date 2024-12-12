@@ -1050,7 +1050,8 @@ class TestReleaseCreateNew:
             "name": "Test Release",
             "artist_name": "Test Artist",
             "label_name": "Test Label",
-            "release_group_mbid": "test-mbid"
+            "release_group_mbid": "test-mbid",
+            "image": None
         }
 
         result = Release.create_new(test_data)
@@ -1081,7 +1082,8 @@ class TestReleaseCreateNew:
             "name": "Test Release",
             "artist_name": "Test Artist",
             "label_name": "Test Label",
-            "release_group_mbid": "test-mbid"
+            "release_group_mbid": "test-mbid",
+            "image": None
         }
 
         Release.create_new(test_data)
@@ -1104,7 +1106,8 @@ class TestReleaseCreateNew:
             "name": "Test Release",
             "artist_name": "Test Artist",
             "label_name": "Test Label",
-            "release_group_mbid": "test-mbid"
+            "release_group_mbid": "test-mbid",
+            "image": None
         }
 
         Release.create_new(test_data)
@@ -1127,7 +1130,8 @@ class TestReleaseCreateNew:
             "name": "Test Release",
             "artist_name": "Test Artist",
             "label_name": "Test Label",
-            "release_group_mbid": "test-mbid"
+            "release_group_mbid": "test-mbid",
+            "image": None
         }
 
         Release.create_new(test_data)
@@ -1503,7 +1507,7 @@ class TestArtistOrLabelCreateIfNotExist:
         mock_get_image = mocker.patch('databass.api.Util.get_image')
 
         mock_insert.return_value = 42
-        result = Artist.create_if_not_exist("test-mbid", "Test Artist")
+        result = Artist.create_if_not_exist("Test Artist")
         assert isinstance(result, int)
         assert result == 42
 
@@ -1514,10 +1518,8 @@ class TestArtistOrLabelCreateIfNotExist:
         mock_exists = mocker.patch('databass.db.models.ArtistOrLabel.exists_by_mbid')
         mock_exists.return_value = mock_item
 
-        result = Artist.create_if_not_exist("test-mbid", "Test Artist")
+        result = Artist.create_if_not_exist(name="Test Artist")
         assert result == 42
-        # Verify no creation calls were made
-        mock_exists.assert_called_once_with("test-mbid")
 
     @pytest.mark.parametrize("model_class,search_method,expected_construct_name", [
         (Artist, 'artist_search', 'artist'),
@@ -1533,7 +1535,7 @@ class TestArtistOrLabelCreateIfNotExist:
         mock_insert = mocker.patch('databass.db.operations.insert')
         mock_get_image = mocker.patch('databass.api.Util.get_image')
 
-        model_class.create_if_not_exist("test-mbid", "Test Name")
+        model_class.create_if_not_exist(mbid="test-mbid", name="Test Name")
         mock_search.assert_called_once_with(name="Test Name", mbid="test-mbid")
         mock_construct.assert_called_once_with(model_name=expected_construct_name, data_dict=mock_search.return_value)
 
@@ -1548,7 +1550,7 @@ class TestArtistOrLabelCreateIfNotExist:
 
         mock_insert.return_value = 42
         test_name = "Test Artist"
-        Artist.create_if_not_exist("test-mbid", test_name)
+        Artist.create_if_not_exist(test_name)
 
         mock_get_image.assert_called_once_with(
             item_type='artist',
