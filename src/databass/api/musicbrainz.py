@@ -151,7 +151,7 @@ class MusicBrainz:
                     # This call is required because begin_date/end_date are not included in search results
                     return MusicBrainz.label_search(name=name, mbid=label_id)
                 except (KeyError, IndexError) as e:
-                    raise e
+                    return None
         else:
             # MusicBrainz class not initialized; call initialize function, then re-call function
             try:

@@ -224,3 +224,43 @@ class TestAddGoal:
         assert response.status_code == 302
         assert response.location == '/goals'
         mock_insert.assert_called_once_with(mock_goal.return_value)
+
+class TestCountryCode:
+    def test_country_code_with_valid_country(self, client):
+        country_code = client.application.jinja_env.filters['country_code']
+        def test_filter(country: str):
+            return country_code(country)
+
+        assert test_filter('United States') == 'US'
+
+    def test_country_code_with_code(self, client):
+        country_code = client.application.jinja_env.filters['country_code']
+        def test_filter(country: str):
+            return country_code(country)
+        assert test_filter('US') == 'US'
+
+    def test_country_code_with_invalid_country(self, client):
+
+        country_code = client.application.jinja_env.filters['country_code']
+        def test_filter(country: str):
+            return country_code(country)
+
+        assert test_filter('Invalid Country') == 'Invalid Country'
+
+    def test_country_code_with_none(self, client):
+        country_code = client.application.jinja_env.filters['country_code']
+        def test_filter(country: str):
+            return country_code(country)
+
+        assert test_filter(None) is None
+
+    def test_country_code_with_partial_match(self, client, mocker):
+        mock_lookup = mocker.patch('pycountry.countries.lookup')
+        mock_lookup.side_effect = KeyError
+
+        country_code = client.application.jinja_env.filters['country_code']
+        def test_filter(country: str):
+            return country_code(country)
+
+        assert test_filter('United') == 'United'
+        mock_lookup.assert_called_once_with('United')

@@ -1,5 +1,5 @@
 {% if data %}
-
+<div id="search_results_container">
 <input type="hidden" value="{{ pagination.page }}" id="current_page">
 <form id="data_form" action="/submit" method="post">
 <input type="hidden" name="referrer" value="page_button">
@@ -47,77 +47,10 @@
 </table>
     <input type="hidden" id="selected_item" name="selected_item">
 </form>
+</div>
 
 {% else %}
-
-<h3>No search results. Either search again or manually enter data below.</h3>
-<p>* optional</p>
-<form action="/submit" method="POST">
-    <table class="manual-release-table">
-        <thead>
-            <tr>
-                <th>
-                    <label for="name">name</label>
-                </th>
-                <th>
-                    <label for="artist">artist</label>
-                </th>
-                <th>
-                    <label for="label">label*</label>
-                </th>
-                <th>
-                    <label for="release_year">year</label>
-                </th>
-                <th>
-                    <label for="rating">rating</label>
-                </th>
-                <th>
-                    <label for="genre">genre</label>
-                </th>
-                <th>
-                    <label for="tags">subgenres*</label>
-                </th>
-                <th>
-                    <label for="image">image*</label>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <input id="name" name="name" type="text" class="search-btn">
-                </td>
-                <td>
-                    <input id="artist" name="artist" type="text" class="search-btn">
-                </td>
-                <td>
-                    <input id="label" name="label" type="text" class="search-btn">
-                </td>
-                <td>
-                    <input id="release_year" name="release_year" type="number" min="0" max="2100" class="search-btn">
-                </td>
-                <td>
-                    <input id="rating" name="rating" type="number" min="0" max="100" class="search-btn">
-                </td>
-                <td>
-                    <input id="genre" name="genre" type="text" class="search-btn">
-                </td>
-                <td>
-                    <input id="tags" name="tags" type="text" class="search-btn">
-                </td>
-                <td>
-                    <input id="image" name="image" type="text" class="search-btn">
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    <input name="manual_submit" value="true" type="text" hidden>
-                    <button type="submit" id="manual-submit-button" class="search-btn">submit</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</form>
+    {% include 'manual_release_submit.html' %}
 {% endif %}
 
 
