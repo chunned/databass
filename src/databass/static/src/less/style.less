@@ -153,7 +153,7 @@ input, button, select {
     /* make some space between the buttons */
     margin-left: 1vw;
     margin-right: 1vw;
-    margin-bottom: 1vw;
+    //margin-bottom: 1vw;
 
     &:disabled {
       color: @black;
@@ -264,11 +264,14 @@ input, button, select {
 
     form {
       height: 100%;
-      width: 100%;
+      width: 95%;
       .grid();
-      grid-template-columns: 5vw 10vw 5vw 10vw 4vw 10vw 5vw 10vw;
+      grid-template-columns: 0.5fr 1fr 0.5fr 1fr 0.5fr 1fr 0.5fr 1fr;
       align-items: center;
       text-align: center;
+      label {
+        text-align: right;
+      }
     }
     input, button {
       height: 50%;
@@ -284,27 +287,26 @@ input, button, select {
     .grey_border();
     margin: 1%;
     #search_results_container {
-      table {
-        width: 100%;
-        text-align: left;
-        border-collapse: collapse;
-      }
+      height: 100%;
+      #search_table {
+        height: 100%;
+        display: grid;
+        grid-template-rows: 6vh 1fr;
 
-      td, div {
-        max-height: 7vh;
-        overflow-y: scroll;
-      }
-
-      td, th {
-        height: 7vh;
-        padding-left: 1vw;
-        border-top: 1px solid @grey;
-
-        &:nth-child(1),
-        &:nth-child(2),
-        &:nth-child(3) {
-          width: 20vw;
+        #rows {
+          display: grid;
+          grid-auto-rows: 9vh;
         }
+
+        .row {
+          height: 100%;
+          .grey_border();
+          display: grid;
+          grid-template-columns: repeat(8, 1fr);
+          align-items: center;
+          text-align: center;
+        }
+
       }
     }
 
