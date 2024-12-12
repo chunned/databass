@@ -8,6 +8,7 @@ Implements the main routes for the databass application, including
 from datetime import datetime
 import flask
 from flask import render_template, request, redirect, abort, flash, make_response, send_file
+from sqlalchemy.exc import IntegrityError
 import pycountry
 from .api import Util, MusicBrainz
 from . import db
@@ -192,7 +193,12 @@ def register_routes(app):
                     "tags": data["tags"],
                     "image": None
                 }
-            handle_submit_data(release_data)
+
+            try:
+                handle_submit_data(release_data)
+            except IntegrityError as err:
+                flash(err)
+                return redirect('/error')
         except KeyError:
             error = "Request missing one of the expected keys"
             flash(error)
