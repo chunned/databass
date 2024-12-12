@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, flash
-from flask_paginate import Pagination, get_page_parameter
 from .. import db
 from ..db import models
 from ..api import Util
@@ -65,7 +64,7 @@ def edit(release_id):
             image=release_image,
             countries=countries
         )
-    elif request.method == 'POST':
+    if request.method == 'POST':
         edit_data = request.form.to_dict()
         submit_data = {}
 
@@ -140,7 +139,7 @@ def edit(release_id):
             updated_release.tags = old_release.tags # TODO: allow editing for tags
 
         except KeyError:
-            error = f"Edit data missing ID, unable to update an existing entry without ID."
+            error = "Edit data missing ID, unable to update an existing entry without ID."
             flash(error)
             return redirect('/error', code=302)
         db.update(updated_release)
@@ -163,10 +162,9 @@ def delete():
         error = f"No release with id {deletion_id} found."
         flash(error)
         return redirect('/error', code=302)
-    else:
-        print(f'Deleting {deletion_type} {deletion_id}')
-        db.delete(item_type=deletion_type, item_id=deletion_id)
-        return redirect('/', 302)
+    print(f'Deleting {deletion_type} {deletion_id}')
+    db.delete(item_type=deletion_type, item_id=deletion_id)
+    return redirect('/', 302)
 
 @release_bp.route('/release/<string:release_id>/add_review', methods=['POST'])
 def add_review(release_id):

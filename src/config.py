@@ -1,3 +1,6 @@
+"""
+Defines all Flask configurations
+"""
 from uuid import uuid4
 import os
 from dotenv import load_dotenv

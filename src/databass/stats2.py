@@ -1,6 +1,3 @@
-from models import app_db
-from db import get_model, Artist, Label, Release, Tag
-from sqlalchemy import func, desc, asc
 
 # def search(sort_order: str,
 #            metric: str,

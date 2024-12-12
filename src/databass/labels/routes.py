@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect
 from datetime import date
-from .. import db
 from ..db.models import Label
 
 label_bp = Blueprint(

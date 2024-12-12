@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, request, flash, redirect
 from datetime import date
+from flask import Blueprint, render_template, request, flash, redirect
 from ..db.models import Artist
+from ..pagination import Pager
 
 artist_bp = Blueprint(
     'artist_bp', __name__,
@@ -39,7 +40,6 @@ def artists():
 
 @artist_bp.route('/artist_search', methods=['POST'])
 def artist_search():
-    from ..pagination import Pager
     data = request.get_json()
     search_results = Artist.dynamic_search(data)
     page = Pager.get_page_param(request)
@@ -64,5 +64,3 @@ def artist_search():
 #         pass
 
 # TODO: implement delete_artist
-
-
