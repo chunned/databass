@@ -97,16 +97,18 @@
             </div>
         </div>
         <div id="label_info">
-            <h1>also by <a href="/label/{{ data.label.id }}">{{ data.label.name }}:</a></h1>
-            <div>
-                {% for item in data.label_releases %}
-                    {% if not item.Release.id == data.release.id %}
-                        <div>
-                            <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Album image"></a>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
+            {% if data.label.name %}
+                <h1>also by <a href="/label/{{ data.label.id }}">{{ data.label.name }}:</a></h1>
+                <div>
+                    {% for item in data.label_releases %}
+                        {% if not item.Release.id == data.release.id %}
+                            <div>
+                                <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Album image"></a>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
     </aside>
 </article>
