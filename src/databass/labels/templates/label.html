@@ -1,29 +1,43 @@
 {% extends '_base.html' %}
 {% block content %}
 
-{% set label = data.label %}
-{% set releases = data.releases %}
-
-    <div class="page-content">
-    <div>
-    <h1>{{ label.name }}</h1>
-    {% if label.image %}
-        {% set src = label.image %}
-    {% else %}
-        {% set src = "/static/img/none.png" %}
-    {% endif %}
-    <img src="../{{ src }}" style="max-height: 75vh; max-width: 100%;" alt="Label icon">
-    </div>
-    <div>
-        <table class="label-releases-table">
-        {% for release in releases %}
-        <tr>
-            <td>
-                <a href="/release/{{ release.id }}">{{ release.name }}</a> - {{ release.name }} ({{ release.release_year }})
-            </td>
-        </tr>
-        {% endfor %}
-        </table>
-    </div>
-</div>
+<article id="label_container">
+    <section id="label">
+        <div id="top">
+            <div id="label_image">
+                <img src="/img/label/{{ data.label.id }}" alt="Label image">
+            </div>
+        </div>
+        <div id="info">
+            <div id="name">
+                <h1>{{ data.label.name }}</h1>
+                <h2>{{ data.label.country|country_name }}</h2>
+            </div>
+            <div id="start">
+                {% if data.label.begin_date != data.no_start %}
+                    started:
+                    {{ data.label.begin_date }}
+                {% endif %}
+            </div>
+            <div id="end">
+                {% if data.label.end_date != data.no_end %}
+                    ended:
+                    {{ data.label.end_date }}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    <aside>
+        <div id="release_info">
+            <h1>releases</h1>
+            <div>
+                {% for item in data.releases %}
+                    <div>
+                        <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Release image"></a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+</article>
 {% endblock %}

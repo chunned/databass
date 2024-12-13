@@ -1,0 +1,814 @@
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('../../JetBrainsMono-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* colours */
+@white: #c6c6c5;
+@black: #0c0d0e;
+@grey: #3c3e3c;
+
+/* sizes */
+@row_height_small: 4vh;
+
+/* mixins */
+.grid {
+  display: grid;
+}
+
+.grey_border {
+  border: 1px solid @grey;
+}
+
+.black_border {
+  border: 1px solid @black;
+}
+
+.grey_bg {
+  background: @grey;
+}
+
+.black_bg {
+  background: @black;
+}
+
+.entity_container {
+  width: 100%;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 1%;
+  .grid();
+  grid-template-columns: 20vw 1fr;
+  h1 {
+    font-size: 1.5rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+  }
+  #release, #artist, #label {
+    .grey_border();
+    padding: 5%;
+    overflow-y: scroll;
+    #top {
+      margin-bottom: 2vh;
+    }
+    #info {
+      justify-content: center;
+      text-align: center;
+      margin-bottom: 2vh;
+      .grey_border();
+      div {
+        margin-top: 1vh;
+        margin-bottom: 1vh;
+      }
+    }
+  }
+  aside {
+    .grey_border();
+    margin-right: 20px;
+    .grid();
+    #artist_info, #label_info, #release_info {
+      .grey_border();
+      padding: 1%;
+      max-height: 46vh;
+      overflow-y: scroll;
+      .grid();
+      grid-template-rows: @row_height_small auto;
+
+      div {
+        .grid();
+        grid-template-columns: repeat(5, 1fr);
+        //grid-template-rows: repeat(5, 1fr);
+
+        img {
+          height: 250px;
+          max-width: 250px;
+        }
+      }
+    }
+  }
+}
+
+
+
+/* generics */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'JetBrains Mono', sans-serif;
+  color: @white;
+  background: @black;
+  border-collapse: collapse;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  padding: 10px;
+  overflow: hidden;
+  .grid();
+  grid-template-rows: auto 1fr;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+  max-height: 92.5vh;
+  margin: 10px;
+  display: flex;
+}
+
+input, button, select {
+  margin-left: 7px;
+  margin-right: 7px;
+  .grey_bg();
+  .grey_border();
+}
+
+#navbar {
+  display: flex;
+  align-items: center;
+  a {
+    text-decoration: none;
+    &.active {
+      text-decoration: underline!important;
+    }
+  }
+}
+
+
+/* pagination */
+.pagination {
+  /* pagination should be a <nav> element that contains only the pagination buttons */
+  /* this styling will make the buttons appear in the horizontal center of the <nav> */
+  /* home page does not use this styling*/
+  display: flex;
+  justify-content: center;
+
+  button {
+    /* make some space between the buttons */
+    margin-left: 1vw;
+    margin-right: 1vw;
+    //margin-bottom: 1vw;
+
+    &:disabled {
+      color: @black;
+    }
+  }
+}
+
+.pagination_button {
+  height: @row_height_small;
+  .black_border();
+
+  &:disabled {
+    color: @grey;
+  }
+}
+
+
+
+/* /, /home */
+#home {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  .grid();
+  grid-template-columns: 1fr 22.5vw;
+
+  #home_table, #home_aside {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+  }
+
+  #home_table {
+    #home_table_pagination {
+      .grid();
+      grid-template-columns: 1fr 1fr;
+    }
+    thead {
+      height: @row_height_small;
+    }
+    td, th {
+      .grey_border();
+    }
+    td {
+      &:empty {
+        height: @row_height_small;
+      }
+    }
+    /* cell widths */
+    tbody, thead {
+      tr {
+        td, th {
+          width: 12vw;
+          &:first-child {
+            width: 8vw;
+          }
+          &:nth-child(4) {
+            width: 5vw;
+          }
+          &:nth-child(7) {
+            width: auto;
+          }
+
+        }
+      }
+    }
+
+    img {
+      width: 100%;
+    }
+  }
+
+  #home_aside {
+    display: flex;
+    flex-direction: column;
+
+    h4 {
+      .grid();
+      align-items: center;
+      height: @row_height_small;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      tr {
+        height: @row_height_small;
+
+        td, th {
+          border-top: 1px solid @grey;  /* not the same as .grey_border() */
+        }
+      }
+    }
+  }
+}
+
+/* /new */
+#new_release {
+  width: 100%;
+  height: 100%;
+  .grid();
+  grid-template-rows: 5vh 1fr;
+
+  #search_form {
+    display: flex;
+    align-items: center;
+
+    form {
+      height: 100%;
+      width: 95%;
+      .grid();
+      grid-template-columns: 0.5fr 1fr 0.5fr 1fr 0.5fr 1fr 0.5fr 1fr;
+      align-items: center;
+      text-align: center;
+      label {
+        text-align: right;
+      }
+    }
+    input, button {
+      height: 50%;
+    }
+
+    button {
+      margin-left: 1vw;
+      font-size: inherit;
+    }
+  }
+
+  #search_results {
+    .grey_border();
+    margin: 1%;
+    #search_results_container {
+      height: 100%;
+      #search_table {
+        height: 100%;
+        display: grid;
+        grid-template-rows: 6vh 1fr;
+
+        #rows {
+          display: grid;
+          grid-auto-rows: 9vh;
+        }
+
+        .row {
+          height: 100%;
+          .grey_border();
+          display: grid;
+          grid-template-columns: repeat(8, 1fr);
+          align-items: center;
+          text-align: center;
+        }
+
+      }
+    }
+
+    #manual_release_container {
+      height: 100%;
+      display: grid;
+      grid-template-rows: 7vh 3vh 1fr;
+      justify-content: center;
+      align-items: center;
+
+      input {
+        .black_border();
+      }
+
+      form {
+        justify-self: center;
+        width: 90%;
+        display: grid;
+        grid-template-rows: repeat(12, @row_height_small);
+        align-items: center;
+        justify-content: center;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        justify-content: center;
+        text-align: center;
+
+      }
+
+      #button {
+        grid-template-columns: 1fr;
+
+        button {
+          justify-self: center;
+          width: 30%;
+        }
+      }
+
+      p {
+        text-align: center;
+      }
+    }
+  }
+}
+
+/* popups */
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  .grey_bg();
+  .grey_border();
+  width: 100%;
+  height: 60%;
+  max-width: 50vw;
+  max-height: 75vh;
+  box-sizing: border-box;
+
+  .popup_content {
+    height: 100%;
+    position: relative;
+    display: grid;
+    grid-template-columns: 10% 1fr 10%;
+    align-items: center;
+    padding: 2%;
+    .close-btn {
+      height: 20%;
+      .grey_bg();
+      .black_border();
+      font-size: 2rem;
+      margin-top: 1%;
+      margin-left: 1%;
+      padding: 2%;
+    }
+    #popup-form {
+      div {
+        display: grid;
+        grid-template-rows: repeat(9, @row_height_small);
+        justify-content: center;
+        div {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          align-items: center;
+          .black_border();
+          .left_side {
+            text-align: right;
+            margin-right: 1vw;
+          }
+          .right_side {
+            text-align: center;
+            margin-left: 1vw;
+          }
+
+        }
+        button {
+          margin-top: 1vh;
+          justify-self: center;
+          width: 25%;
+        }
+      }
+    }
+  }
+}
+
+
+
+
+/* /release/# */
+#release_container {
+  .entity_container();
+  #release {
+    #top {
+      .grid();
+      grid-template-columns: 1.5fr 1fr;
+      #image {
+        height: 250px;
+        width: 250px;
+        img {
+          max-width: 100%;
+        }
+      }
+      #buttons {
+        .grid();
+        grid-template-rows: 1fr 1fr;
+        button {
+          .black_border();
+          font-size: larger;
+        }
+
+        #edit-btn {
+          margin-bottom: 1vh;
+        }
+
+        #delete-btn {
+          margin-top: 1vh;
+        }
+      }
+    }
+
+    #info {
+      .grid();
+      grid-template-rows: 0.5fr 1fr 0.75fr auto;
+      #rating {
+        .grid();
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        height: @row_height_small;
+      }
+      #genres {
+        ul {
+          list-style-type: none;
+        }
+      }
+    }
+
+    #reviews {
+      text-align: center;
+      .grey_border();
+      padding: 5%;
+
+      #new {
+        margin-bottom: 2%;
+        .grid();
+        align-items: center;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      #existing {
+        #review_table {
+          .grid();
+          grid-template-rows: 1fr auto;
+          align-items: start;
+          font-size: 0.75rem;
+
+          div {
+            .grid();
+            grid-template-columns: 1fr 4fr;
+            border-bottom: 1px solid @grey;
+            margin-bottom: 1vh;
+
+            #review_text {
+              margin-left: 1vw;
+              text-align: left;
+            }
+          }
+        }
+      }
+    }
+  }
+  aside {
+    grid-template-rows: 1fr 1fr;
+  }
+}
+
+#delete_popup {
+  height: 25vh;
+  .grid();
+  grid-template-rows: 1fr 1fr;
+
+  div {
+    .grid();
+    grid-template-columns: 1fr 1fr;
+
+    .delete {
+      .black_border();
+      font-size: larger;
+    }
+  }
+}
+
+#edit_popup {
+  height: 40vh;
+  .black_bg();
+  padding: 2%;
+
+  .grid();
+  grid-template-rows: @row_height_small auto;
+
+  #top {
+    .grid();
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+
+    button {
+      .black_border;
+      font-size: larger;
+    }
+
+    #edit_submit {
+      margin-right: 3vh;
+    }
+
+    #edit_cancel {
+      margin-left: 3vh;
+    }
+  }
+
+  #bottom {
+    margin-top: 3vh;
+    form {
+      .grid();
+      grid-template-rows: repeat(6, @row_height_small);
+      justify-content: center;
+
+      div {
+        .grid();
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        font-size: large;
+
+        label {
+          text-align: right;
+          margin-right: 0.6vw;
+        }
+
+        input {
+          height: @row_height_small;
+          .black_border();
+        }
+        select,
+        input {
+          padding-left: 0.5vw;
+          height: 100%;
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+/* /artist/# */
+#artist_container {
+  .entity_container();
+  #artist {
+    #top {
+      #artist_image {
+        overflow: hidden;
+      }
+    }
+
+    #info {
+      #name {
+        .grid();
+        grid-template-rows: 1fr 1fr;
+        justify-content: center;
+        p {
+          align-content: center;
+        }
+      }
+    }
+  }
+  aside {
+    grid-template-rows: 100%;
+    #release_info {
+      max-height: 92vh;
+    }
+  }
+}
+
+
+/* /label/# */
+#label_container {
+  .entity_container();
+  #label {
+    #top {
+      #label_image {
+        overflow-y: scroll;
+      }
+    }
+  }
+  aside {
+    grid-template-rows: 100%;
+    #release_info {
+      max-height: 92vh;
+    }
+  }
+}
+
+
+/* /releases, /artists, /labels */
+#label_search, #artist_search, #release_search {
+  width: 100%;
+  .grid();
+  grid-template-rows: 10vh 1fr;
+  align-items: center;
+
+
+  .search_div {
+    .grid();
+    grid-template-rows: 1fr 1fr;
+    place-items: center;
+  }
+
+  #release_search_bar {
+    width: 80%;
+    .grid();
+    grid-template-columns: repeat(9, 1fr);
+    margin: 0 auto;
+  }
+
+  #label_search_bar, #artist_search_bar {
+    width: 80%;
+    .grid();
+    grid-template-columns: repeat(6, 1fr);
+    margin: 0 auto;
+  }
+
+  #search-results {
+    height: 100%;
+  }
+}
+
+#entity_search_results {
+  .grid();
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(3, 25vh);
+  justify-content: center;
+  align-items: baseline;
+  height: 100%;
+  max-height: 100%;
+
+  .search_result {
+    text-align: center;
+    height: 25vh;
+    overflow: hidden;
+
+    img {
+      max-height: 20vh;
+      width: auto;
+      object-fit: contain;
+    }
+
+    p {
+      margin-top: auto;
+    }
+  }
+}
+
+/* /stats */
+#stats {
+  width: 100%;
+  padding-right: 15px;
+
+  #stats_container {
+    height: 100%;
+    #stats_quick {
+      .stats_grid {
+        .grid();
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5rem;
+        width: 100%;
+        padding: 10px;
+        .grey_border();
+
+        .stat_item {
+          text-align: center;
+        }
+      }
+    }
+    #stats_full {
+      height: 100%;
+      .grid();
+      grid-template-columns: 1fr 1fr;
+
+      .stats_column {
+        height: 100%;
+        .grid();
+        grid-template-rows: 5vh 1fr;
+        .grey_border();
+        padding: 5px 20px 5px 20px;
+
+        h2 {
+          text-align: center;
+          place-self: center;
+        }
+
+        .stats_inner {
+          .grid();
+          grid-template-columns: repeat(3, 1fr);
+
+          .stats_inner_column {
+            .grey_border();
+            padding: 1vw 1vw 1vw 1vw;
+
+            .stats_table {
+              text-align: left;
+              .grid();
+              grid-template-rows: 5vh 1fr;
+              width: 95%;
+              margin-top: 3vh;
+
+              .stats_table_head, .stats_table_body {
+                .grid();
+                grid-template-columns: 1fr 4vw;
+              }
+
+              .stats_table_head_3, .stats_table_body_3 {
+                .grid();
+                grid-template-columns: 1fr 3vw 2vw;
+              }
+
+              .stats_table_body, .stats_table_body_3 {
+                p {
+                  padding-top: 1vh;
+                  padding-bottom: 1vh;
+                }
+              }
+            }
+
+            .bayesian {
+              .grid();
+              grid-template-columns: 1fr 1fr;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .text_center {
+    text-align: center;
+  }
+}
+
+
+#error {
+  display: block;
+  width: 100%;
+  padding: 2%;
+  * {
+    padding: 2%;
+  }
+}
+
+.goals {
+  width: 100%;
+  display: grid;
+  grid-template-rows: 10vh 10vh 1fr;
+  justify-content: center;
+  text-align: center;
+
+  h3, p, input, label, select {
+    align-content: center;
+  }
+  #new_goal {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  #goal_table {
+    display: grid;
+    grid-template-rows: repeat(auto-fill, 10vh);
+
+    div {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+    }
+
+    button {
+      margin: 15% 15% 15% 15%;
+    }
+  }
+}

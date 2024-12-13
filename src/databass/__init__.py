@@ -1,9 +1,11 @@
-from flask import Flask, g
 import os
+from flask import Flask, g
+from flask_assets import Environment, Bundle
+# from flask_migrate import Migrate
 from dotenv import load_dotenv
 from .db.base import app_db
+from .db import models
 from .routes import register_routes
-
 
 load_dotenv()
 VERSION = os.environ.get('VERSION')
@@ -15,10 +17,31 @@ def create_app():
     app.config.from_object('config.Config')
     app.static_folder = 'static'
     app_db.init_app(app)
+    # migrate = Migrate(app, app_db)
+
+    assets = Environment(app)
+    style_bundle = Bundle(
+        'src/less/*.less',
+        filters='less,cssmin',
+        output='dist/css/style.min.css',
+        extra={'rel': 'stylesheet/css'}
+    )
+    assets.register('main_styles', style_bundle)
+    style_bundle.build()
+    js_bundle = Bundle(
+        'src/js/main.js',
+        filters='jsmin',
+        output='dist/js/main.min.js'
+    )
+    assets.register('main_js', js_bundle)
+    js_bundle.build()
 
     with app.app_context():
-        app_db.create_all()
-
+        from .db.models import Base, Release, Artist, Label, Tag, Review, Goal
+        Base.metadata.bind = app_db.engine
+        Base.metadata.create_all(app_db.engine)
+        # app_db.create_all()
+        app_db.session.commit()
         from .releases.routes import release_bp
         app.register_blueprint(release_bp)
 

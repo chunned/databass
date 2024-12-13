@@ -1,3 +1,6 @@
+"""
+Defines all Flask configurations
+"""
 from uuid import uuid4
 import os
 from dotenv import load_dotenv
@@ -20,4 +23,7 @@ class Config:
     TIMEZONE = os.environ.get('TIMEZONE')
     STATIC_FOLDER = 'static'
     DEBUG = True
-
+    # Flask-Assets
+    LESS_BIN = '/usr/bin/lessc'
+    ASSETS_DEBUG = False
+    ASSETS_AUTO_BUILD = True

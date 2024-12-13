@@ -398,8 +398,8 @@ class TestReleaseAverageRuntime:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_query.return_value.scalar.side_effect = Exception("Database error")
 
-        with pytest.raises(Exception):
-            Release.average_runtime()
+        result = Release.average_runtime()
+        assert result == 0
 
 class TestReleaseTotalRuntime:
     """Test suite for Release.total_runtime class method"""
@@ -764,15 +764,16 @@ class TestReleaseListensThisYear:
         assert 'count' in str(query_args[0]).lower()
         assert 'release.id' in str(query_args[0]).lower()
 
-class TestReleaseListensPerDay:
+class TestReleaseAddedPerDayThisYear:
     """Test suite for Release.listens_per_day class method"""
+    # TODO: move this to tests for Base class
 
-    def test_listens_per_day_returns_float(self, mocker):
-        """Test that listens_per_day returns a float value"""
+    def test_added_per_day_this_year_returns_float(self, mocker):
+        """Test that added_per_day_this_year returns a float value"""
         mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
         mock_listens.return_value = 10
 
-        result = Release.listens_per_day()
+        result = Release.added_per_day_this_year()
         assert isinstance(result, float)
 
     @pytest.mark.parametrize("listens,days,expected", [
@@ -782,44 +783,44 @@ class TestReleaseListensPerDay:
         (10, 100, 0.10),  # Less than one listen per day
         (1, 1, 1.00),  # Single day, single listen
     ])
-    def test_listens_per_day_calculation(self, mocker, listens, days, expected):
-        """Test that listens_per_day correctly calculates average listens"""
-        mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
+    def test_added_per_day_this_year_calculation(self, mocker, listens, days, expected):
+        """Test that added_per_day_this_year correctly calculates average listens"""
+        mock_listens = mocker.patch('databass.db.models.Release.added_this_year')
         mock_listens.return_value = listens
 
         mock_date = mocker.patch('databass.db.models.date')
         mock_date.today.return_value.timetuple.return_value.tm_yday = days
 
-        result = Release.listens_per_day()
+        result = Release.added_per_day_this_year()
         assert result == expected
 
-    def test_listens_per_day_handles_zero_days(self, mocker):
-        """Test that listens_per_day returns 0.0 when days_this_year is 0"""
-        mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
+    def test_added_per_day_this_year_handles_zero_days(self, mocker):
+        """Test that added_per_day_this_year returns 0.0 when days_this_year is 0"""
+        mock_listens = mocker.patch('databass.db.models.Release.added_this_year')
         mock_date = mocker.patch('databass.db.models.date')
         mock_date.today.return_value.timetuple.return_value.tm_yday = 0
 
-        result = Release.listens_per_day()
+        result = Release.added_per_day_this_year()
         assert result == 0.0
-        # Verify listens_this_year was never called
+        # Verify added_this_year was never called
         mock_listens.assert_not_called()
 
-    def test_listens_per_day_rounds_to_two_decimals(self, mocker):
-        """Test that listens_per_day rounds to 2 decimal places"""
-        mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
+    def test_added_per_day_this_year_rounds_to_two_decimals(self, mocker):
+        """Test that added_per_day_this_year rounds to 2 decimal places"""
+        mock_listens = mocker.patch('databass.db.models.Release.added_this_year')
         mock_listens.return_value = 100
 
         mock_date = mocker.patch('databass.db.models.date')
         mock_date.today.return_value.timetuple.return_value.tm_yday = 33
         # Should result in 3.0303... before rounding
 
-        result = Release.listens_per_day()
+        result = Release.added_per_day_this_year()
         assert str(result).split('.')[-1] <= '99'
         assert len(str(result).split('.')[-1]) <= 2
 
-    def test_listens_per_day_uses_correct_year_day(self, mocker):
-        """Test that listens_per_day uses the correct day of year"""
-        mock_listens = mocker.patch('databass.db.models.Release.listens_this_year')
+    def test_added_per_day_this_year_uses_correct_year_day(self, mocker):
+        """Test that added_per_day_this_year uses the correct day of year"""
+        mock_listens = mocker.patch('databass.db.models.Release.added_this_year')
         mock_date = mocker.patch('databass.db.models.date')
         mock_timetuple = mocker.Mock()
         mock_timetuple.tm_yday = 100
@@ -827,7 +828,7 @@ class TestReleaseListensPerDay:
         mock_date.today.return_value.timetuple.return_value = mock_timetuple
         mock_listens.return_value = 200
 
-        Release.listens_per_day()
+        Release.added_per_day_this_year()
         mock_date.today.assert_called_once()
         mock_date.today.return_value.timetuple.assert_called_once()
 
@@ -872,8 +873,13 @@ class TestReleaseDynamicSearch:
 
     def test_dynamic_search_empty_values(self, mocker):
         """Test that dynamic_search properly handles empty values in search criteria"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.order_by.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.filter.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.order_by.return_value = mock_query
+        mock_query.all.return_value = []
+
+        mocker.patch('databass.db.base.app_db.session.query', return_value=mock_query)
 
         result = Release.dynamic_search({"name": "", "genre": "NO VALUE"})
         assert isinstance(result, list)
@@ -884,7 +890,7 @@ class TestReleaseDynamicSearch:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_label = mocker.Mock()
         mock_label.id = 1
-        mock_exists = mocker.patch('databass.db.models.Label.exists_by_name')
+        mock_exists = mocker.patch('databass.db.models.Label.id_by_matching_name')
         mock_exists.return_value = [mock_label]
 
         Release.dynamic_search({"label": "Test Label"})
@@ -897,7 +903,7 @@ class TestReleaseDynamicSearch:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_artist = mocker.Mock()
         mock_artist.id = 1
-        mock_exists = mocker.patch('databass.db.models.Artist.exists_by_name')
+        mock_exists = mocker.patch('databass.db.models.Artist.id_by_matching_name')
         mock_exists.return_value = [mock_artist]
 
         Release.dynamic_search({"artist": "Test Artist"})
@@ -913,7 +919,7 @@ class TestReleaseDynamicSearch:
         Release.dynamic_search({
             "rating": "5",
             "rating_comparison": ">",
-            "year": "2023",
+            "release_year": "2023",
             "year_comparison": "="
         })
 
@@ -1044,7 +1050,8 @@ class TestReleaseCreateNew:
             "name": "Test Release",
             "artist_name": "Test Artist",
             "label_name": "Test Label",
-            "release_group_mbid": "test-mbid"
+            "release_group_mbid": "test-mbid",
+            "image": None
         }
 
         result = Release.create_new(test_data)
@@ -1075,7 +1082,8 @@ class TestReleaseCreateNew:
             "name": "Test Release",
             "artist_name": "Test Artist",
             "label_name": "Test Label",
-            "release_group_mbid": "test-mbid"
+            "release_group_mbid": "test-mbid",
+            "image": None
         }
 
         Release.create_new(test_data)
@@ -1098,7 +1106,8 @@ class TestReleaseCreateNew:
             "name": "Test Release",
             "artist_name": "Test Artist",
             "label_name": "Test Label",
-            "release_group_mbid": "test-mbid"
+            "release_group_mbid": "test-mbid",
+            "image": None
         }
 
         Release.create_new(test_data)
@@ -1121,7 +1130,8 @@ class TestReleaseCreateNew:
             "name": "Test Release",
             "artist_name": "Test Artist",
             "label_name": "Test Label",
-            "release_group_mbid": "test-mbid"
+            "release_group_mbid": "test-mbid",
+            "image": None
         }
 
         Release.create_new(test_data)
@@ -1233,8 +1243,15 @@ class TestArtistOrLabelAverageRatingsAndTotalCounts:
 
     def test_average_ratings_and_total_counts_returns_list(self, mocker):
         """Test that average_ratings_and_total_counts returns a list regardless of whether entries exist"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.where.return_value.having.return_value.group_by.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.join.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.having.return_value = mock_query
+        mock_query.group_by.return_value = mock_query
+        mock_query.order_by.return_value = mock_query
+        mock_query.all.return_value = []
+
+        mocker.patch('databass.db.base.app_db.session.query', return_value = mock_query)
 
         result = Artist.average_ratings_and_total_counts()
         assert isinstance(result, list)
@@ -1269,8 +1286,14 @@ class TestArtistOrLabelAverageRatingsAndTotalCounts:
     @pytest.mark.parametrize("model_class", [Artist, Label])
     def test_average_ratings_and_total_counts_works_for_both_models(self, mocker, model_class):
         """Test that average_ratings_and_total_counts works for both Artist and Label classes"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.where.return_value.having.return_value.group_by.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.join.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.having.return_value = mock_query
+        mock_query.group_by.return_value = mock_query
+        mock_query.order_by.return_value = mock_query
+        mock_query.all.return_value = []
+        mocker.patch('databass.db.base.app_db.session.query', return_value=mock_query)
 
         result = model_class.average_ratings_and_total_counts()
         assert isinstance(result, list)
@@ -1414,23 +1437,28 @@ class TestArtistOrLabelDynamicSearch:
         ({"name": "Test Artist"}, ["filter"]),
         ({"country": "US"}, ["filter"]),
         ({"type": "Group"}, ["filter"]),
-        ({"begin_date": "2000", "begin_comparison": "-1"}, ["filter"]),
-        ({"end_date": "2020", "end_comparison": "1"}, ["filter"])
+        ({"begin_date": "2000", "begin_comparison": "<"}, ["filter"]),
+        ({"end_date": "2020", "end_comparison": ">"}, ["filter"])
     ])
     def test_dynamic_search_query_construction(self, mocker, search_data, expected_calls):
         """Test that dynamic_search constructs appropriate queries based on search criteria"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_filter = mocker.Mock()
-        mock_query.return_value.filter = mock_filter
-        mock_filter.return_value.where.return_value.where.return_value.where.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.filter.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.all.return_value = []
 
+        mocker.patch('databass.db.base.app_db.session.query', return_value=mock_query)
         Artist.dynamic_search(search_data)
-        assert mock_filter.call_count >= len(expected_calls)
+        assert mock_query.filter.call_count >= len(expected_calls)
 
     def test_dynamic_search_empty_values(self, mocker):
         """Test that dynamic_search properly handles empty values in search criteria"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.where.return_value.where.return_value.where.return_value.all.return_value = []
+        mock_query = mocker.MagicMock()
+        mock_query.filter.return_value = mock_query
+        mock_query.where.return_value = mock_query
+        mock_query.all.return_value = []
+
+        mocker.patch('databass.db.base.app_db.session.query', return_value=mock_query)
 
         result = Artist.dynamic_search({"name": "", "country": "NO VALUE"})
         assert isinstance(result, list)
@@ -1479,7 +1507,7 @@ class TestArtistOrLabelCreateIfNotExist:
         mock_get_image = mocker.patch('databass.api.Util.get_image')
 
         mock_insert.return_value = 42
-        result = Artist.create_if_not_exist("test-mbid", "Test Artist")
+        result = Artist.create_if_not_exist("Test Artist")
         assert isinstance(result, int)
         assert result == 42
 
@@ -1490,10 +1518,8 @@ class TestArtistOrLabelCreateIfNotExist:
         mock_exists = mocker.patch('databass.db.models.ArtistOrLabel.exists_by_mbid')
         mock_exists.return_value = mock_item
 
-        result = Artist.create_if_not_exist("test-mbid", "Test Artist")
+        result = Artist.create_if_not_exist(name="Test Artist")
         assert result == 42
-        # Verify no creation calls were made
-        mock_exists.assert_called_once_with("test-mbid")
 
     @pytest.mark.parametrize("model_class,search_method,expected_construct_name", [
         (Artist, 'artist_search', 'artist'),
@@ -1509,7 +1535,7 @@ class TestArtistOrLabelCreateIfNotExist:
         mock_insert = mocker.patch('databass.db.operations.insert')
         mock_get_image = mocker.patch('databass.api.Util.get_image')
 
-        model_class.create_if_not_exist("test-mbid", "Test Name")
+        model_class.create_if_not_exist(mbid="test-mbid", name="Test Name")
         mock_search.assert_called_once_with(name="Test Name", mbid="test-mbid")
         mock_construct.assert_called_once_with(model_name=expected_construct_name, data_dict=mock_search.return_value)
 
@@ -1524,7 +1550,7 @@ class TestArtistOrLabelCreateIfNotExist:
 
         mock_insert.return_value = 42
         test_name = "Test Artist"
-        Artist.create_if_not_exist("test-mbid", test_name)
+        Artist.create_if_not_exist(test_name)
 
         mock_get_image.assert_called_once_with(
             item_type='artist',

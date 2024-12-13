@@ -1,12 +1,9 @@
 import datetime
-import glob
-import requests
-from os import getenv
-from dotenv import load_dotenv
-import pathlib
 import signal
+from os import getenv
 from pathlib import Path
-from typing import Optional, Tuple, Literal
+from typing import Optional, Literal
+from dotenv import load_dotenv
 
 load_dotenv()
 VERSION = getenv('VERSION')
@@ -18,7 +15,7 @@ VALID_TYPES = frozenset(["release", "artist", "label"])
 VALID_DATE_TYPES = frozenset(['begin', 'end'])
 
 YEAR_FORMAT = "%Y"
-MONTH_FORMAT = "%Y-%m" 
+MONTH_FORMAT = "%Y-%m"
 DAY_FORMAT = "%Y-%m-%d"
 
 class TimeoutException(Exception):
@@ -50,7 +47,7 @@ class Util:
             if not begin_or_end:
                 raise ValueError("Must be used with either begin_or_end or date_str, or both")
             # No date in search results, return max/min date
-            elif begin_or_end not in VALID_DATE_TYPES:
+            if begin_or_end not in VALID_DATE_TYPES:
                 raise ValueError(f"Invalid begin_or_end value: {begin_or_end}")
             elif begin_or_end == 'begin':
                 date = datetime.datetime(year=1, month=1, day=1)
@@ -67,34 +64,12 @@ class Util:
 
         if date is not None:
             return date.date()
-        else:
-            raise ValueError(f"Unexpected date string format: {date_str}")
+        raise ValueError(f"Unexpected date string format: {date_str}")
 
     @staticmethod
     def today() -> str:
         """Returns current day formatted as YYYY-MM-DD string"""
         return datetime.datetime.today().strftime('%Y-%m-%d')
-
-    @staticmethod
-    def get_page_range(per_page: int, current_page: int) -> Tuple[int, int]:
-        """
-        Get the start and end indices for a page of results given the page size and current page number.
-
-        Args:
-            per_page (int): The number of results to return per page.
-            current_page (int): The current page number (1-indexed).
-
-        Returns:
-            Tuple[int, int]: The start and end indices for the current page of results.
-
-        Raises:
-            ValueError: If `per_page` or `current_page` is less than or equal to 0.
-        """
-        if per_page <= 0 or current_page <= 0:
-            raise ValueError("per_page and current_page must be positive integers")
-        start = (current_page - 1) * per_page
-        end = start + per_page
-        return start, end
 
     @staticmethod
     def get_image_type_from_url(url: str) -> str:
@@ -147,7 +122,7 @@ class Util:
             raise ValueError("bytestr must be at least 8 bytes.")
         if bytestr.startswith(JPEG_HEADER):
             return '.jpg'
-        elif bytestr.startswith(PNG_HEADER):
+        if bytestr.startswith(PNG_HEADER):
             return '.png'
         else:
             raise ValueError(f"Unsupported file type (signature: {bytestr[:8].hex()}). Supported types: jpg, png")
@@ -159,15 +134,29 @@ class Util:
             mbid: str = None,
             release_name: str = None,
             artist_name: str = None,
-            label_name: str = None
+            label_name: str = None,
+            url: str = None,
     ):
         # TODO: refactor
+        if url:
+            # if we are provided the url, just grab it, don't check APIs
+            import requests
+            response = requests.get(url, headers={
+                "User-Agent": f"databass/{VERSION} (https://github.com/chunned/databass)"
+            })
+            if response:
+                ext = Util.get_image_type_from_url(url)
+                base_path = './databass/static/img'
+                img_filepath = base_path + '/release/' + str(item_id) + ext
+                with open(img_filepath, 'wb') as img_file:
+                    img_file.write(response.content)
+                return img_filepath.replace('databass/', '')
         img = img_type = img_url = None
         base_path = "./databass/static/img"
         subdir = item_type
         try:
             # Create image subdirectory
-            pathlib.Path(f"{base_path}/{subdir}").mkdir(parents=True, exist_ok=True)
+            Path(f"{base_path}/{subdir}").mkdir(parents=True, exist_ok=True)
         except Exception as e:
             print(f'Encountered exception while creating directory: {e}')
 
@@ -210,11 +199,16 @@ class Util:
                 img_url = Discogs.get_label_image_url(name=label_name)
         response = ''
         if img_url is not None and img_url is not False:
+            import requests
             print(f'Discogs image URL: {img_url}')
-            response = requests.get(img_url, headers={
-                "Accept": "application/json",
-                "User-Agent": f"databass/{VERSION} (https://github.com/chunned/databass)"
-            })
+            response = requests.get(
+                img_url,
+                headers={
+                    "Accept": "application/json",
+                    "User-Agent": f"databass/{VERSION} (https://github.com/chunned/databass)"
+                },
+                timeout=60
+            )
             img = response.content
             img_type = Util.get_image_type_from_bytes(img)
 
@@ -225,9 +219,7 @@ class Util:
                 img_file.write(img)
             print(f'Image saved to {file_path}')
             return file_path.replace('databass/', '')
-        else:
-            print('img or img_type was blank; requires manual debug')
-            print(f'Discogs response: {response}')
+        print(f'Discogs response: {response}')
 
     @staticmethod
     def img_exists(

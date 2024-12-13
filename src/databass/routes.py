@@ -1,11 +1,21 @@
+"""
+Implements the main routes for the databass application, including
+- home page
+- new release page
+- stats page
+- goals page
+"""
+from datetime import datetime
 import flask
-from flask import render_template, request, redirect, abort, flash
-from flask_paginate import Pagination, get_page_parameter
-from .api import Util, MusicBrainz, Discogs
+from flask import render_template, request, redirect, abort, flash, make_response, send_file
+from sqlalchemy.exc import IntegrityError
+import pycountry
+from .api import Util, MusicBrainz
 from . import db
 from .db import models
 from .db.util import get_all_stats, handle_submit_data
-from datetime import datetime
+from .pagination import Pager
+
 
 def register_routes(app):
     @app.route('/', methods=['GET'])
@@ -17,32 +27,31 @@ def register_routes(app):
             goal_data = [process_goal_data(goal) for goal in active_goals]
         else:
             goal_data = []
+        year = datetime.now().year
+        return render_template(
+            'index.html',
+            stats=stats_data,
+            goals=goal_data,
+            year=year,
+            active_page='home'
+        )
+
+    @app.route("/home_release_table")
+    def home_release_table():
+
         data = models.Release.home_data()
 
-        page = request.args.get(
-            get_page_parameter(),
-            type=int,
-            default=1
-        )
-        per_page = 5
-        start, end = Util.get_page_range(per_page, page)
-
-        paged_data = data[start:end]
-
-        flask_pagination = Pagination(
-            page=page,
-            total=len(data),
-            search=False,
-            record_name='latest_releases'
+        page = Pager.get_page_param(request)
+        paged_data, flask_pagination = Pager.paginate(
+            per_page=5,
+            current_page=page,
+            data=data
         )
 
         return render_template(
-            'index.html',
+            'home_release_table.html',
             data=paged_data,
-            stats=stats_data,
-            goals=goal_data,
             pagination=flask_pagination,
-            active_page='home'
         )
 
     @app.route("/new")
@@ -50,16 +59,28 @@ def register_routes(app):
         actions = ["search"]
         return render_template("new.html", actions=actions, active_page='new')
 
-    @app.route("/search", methods=["POST"])
+    @app.route("/search", methods=["POST", "GET"])
     def search() -> str | flask.Response:
-        # Initialize variables to None
-        page = data_length = paged_data = release_data = per_page = None
+        page = paged_data = release_data = per_page = None
+
+        if request.method == "GET":
+            return render_template(
+                "search.html",
+                page=page,
+                data=paged_data,
+                pagination=None,
+                data_full=release_data,
+                per_page=per_page
+            )
+
 
         data = request.get_json()
         try:
             origin = data["referrer"]
         except KeyError:
-            error = "Request referrer missing. You should only be coming to this page from /new or from the pagination buttons."
+            error = (
+                "Request referrer missing. You should only be coming to "
+                "this page from /new or from the pagination buttons.")
             flash(error)
             # TODO: move this error handling into errors/routes.py
             return redirect('/error')
@@ -74,42 +95,26 @@ def register_routes(app):
                 # TODO: move this error handling into errors/routes.py
                 return redirect('/error')
             if not search_release and not search_artist and not search_label:
-                error = "Search requires at least one search term"
-                flash(error)
-                # TODO: move this error handling into errors/routes.py
-                return redirect('/error')
+                error = "ERROR: Search requires at least one search term"
+                return error
             release_data = MusicBrainz.release_search(release=search_release,
                                                           artist=search_artist,
                                                           label=search_label)
-            data_length = len(release_data)
-            page = request.args.get(
-                get_page_parameter(),
-                type=int,
-                default=1
-            )
-            per_page = 10
-            start, end = Util.get_page_range(per_page, page)
-            paged_data = release_data[start:end]
+            page = Pager.get_page_param(request)
         elif origin == 'page_button':
             page = data["next_page"]
-            per_page = data["per_page"]
             release_data = data["data"]
-            data_length = len(release_data)
-            start, end = Util.get_page_range(per_page, page)
-            paged_data = release_data[start:end]
 
         if all(
-            var is not None for var in [page, data_length, paged_data, release_data, per_page]
+            var is not None for var in [page, release_data]
         ):
-            # TODO: make generic pagination handler function
-            flask_pagination = Pagination(
-                page=page,
-                total=data_length,
-                search=False,
-                record_name='search_results'
+            paged_data, flask_pagination = Pager.paginate(
+                per_page=10,
+                current_page=page,
+                data=release_data
             )
             return render_template(
-                "search/static.html",
+                "search.html",
                 page=page,
                 data=paged_data,
                 pagination=flask_pagination,
@@ -121,20 +126,54 @@ def register_routes(app):
     def submit():
         data = request.form.to_dict()
         try:
-            # Check if this is a manual submission (i.e. manually entered data, no results found from MusicBrainz)
+            release_data = {}
+            # Check if this is a manual submission
             if data["manual_submit"] == "true":
+                # try to grab optional fields
+                try:
+                    tags = data["tags"]
+                except KeyError:
+                    tags = ""
+                try:
+                    image = data["image"]
+                except KeyError:
+                    image = ""
+
+                try:
+                    # convert minutes to ms
+                    runtime = int(data["runtime"]) * 60000
+                except KeyError:
+                    runtime = 0
+
+                try:
+                    track_count = int(data["track_count"])
+                except KeyError:
+                    track_count = 0
+
+
+                try:
+                    country = country_code(data["country"])
+                except KeyError:
+                    country = "?"
+
                 release_data = {
                     "name": data["name"],
+                    "mbid": None,
                     "artist_name": data["artist"],
+                    "artist_mbid": None,
                     "label_name": data["label"],
+                    "label_mbid": None,
                     "release_year": data["release_year"],
                     "genre": data["genre"],
                     "rating": data["rating"],
-                    "tags": data["tags"],
-                    "listen_date": Util.today()
+                    "tags": tags,
+                    "image": image,
+                    "listen_date": Util.today(),
+                    "runtime": runtime,
+                    "track_count": track_count,
+                    "country": country,
+                    "release_group_mbid": None
                 }
-                # TODO: improve manual submission; check Discogs for Artist/Label images, let user provide release image URL and auto-fetch it
-                db.operations.submit_manual(release_data)
             elif data["manual_submit"] == "false":
                 # Grab variables from request
                 release_data = {
@@ -151,9 +190,15 @@ def register_routes(app):
                     "track_count": data["track_count"],
                     "listen_date": Util.today(),
                     "country": data["country"],
-                    "tags": data["tags"]
+                    "tags": data["tags"],
+                    "image": None
                 }
+
+            try:
                 handle_submit_data(release_data)
+            except IntegrityError as err:
+                flash(err)
+                return redirect('/error')
         except KeyError:
             error = "Request missing one of the expected keys"
             flash(error)
@@ -164,96 +209,6 @@ def register_routes(app):
     def stats():
         statistics = get_all_stats()
         return render_template('stats.html', data=statistics, active_page='stats')
-
-    @app.route('/dynamic_search', methods=['POST'])
-    def dynamic_search():
-        # TODO: make a unique dynamic_search() in the routes.py for each entity (/release, /artist, /label); also simplify implementation
-
-        data = request.get_json()
-        origin = data["referrer"]
-        del data["referrer"]
-        if origin in ['release', 'artist', 'label']:
-            if origin == 'release':
-                search_data = db.models.Release.dynamic_search(data)
-            elif origin == 'artist':
-                search_data = db.models.Artist.dynamic_search(data)
-            elif origin == 'label':
-                search_data = db.models.Label.dynamic_search(data)
-            else:
-                raise ValueError("origin/referrer must be one of: release, artist, label")
-            page = request.args.get(
-                get_page_parameter(),
-                type=int,
-                default=1
-            )
-            search_type = search_data[0]
-            search_results = search_data[1]
-            # search_results is an array of SQLAlchemy objects; convert to array for use in JavaScript functions
-            full_data = []
-            for result in search_results:
-                temp = result.__dict__
-                if "_sa_instance_state" in temp:
-                    del temp["_sa_instance_state"]
-                for key in temp.keys():
-                    if not temp[key]:
-                        temp[key] = ""
-                if search_type == 'release':
-                    if "listen_date" in temp:
-                        day = temp["listen_date"].date()
-                        temp["listen_date"] = str(day)
-                if search_type in ['label', 'artist']:
-                    if "begin_date" in temp:
-                        begin_date = temp["begin_date"]
-                        if not begin_date:
-                            begin_date = ""
-                        else:
-                            begin_date = begin_date.strftime('%Y-%m-%d')
-                        temp["begin_date"] = begin_date
-                    if "end_date" in temp:
-                        end_date = temp["end_date"]
-                        if not end_date:
-                            end_date = ""
-                        else:
-                            end_date = end_date.strftime('%Y-%m-%d')
-                        temp["end_date"] = end_date
-                full_data.append(temp)
-            data_length = len(search_results)
-            per_page = 14
-            start, end = Util.get_page_range(per_page, page)
-
-            paged_data = full_data[start:end]
-
-        elif origin == 'page_button':
-            page = data["next_page"]
-            per_page = data["per_page"]
-            full_data = data["data"]
-            start, end = Util.get_page_range(per_page, page)
-            data_length = len(full_data)
-            paged_data = full_data[start:end]
-            for item in paged_data:
-                # Iterate through paged_data to check for 'amp;' substrings, remove these substrings
-                # Caused by '&' getting URL encoded
-                for key in item:
-                    if item[key] and isinstance(item[key], str) and 'amp;' in item[key]:
-                        original_value = item[key]
-                        new_value = original_value.replace('amp;', '')
-                        item[key] = new_value
-            search_type = data["search_type"]
-
-        flask_pagination = Pagination(
-            page=page,
-            total=data_length,
-            search=False,
-            record_name="search_results"
-        )
-        return render_template(
-            "search/dynamic.html",
-            items=paged_data,
-            pagination=flask_pagination,
-            data_full=full_data,
-            type=search_type,
-            per_page=per_page
-        )
 
     @app.route('/goals', methods=['GET'])
     def goals():
@@ -287,6 +242,28 @@ def register_routes(app):
 
         db.insert(goal)
         return redirect('/goals', 302)
+
+    @app.route('/img/<string:itemtype>/<int:itemid>', methods=['GET'])
+    def serve_image(itemtype: str, itemid: int):
+        item = ''
+        if itemtype == 'artist':
+            item = models.Artist.exists_by_id(itemid)
+        if itemtype == 'label':
+            item = models.Label.exists_by_id(itemid)
+        if itemtype == 'release':
+            item = models.Release.exists_by_id(itemid)
+
+        try:
+            img_path = item.image
+        except KeyError:
+            img_path = "./static/img/none.png"
+        try:
+            resp = make_response(send_file(img_path))
+        except TypeError:
+            img_path = "./static/img/none.png"
+            resp = make_response(send_file(img_path))
+        resp.headers['Cache-Control'] = 'max-age'
+        return resp
 
     # TODO: see if still needed
     @app.route('/stats_search', methods=['GET'])
@@ -347,46 +324,82 @@ def register_routes(app):
                     mbid=item.mbid,
                     label_name=label_name
                 )
-        finally:
-            if item.image != img_path:
-                item.image = img_path
-                print(f'Updating database entry: {item_type}.image => {img_path}')
-                db.update(item)
-            # Define the mappings for the order of items. All releases are fixed 1 by 1, then artists, then labels
-            next_type = {
-                'release': 'artist',
-                'artist': 'label',
-                'label': None
-            }
-            next_item = db.util.next_item(item_type=item_type, prev_id=item_id)
-            if next_item:
-                return redirect(f'/imgupdate/{item_type}/{next_item.id}')
-            else:
-                # No next item; move onto next item type
-                next_item = next_type.get(item_type)
-                if next_item:
-                    return redirect(f'/imgupdate/{next_item}/0')
-                else:
-                    # Complete, redirect to home
-                    return redirect('/', code=302)
+        if item.image != img_path:
+            item.image = img_path
+            print(f'Updating database entry: {item_type}.image => {img_path}')
+            db.update(item)
+        # Define the mappings for the order of items.
+        # All releases are fixed 1 by 1, then artists, then labels
+        next_type = {
+            'release': 'artist',
+            'artist': 'label',
+            'label': None
+        }
+        next_item = db.util.next_item(item_type=item_type, prev_id=item_id)
+        if next_item:
+            return redirect(f'/imgupdate/{item_type}/{next_item.id}')
+
+        # No next item; move onto next item type
+        next_item = next_type.get(item_type)
+        if next_item:
+            return redirect(f'/imgupdate/{next_item}/0')
+        # Complete, redirect to home
+        return redirect('/', code=302)
 
     # TODO: see if still needed
     @app.route('/fix_images')
     def fix_images():
         print('Fixing images.')
-        # Starts the imgupdate process; imgupdate() will recursively call itself and update all images 1 by 1
+        # Starts the imgupdate process; recursively calls itself and update all images 1 by 1
         return redirect('/imgupdate/release/1')
 
-    # TODO: see if still needed
-    @app.route('/backup', methods=['GET'])
-    def backup():
-        bkp()
-        return redirect('/', code=302)
+    @app.route('/new_release', methods=["POST"])
+    def new_release_popup():
+        data = request.get_json()
+        return render_template(
+            "new_release_popup.html",
+            data=data
+        )
 
+    @app.template_filter('country_name')
+    def country_name(code: str) -> str | None:
+        """
+        Converts a two-letter country code to the full country name.
+        If the country code is `None` or not found in the `pycountry` library,
+        the original country code is returned.
+
+        Args:
+            code (str): The two-letter ISO 3166-1 alpha-2 country code.
+
+        Returns:
+            str | None: The full country name if found, otherwise the original country code.
+        """
+        if code is None:
+            return code
+        try:
+            country = pycountry.countries.get(alpha_2=code.upper())
+            return country.name if country else code
+        except KeyError:
+            return code
+
+    @app.template_filter('country_code')
+    def country_code(country: str) -> str | None:
+        """
+        Converts a country string to the corresponding two-letter country code
+        If country is `None` or not found in `pycountry`, original value is returned.
+        """
+        if country is None:
+            return country
+        try:
+            code = pycountry.countries.lookup(country)
+            return code.alpha_2 if code else None
+        except (KeyError, LookupError):
+            return country
 
 def process_goal_data(goal: models.Goal):
     """
-    Processes the data for a given goal, calculating the current progress, remaining amount, and daily target.
+    Processes the data for a given goal, calculating the current progress,
+    remaining amount, and daily target.
 
     Args:
         goal (models.Goal): The goal object to process.

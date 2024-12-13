@@ -11,3 +11,9 @@ psycopg2
 musicbrainzngs
 pytest
 pytest-mock
+flask-assets
+lesscpy
+cssmin
+jsmin
+pycountry
+flask-migrate

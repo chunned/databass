@@ -1,10 +1,8 @@
-from .base import app_db
-from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Tag, Review
+from typing import Type
 from sqlalchemy import extract, Integer
 from sqlalchemy.orm import query as sql_query
 from sqlalchemy.engine.row import Row
-from typing import Type
-from datetime import date
+from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Tag
 
 def get_model(model_name: str) -> Base | None:
     """
@@ -13,15 +11,14 @@ def get_model(model_name: str) -> Base | None:
     """
     if not isinstance(model_name, str):
         raise ValueError("model_name must be a string")
-    else:
-        model_name = model_name.lower()
-        model_name = model_name.capitalize()
-        instance = globals().get(model_name)
-        if not instance:
-            raise NameError(f"No model with the name '{model_name}' found in globals()."
-                            "Ensure all valid models are imported in databass.db.util.py and reflect existing models as defined in models.py")
-        else:
-            return instance
+    model_name = model_name.lower()
+    model_name = model_name.capitalize()
+    instance = globals().get(model_name)
+    if not instance:
+        raise NameError(f"No model with the name '{model_name}' found in globals()."
+                        "Ensure all valid models are imported in databass.db.util.py and "
+                        "reflect existing models as defined in models.py")
+    return instance
 
 
 def construct_item(model_name: str,
@@ -36,14 +33,12 @@ def construct_item(model_name: str,
     if model_name not in valid_models:
         raise ValueError(f"Invalid model name: {model_name} - "
                          f"Model name should be one of: {', '.join(valid_models)}")
-    else:
-        model = get_model(model_name)
-        if model is not None:
-            item = model(**data_dict)
-            return item
-        else:
-            raise NameError(f"No model with the name '{model_name}' found in globals()."
-                            "Ensure all valid models are imported and reflect existing models as defined in models.py")
+    model = get_model(model_name)
+    if model is not None:
+        item = model(**data_dict)
+        return item
+    raise NameError(f"No model with the name '{model_name}' found in globals(). Ensure all "
+                    f"valid models are imported and reflect existing models as defined in models.py")
 
 
 def next_item(item_type: str,
@@ -54,11 +49,10 @@ def next_item(item_type: str,
     """
     if item_type not in ['artist', 'release', 'label']:
         raise ValueError(f'Invalid item_type: {item_type}')
-    else:
-        model = get_model(item_type)
-        query = model.query
-        item = query.filter(model.id > prev_id).first()
-        return item if item else False
+    model = get_model(item_type)
+    query = model.query
+    item = query.filter(model.id > prev_id).first()
+    return item if item else False
 
 def apply_comparison_filter(query,
                       model: Type[MusicBrainzEntity],
@@ -85,8 +79,7 @@ def apply_comparison_filter(query,
     if operator not in ['<', '=', '>']:
         raise ValueError(f"Unrecognized operator value for year_comparison: {operator}")
 
-    if key == 'begin_date' or key == 'end_date':
-
+    if key in ('begin_date', 'end_date'):
         query = query.filter(extract('year', attribute).cast(Integer).op(operator)(val))
     elif key == 'rating':
         query = query.filter(Release.rating.op(operator)(value))
@@ -95,7 +88,8 @@ def apply_comparison_filter(query,
     return query
 
 
-# Utility function to calculate the mean average rating and total release count for releases associated with a specific Label/Artist
+# Utility function to calculate the mean average rating and total release count
+# for releases associated with a specific Label/Artist
 def mean_avg_and_count(entities: list[Row]) -> (int, int):
     """
     :param entities: List of SQLAlchemy Rows; returned from average_ratings_and_total_counts()
@@ -109,7 +103,7 @@ def mean_avg_and_count(entities: list[Row]) -> (int, int):
             count += int(item.release_count)
         except AttributeError:
             # TODO: consider logging info about the erroring release
-            # Have not encountered this in practice, but if it is encountered it means there is a 'corrupted' DB entry
+            # Have not encountered this in practice, but if it is encountered it means there is a corrupt entry
             total -= 1
 
     mean_avg = avg / total
@@ -125,13 +119,14 @@ def bayesian_avg(
 ) -> float:
     """
     Calculates the Bayesian average rating for a given item weight and average
-    :param item_weight: Float representing the item's weight for the formula; calculated as: count / (count + mean count)
+    :param item_weight: Float representing the item's weight for the formula;
+                        calculated as: count / (count + mean count)
     :param item_avg: Item's average rating
     :param mean_avg: Mean average release rating for all database entries
     :return: Float representing the Bayesian average rating for releases associated with this item
     """
     if not item_weight or not item_avg or not mean_avg:
-        raise ValueError(f"Input missing one of the required values")
+        raise ValueError("Input missing one of the required values")
     return item_weight * item_avg + (1 - item_weight) * mean_avg
 
 
@@ -143,22 +138,38 @@ def get_all_stats():
         "average_rating": Release.ratings_average(),
         "average_runtime": Release.average_runtime(),
         "total_runtime": Release.total_runtime(),
-        "listens_this_year": Release.listens_this_year(),
-        "listens_per_day": Release.listens_per_day(),
+        "releases_this_year": Release.added_this_year(),
+        "artists_this_year": Artist.added_this_year(),
+        "labels_this_year": Label.added_this_year(),
+        "releases_per_day": Release.added_per_day_this_year(),
+        "artists_per_day": Artist.added_per_day_this_year(),
+        "labels_per_day": Label.added_per_day_this_year(),
         "top_rated_labels": Label.average_ratings_bayesian()[0:10],
         "top_rated_artists": Artist.average_ratings_bayesian()[0:10],
         "top_frequent_labels": Label.frequency_highest()[0:10],
-        "top_frequent_artists": Artist.frequency_highest()[0:10]
+        "top_frequent_artists": Artist.frequency_highest()[0:10],
+        "top_average_artists": Artist.average_ratings_and_total_counts()[0:10],
+        "top_average_labels": Label.average_ratings_and_total_counts()[0:10],
     }
     return stats
 
 
 def handle_submit_data(submit_data: dict) -> None:
+    """
+    Process dictionary data from routes.submit()
+    - Fetches release runtime from MusicBrainz, if a MBID is provided
+    - Checks if matching label/artist exists in the db, creates one if it doesn't
+    - Inserts the new release and subgenres (tags)
+    :param submit_data:
+    :return:
+    """
     from ..api import MusicBrainz
-    from .models import Goal, Tag, Release, Artist, Label
-    runtime = MusicBrainz.get_release_length(submit_data["mbid"])
+    if submit_data["mbid"]:
+        runtime = MusicBrainz.get_release_length(submit_data["mbid"])
+        submit_data["runtime"] = runtime
+        # If we aren't handling a MusicBrainz release,
+        # the user can optionally pass in the runtime and it's already in submit_data
 
-    submit_data["runtime"] = runtime
 
     if submit_data["label_mbid"]:
         label_id = Label.create_if_not_exist(
@@ -166,7 +177,7 @@ def handle_submit_data(submit_data: dict) -> None:
             name=submit_data["label_name"],
         )
     else:
-        label_id = 0
+        label_id = Label.create_if_not_exist(name=submit_data["label_name"])
 
     submit_data["label_id"] = label_id
 
@@ -176,12 +187,12 @@ def handle_submit_data(submit_data: dict) -> None:
             name=submit_data["artist_name"],
         )
     else:
-        artist_id = 0
+        artist_id = Artist.create_if_not_exist(name=submit_data["artist_name"])
 
     submit_data["artist_id"] = artist_id
+
     release_id = Release.create_new(submit_data)
 
     if submit_data["tags"] is not None:
         Tag.create_tags(submit_data["tags"], release_id)
     Goal.check_goals()
-

@@ -1,4 +1,3 @@
-from itertools import count
 from datetime import date
 from typing import TypedDict, Optional
 
@@ -32,5 +31,3 @@ class SearchResult(TypedDict, total=False):
     life_span: dict[str, str]
     country: str
     type: str
-
-# TODO: add more types

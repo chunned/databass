@@ -1,5 +1,29 @@
-<div>
-    {% for artist in data %}
-        <p>{{ artist.name }}, {{ artist.id }}</p>
+<nav class="pagination">
+    {% if pagination.has_prev %}
+        <button class="pagination_button prev_page">back</button>
+    {% else %}
+        <button disabled class="pagination_button">back</button>
+    {% endif %}
+
+    {% if pagination.has_next %}
+        <button class="pagination_button next_page">next</button>
+    {% else %}
+        <button disabled class="pagination_button">next</button>
+    {% endif %}
+</nav>
+<div id="entity_search_results">
+    {% for artist in data[0:15] %}
+        <div class="search_result">
+            <a href="/artist/{{ artist.id }}">
+                <img src="/img/artist/{{ artist.id }}" alt="Artist image" class="search_image">
+                <p>{{ artist.name }}</p>
+            </a>
+        </div>
+
     {% endfor %}
 </div>
+
+<!-- Below are used by javascript function that handles pagination -->
+<input type="hidden" value="{{ pagination.page }}" id="current_page">
+<p hidden id="data_full">{{ data_full }}</p>
+<p hidden id="per_page">{{ per_page }}</p>

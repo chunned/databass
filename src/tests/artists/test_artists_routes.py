@@ -16,7 +16,7 @@ class TestArtists:
         response = client.get("/artists")
         assert response.status_code == 200
         assert b"UK" in response.data
-        assert b"search-bar" in response.data
+        assert b"artist_search" in response.data
 
 class TestArtist:
     # Tests for /artist
@@ -34,9 +34,9 @@ class TestArtist:
 
         mock_artist_releases = mocker.patch('databass.db.models.Artist.get_releases', return_value=[])
 
-        response = client.get("/artists")
+        response = client.get("/artist/1")
         assert response.status_code == 200
-        assert b"search-bar" in response.data
+        assert b"artist_container" in response.data
 
     def test_artist_not_found(self, client, mocker):
         mock_artist_data = mocker.patch("databass.db.models.Artist.exists_by_id", return_value=False)

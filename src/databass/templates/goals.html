@@ -2,76 +2,53 @@
 {% block content %}
 
 <div class="goals">
-    <div class="new-goal">
     <h3>New Goal</h3>
     <form action="/add_goal" method="POST">
-        <table>
-            <tr>
-                <td class="form-cell">
-                    <label for="start_date">start date</label>
-                </td>
-                <td class="form-cell">
-                    <label for="end_goal">end goal date</label>
-                </td>
-                <td class="form-cell">
-                    <label for="type">type</label>
-                </td>
-                <td class="form-cell">
-                    <label for="amount">amount</label>
-                </td>
-                <td class="form-cell">
-
-                </td>
-            </tr>
-            <tr>
-                <td class="form-cell">
-                    <input id="start_date" type="date" name="start_date" class="box" value="{{ data.today }}" required>
-                </td>
-                <td class="form-cell">
-                    <input id="end_goal" type="date" name="end_goal" class="box" required>
-                </td>
-                <td class="form-cell">
-                    <select id="type" name="type" class="box" required>
-                        <option value="release">release</option>
-                    </select>
-                </td>
-                <td class="form-cell">
-                    <input id="amount" type="number" min="0" name="amount" class="box" required>
-                </td>
-                <td class="form-cell">
-                    <button type="submit" class="box" value="submit" id="submit">submit</button>
-                </td>
-            </tr>
-        </table>
+        <div id="new_goal">
+            <div>
+                <label for="start_date">start date</label>
+                <input id="start_date" type="date" name="start_date" class="box" value="{{ data.today }}" required>
+            </div>
+            <div>
+                <label for="end_goal">end goal date</label>
+                <input id="end_goal" type="date" name="end_goal" class="box" required>
+            </div>
+            <div>
+                <label for="type">type</label>
+                <select id="type" name="type" class="box" required>
+                    <option value="release">release</option>
+                </select>
+            </div>
+            <div>
+                <label for="amount">amount</label>
+                <input id="amount" type="number" min="0" name="amount" class="box" required>
+            </div>
+            <button type="submit" class="box" value="submit" id="submit">submit</button>
+        </div>
     </form>
-    </div>
-    <div class="existing-goals">
+    <div id="goal_table">
         <h3>Existing Goals</h3>
-        <table style="text-align: center; width: 80vw;">
-            <tr>
-                <td></td>
-                <td>start date</td>
-                <td>end target</td>
-                <td>type</td>
-                <td>value (goal)</td>
-                <td>value (actual)</td>
-            </tr>
-            {% if data.existing_goals|length == 0 %}
-                <p>No existing goals</p>
-            {% endif %}
-            {% for goal in data.existing_goals %}
-            <tr>
-                <td>
-                    <button class="box delete-btn" id="delete-btn" data-id="{{ goal.id }}" data-type="goal">x</button>
-                </td>
-                <td>{{ goal.start_date.date() }}</td>
-                <td>{{ goal.end_goal.date() }}</td>
-                <td>{{ goal.type }}</td>
-                <td>{{ goal.amount }}</td>
-                <td>{{ goal.new_releases_since_start_date }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <div>
+            <p></p>
+            <p>start date</p>
+            <p>end target</p>
+            <p>type</p>
+            <p>value (goal)</p>
+            <p>value (actual)</p>
+        </div>
+        {% if data.existing_goals|length == 0 %}
+            <p>No existing goals</p>
+        {% endif %}
+        {% for goal in data.existing_goals %}
+            <div>
+                <button class="box delete-btn" id="delete-btn" data-id="{{ goal.id }}" data-type="goal">x</button>
+                <p>{{ goal.start_date.date() }}</p>
+                <p>{{ goal.end_goal.date() }}</p>
+                <p>{{ goal.type }}</p>
+                <p>{{ goal.amount }}</p>
+                <p>{{ goal.new_releases_since_start_date }}</p>
+            </div>
+        {% endfor %}
     </div>
 </div>
 
