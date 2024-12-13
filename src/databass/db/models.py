@@ -73,7 +73,7 @@ class MusicBrainzEntity(Base):
         try:
             results = app_db.session.query(cls).count()
             return results if isinstance(results, int) else None
-        except Exception as e:
+        except Exception:
             return 0
 
     @classmethod
@@ -89,7 +89,7 @@ class MusicBrainzEntity(Base):
         try:
             result = app_db.session.query(cls).filter(cls.id == item_id).one_or_none()
             return result if result else None
-        except Exception as e:
+        except Exception:
             return None
 
     @classmethod
@@ -232,7 +232,7 @@ class Release(MusicBrainzEntity):
             result = round(avg_runtime_min, 2)
         except TypeError:
             result = 0
-        except Exception as e:
+        except Exception:
             result = 0
         return result
 
@@ -322,7 +322,7 @@ class Release(MusicBrainzEntity):
                 func.avg(cls.rating)
             ).scalar()
             result = round(ratings or 0, 2)
-        except Exception as e:
+        except Exception:
             result = 0.0
         return result
 
@@ -367,7 +367,7 @@ class Release(MusicBrainzEntity):
                 )
                 .order_by(cls.id.desc())
             ).all()
-        except Exception as e:
+        except Exception:
             return []
         return results
 
@@ -387,7 +387,7 @@ class Release(MusicBrainzEntity):
             ).filter(
                 extract('year', Release.listen_date) == current_year
             ).scalar()
-        except Exception as e:
+        except Exception:
             return 0
         return results
 
@@ -856,7 +856,10 @@ class ArtistOrLabel(MusicBrainzEntity):
         from .operations import insert
         item_exists = cls.exists_by_mbid(mbid)
         if item_exists:
-            item_id = item_exists.id
+            return item_exists.id
+        item_exists = cls.exists_by_name(name)
+        if item_exists:
+            return item_exists.id
         else:
             # Grab image, start/end date, type, and insert
             if cls.__name__ == 'Label':
