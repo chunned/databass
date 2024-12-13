@@ -446,7 +446,7 @@ class Release(MusicBrainzEntity):
         query = app_db.session.query(cls)
         search_keys = [
             "name", "artist", "country", "genre",
-            "label", "rating", "tags", "release_year"
+            "label", "rating", "release_year"
         ]
         for key, value in data.items():
             if value == '' or value == [''] or key not in search_keys:
@@ -1012,10 +1012,6 @@ class Genre(Base):
     artists = relationship("Artist", secondary=artist_genre_association, back_populates="genres")
     labels = relationship("Label", secondary=label_genre_association, back_populates="genres")
 
-    __table_args__ = (
-        # Make sure release can't have multiple of the same tag
-        UniqueConstraint('release_id', 'name', name='unique_release_tag'),
-    )
 
     @classmethod
     def get_distinct_column_values(
