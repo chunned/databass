@@ -1,6 +1,7 @@
 from __future__ import annotations
 from datetime import datetime, date
 from typing import Any, Optional, List
+
 from sqlalchemy import (
     String, Integer, ForeignKey, DateTime, Date,
     func, extract, distinct,
@@ -228,10 +229,10 @@ class Release(MusicBrainzEntity):
     rating: Mapped[int] = mapped_column(Integer, CheckConstraint('rating >= 0 AND rating <= 100'))
     listen_date: Mapped[datetime] = mapped_column(DateTime)
     track_count: Mapped[int] = mapped_column(Integer)
+    main_genre_id: Mapped[int] = mapped_column(ForeignKey("genre.id"))
 
     artist = relationship("Artist", back_populates="releases")
     label = relationship("Label", back_populates="releases")
-    main_genre_id: Mapped[int] = mapped_column(ForeignKey("genre.id"))
     main_genre = relationship("Genre", back_populates="main_genres")
     genres = relationship("Genre", secondary=release_genre_association, back_populates="releases")
     reviews = relationship("Review", cascade="all, delete-orphan", back_populates="release")
@@ -1058,3 +1059,26 @@ class Genre(Base):
         genre_id = insert(genre)
         genre.id = genre_id
         return genre
+
+    @classmethod
+    def exists_by_name(
+            cls,
+            name: str
+    ) -> Optional[Genre]:
+        """
+        Check if an entry exists in the database by its name.
+        This is separate from Base.exists_by_name because we want to match on the full genre name
+        rather than partial match.
+
+        Args:
+            name (str): The name of the entry to check for.
+
+        Returns:
+            Optional[Genre]: The entry if it exists, otherwise None.
+        """
+        if not name or not isinstance(name, str):
+            return None
+        result = app_db.session.query(cls).filter(
+            cls.name == name
+        ).one_or_none()
+        return result
