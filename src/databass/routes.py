@@ -6,6 +6,8 @@ Implements the main routes for the databass application, including
 - goals page
 """
 from datetime import datetime
+from os.path import join, abspath
+from glob import glob
 import flask
 from flask import render_template, request, redirect, abort, flash, make_response, send_file
 from sqlalchemy.exc import IntegrityError
@@ -256,7 +258,13 @@ def register_routes(app):
             item = models.Release.exists_by_id(itemid)
 
         try:
-            img_path = item.image
+            img_dir = abspath(join("databass", "static", "img", itemtype))
+            img_pattern = join(img_dir, f"{item.id}.*")
+            match = glob(img_pattern)
+            if match:
+                img_path = match[0]
+            else:
+                img_path = "./static/img/none.png"
         except KeyError:
             img_path = "./static/img/none.png"
         try:
