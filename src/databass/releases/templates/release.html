@@ -88,9 +88,9 @@
             <h1>also by <a href="/artist/{{ data.artist.id }}">{{ data.artist.name }}:</a></h1>
             <div>
                 {% for item in data.artist_releases %}
-                    {% if not item.Release.id == data.release.id %}
+                    {% if not item.id == data.release.id %}
                         <div>
-                            <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Release image"></a>
+                            <a href="/release/{{ item.id }}"><img src="/img/release/{{ item.id }}" alt="Release image"></a>
                         </div>
                     {% endif %}
                 {% endfor %}
@@ -101,9 +101,9 @@
                 <h1>also by <a href="/label/{{ data.label.id }}">{{ data.label.name }}:</a></h1>
                 <div>
                     {% for item in data.label_releases %}
-                        {% if not item.Release.id == data.release.id %}
+                        {% if not item.id == data.release.id %}
                             <div>
-                                <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Album image"></a>
+                                <a href="/release/{{ item.id }}"><img src="/img/release/{{ item.id }}" alt="Album image"></a>
                             </div>
                         {% endif %}
                     {% endfor %}
