@@ -40,7 +40,7 @@
             </div>
             <div id="genres">
                 <h3>
-                    genre: {{ data.release.main_genre }}
+                    genre: {{ data.release.main_genre.name }}
                 </h3>
                 {% if data.release.tags %}
                     <h3>
@@ -68,9 +68,9 @@
                 </form>
             </div>
             <div id="existing">
-                {% if data.reviews %}
+                {% if data.release.reviews %}
                     <div id="review_table">
-                        {% for review in data.reviews %}
+                        {% for review in data.release.reviews %}
                             <div>
                                 <p>{{ review.timestamp }}</p>
                                 <p id="review_text">{{ review.text }}</p>

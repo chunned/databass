@@ -45,7 +45,7 @@
                 <a href="/release/{{ release.id }}" class="link">{{ release.name }}</a>
             </td>
             <td>
-                <a href="/artist/{{ release.artist_id }}" class="link">{{ release.artist_name }}</a>
+                <a href="/artist/{{ release.artist.id }}" class="link">{{ release.artist.name }}</a>
             </td>
             <td>
                 {{ release.rating }}%
@@ -54,11 +54,13 @@
                 {{ release.listen_date.date() }}
             </td>
             <td>
-                {{ release.main_genre }}
+                {{ release.main_genre.name }}
             </td>
             <td style="white-space: normal!important;">
                 <p>
-                    {{ release.genres | join(', ') }}
+                    {% for g in release.genres %}
+                        {{ g.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
                 </p>
             </td>
         </tr>

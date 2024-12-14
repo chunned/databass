@@ -35,9 +35,9 @@
         <div id="release_info">
             <h1>releases</h1>
             <div>
-                {% for item in data.releases %}
+                {% for item in data.artist.releases %}
                     <div>
-                        <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Release image"></a>
+                        <a href="/release/{{ item.id }}"><img src="/img/release/{{ item.id }}" alt="Release image"></a>
                     </div>
                 {% endfor %}
             </div>

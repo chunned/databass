@@ -16,6 +16,7 @@
                 <div class="search_div">
                     <label for="label">label</label>
                     <select id="label" name="label">
+                        <option value="" selected></option>
                         {% for label in data.labels %}
                             <option value="{{ label }}">{{ label }}</option>
                         {% endfor %}
@@ -57,21 +58,22 @@
                 <div class="search_div">
                     <label for="genre">genre</label>
                     <select id="genre" name="genre" class="box">
+                        <option value="" selected></option>
                         {% for genre in data.genres %}
                             <option value="{{ genre }}">{{ genre }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="search_div">
-                    <label for="genres">subgenres</label>
-                    <div class="checkbox-form">
-                        <select id="genres">
-                            <option value="" selected></option>
-                            {% for genre in data.genres %}
-                                <option value="{{ genre }}">{{ genre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+{#                    <label for="genres">subgenres</label>#}
+{#                    <div class="checkbox-form">#}
+{#                        <select id="genres">#}
+{#                            <option value="" selected></option>#}
+{#                            {% for genre in data.genres %}#}
+{#                                <option value="{{ genre }}">{{ genre }}</option>#}
+{#                            {% endfor %}#}
+{#                        </select>#}
+{#                    </div>#}
                 </div>
                 <div class="search_div">
                     <p></p>

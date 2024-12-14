@@ -1,45 +1,14 @@
 from typing import Type
-from sqlalchemy import extract, Integer
 from sqlalchemy.orm import query as sql_query
-from sqlalchemy.engine.row import Row
-from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Genre
-
-def get_model(model_name: str) -> Base | None:
-    """
-    :param model_name: String corresponding to a database model class
-    :return: Instance of that model's class if it exists; None otherwise
-    """
-    if not isinstance(model_name, str):
-        raise ValueError("model_name must be a string")
-    model_name = model_name.lower()
-    model_name = model_name.capitalize()
-    instance = globals().get(model_name)
-    if not instance:
-        raise NameError(f"No model with the name '{model_name}' found in globals()."
-                        "Ensure all valid models are imported in databass.db.util.py and "
-                        "reflect existing models as defined in models.py")
-    return instance
+from .models import *
+# above imports all of the below
+# from sqlalchemy import extract, Integer
+# from sqlalchemy.engine.row import Row
+# from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Genre
 
 
-def construct_item(model_name: str,
-                   data_dict: dict) -> Base:
-    """
-    Construct an instance of a model from a dictionary
-    :param model_name: String corresponding to SQLAlchemy model class from models.py
-    :param data_dict: Dictionary containing keys corresponding to the database model class
-    :return: The newly constructed instance of the model class.
-    """
-    valid_models = ['release', 'artist', 'label', 'goal', 'review', 'tag']
-    if model_name not in valid_models:
-        raise ValueError(f"Invalid model name: {model_name} - "
-                         f"Model name should be one of: {', '.join(valid_models)}")
-    model = get_model(model_name)
-    if model is not None:
-        item = model(**data_dict)
-        return item
-    raise NameError(f"No model with the name '{model_name}' found in globals(). Ensure all "
-                    f"valid models are imported and reflect existing models as defined in models.py")
-
+def get_valid_models():
+    return [cls.__name__.lower() for cls in Base.__subclasses__()]
 
 def next_item(item_type: str,
          prev_id: int) -> Base:
@@ -195,11 +164,11 @@ def handle_submit_data(submit_data: dict) -> None:
 
     if submit_data["main_genre"] is not None:
         main_genre = Genre.create_genres(submit_data["main_genre"])[0]
-        submit_data["main_genre"] = main_genre  # swaps name for id
+        submit_data["main_genre"] = main_genre
+        submit_data["main_genre_id"] = main_genre.id
 
     if submit_data["genres"] is not None:
         genres = Genre.create_genres(submit_data["genres"])
-        submit_data["genres"] = genres  # swaps names for ids
-
+        submit_data["genres"] = genres
     Release.create_new(submit_data)
     Goal.check_goals()

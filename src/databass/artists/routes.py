@@ -24,7 +24,6 @@ def artist(artist_id):
     no_start = date(1, 1, 1)
     data = {
         "artist": artist_data,
-        "releases": artist_data.releases,
         "no_end": no_end,
         "no_start": no_start
     }

@@ -21,7 +21,6 @@ def label(label_id):
     no_start = date(1, 1, 1)
     data = {
         "label": label_data,
-        "releases": label_data.releases,
         "no_end": no_end,
         "no_start": no_start
     }

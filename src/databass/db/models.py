@@ -3,31 +3,14 @@ from datetime import datetime, date
 from typing import Any, Optional, List
 from sqlalchemy import (
     String, Integer, ForeignKey, DateTime, Date,
-    func, UniqueConstraint, extract, distinct,
+    func, extract, distinct,
     Table, Column, CheckConstraint
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.engine.row import Row
+
+from .operations import construct_item, insert
 from .base import app_db
-
-# Relationship tables
-label_artist_association = Table(
-    'label_artist_association', app_db.Model.metadata,
-    Column('label_id', ForeignKey('label.id', ondelete='CASCADE'), primary_key=True),
-    Column('artist_id', ForeignKey('artist.id', ondelete='CASCADE'), primary_key=True)
-)
-
-label_genre_association = Table(
-    'label_genre_association', app_db.Model.metadata,
-    Column('label_id', ForeignKey('label.id', ondelete='CASCADE'), primary_key=True),
-    Column('genre_id', ForeignKey('genre.id', ondelete='CASCADE'), primary_key=True)
-)
-
-artist_genre_association = Table(
-    'artist_genre_association', app_db.Model.metadata,
-    Column('artist_id', ForeignKey('artist.id', ondelete='CASCADE'), primary_key=True),
-    Column('genre_id', ForeignKey('genre.id', ondelete='CASCADE'), primary_key=True)
-)
 
 class Base(DeclarativeBase):
     """Base class which all other database model classes are built from"""
@@ -70,6 +53,53 @@ class Base(DeclarativeBase):
         count = cls.added_this_year()
         result = count / days_this_year
         return round(result, 2)
+
+    @classmethod
+    def exists_by_name(
+            cls,
+            name: str
+    ) -> Optional[Base]:
+        """
+        Check if an entry exists in the database by its name.
+
+        Args:
+            name (str): The name of the entry to check for.
+
+        Returns:
+            Optional[Base]: The entry if it exists, otherwise None.
+        """
+        if not name or not isinstance(name, str):
+            return None
+        result = app_db.session.query(cls).filter(
+            cls.name.ilike(f'%{name}%')
+        ).one_or_none()
+        return result
+
+# Relationship tables
+label_artist_association = Table(
+    'label_artist_association', Base.metadata,
+    Column('label_id', ForeignKey('label.id', ondelete='CASCADE'), primary_key=True),
+    Column('artist_id', ForeignKey('artist.id', ondelete='CASCADE'), primary_key=True)
+)
+
+label_genre_association = Table(
+    'label_genre_association', Base.metadata,
+    Column('label_id', ForeignKey('label.id', ondelete='CASCADE'), primary_key=True),
+    Column('genre_id', ForeignKey('genre.id', ondelete='CASCADE'), primary_key=True)
+)
+
+artist_genre_association = Table(
+    'artist_genre_association', Base.metadata,
+    Column('artist_id', ForeignKey('artist.id', ondelete='CASCADE'), primary_key=True),
+    Column('genre_id', ForeignKey('genre.id', ondelete='CASCADE'), primary_key=True)
+)
+
+release_genre_association = Table(
+    'release_genre_association', Base.metadata,
+    Column('release_id', ForeignKey('release.id'), primary_key=True),
+    Column('genre_id', ForeignKey('genre.id'), primary_key=True)
+)
+
 
 class MusicBrainzEntity(Base):
     # Release and ArtistOrLabel are built from this prototype
@@ -152,26 +182,6 @@ class MusicBrainzEntity(Base):
             return result
         return None
 
-    @classmethod
-    def exists_by_name(
-            cls,
-            name: str
-    ) -> Optional[MusicBrainzEntity]:
-        """
-        Check if a MusicBrainzEntity exists in the database by its name.
-
-        Args:
-            name (str): The name of the MusicBrainzEntity to check for.
-
-        Returns:
-            Optional[MusicBrainzEntity]: The MusicBrainzEntity if it exists, otherwise None.
-        """
-        if not name or not isinstance(name, str):
-            return None
-        result = app_db.session.query(cls).filter(
-            cls.name.ilike(f'%{name}%')
-        ).one_or_none()
-        return result
 
     @classmethod
     def name_from_id(cls, item_id: int) -> Optional[MusicBrainzEntity.name]:
@@ -219,11 +229,12 @@ class Release(MusicBrainzEntity):
     rating: Mapped[int] = mapped_column(Integer, CheckConstraint('rating >= 0 AND rating <= 100'))
     listen_date: Mapped[datetime] = mapped_column(DateTime)
     track_count: Mapped[int] = mapped_column(Integer)
-    main_genre: Mapped[int] = mapped_column(ForeignKey("genre.id"))
 
     artist = relationship("Artist", back_populates="releases")
     label = relationship("Label", back_populates="releases")
-    genres = relationship("Genre", back_populates="releases", cascade="all, delete-orphan")
+    main_genre_id: Mapped[int] = mapped_column(ForeignKey("genre.id"))
+    main_genre = relationship("Genre", back_populates="main_genres")
+    genres = relationship("Genre", secondary=release_genre_association, back_populates="releases")
     reviews = relationship("Review", cascade="all, delete-orphan", back_populates="release")
 
     def __init__(self, mbid: str | None = None, artist_id: int = 0, label_id: int = 0, **kwargs):
@@ -349,39 +360,13 @@ class Release(MusicBrainzEntity):
         release information, and associated tags.
 
         Returns:
-            list[Row]: A list of database rows containing the following fields:
-                - artist_id (int): The ID of the artist associated with the release.
-                - artist_name (str): The name of the artist associated with the release.
-                - id (int): The ID of the release.
-                - name (str): The name of the release.
-                - rating (float): The rating of the release.
-                - listen_date (datetime): The date the release was listened to.
-                - genre (str): The genre of the release.
-                - image (str): The URL of the release's image.
-                - tags (list[str]): A list of tags associated with the release.
+            list[Row]: A list of Release database entries
 
         The data is ordered by the release ID in descending order.
         """
         try:
             results = (
-                app_db.session.query(
-                    Artist.id.label('artist_id'),
-                    Artist.name.label('artist_name'),
-                    cls.id,
-                    cls.name,
-                    cls.rating,
-                    cls.listen_date,
-                    cls.main_genre,
-                    cls.genres,
-                    cls.image,
-                    func.array_agg(func.concat(Genre.name)).label('genres')
-                )
-                .join(Artist, Artist.id == cls.artist_id)
-                .group_by(
-                    Artist.id,
-                    cls.id,
-                )
-                .order_by(cls.id.desc())
+                app_db.session.query(cls).order_by(cls.id.desc())
             ).all()
         except Exception:
             return []
@@ -445,7 +430,7 @@ class Release(MusicBrainzEntity):
         from .util import apply_comparison_filter
         query = app_db.session.query(cls)
         search_keys = [
-            "name", "artist", "country", "genre",
+            "name", "artist", "country", "main_genre",
             "label", "rating", "release_year"
         ]
         for key, value in data.items():
@@ -479,9 +464,9 @@ class Release(MusicBrainzEntity):
                     operator=operator,
                     value=value
                 )
-            elif key == 'tags':
-                # Retrieve all tags related to the Release ID
-                query = query.filter(Genre.name == value)
+            elif key == 'main_genre':
+                genre = Genre.exists_by_name(name=value)
+                query = query.filter(cls.main_genre == genre)
             else:
                 # generic handler for any other search key not matching above (country, genre)
                 query = query.filter(
@@ -531,8 +516,7 @@ class Release(MusicBrainzEntity):
         """
         if not isinstance(data, dict):
             raise ValueError("data argument must be a dictionary")
-        from .util import construct_item
-        from .operations import insert, update
+        from .operations import insert, update, construct_item
         from ..api import Util
         new_release = construct_item('release', data)
         release_id = insert(new_release)
@@ -575,8 +559,8 @@ class ArtistOrLabel(MusicBrainzEntity):
         name: Name of the artist/label
         country: Optional country of origin
         type: Optional type classification
-        begin_date: Optional start date
-        end_date: Optional end date
+        begin: Optional start date
+        end: Optional end date
         image: Optional image file path
     """
     __abstract__ = True
@@ -872,8 +856,7 @@ class ArtistOrLabel(MusicBrainzEntity):
             int: The ID of the created or existing item.
         """
         from ..api import MusicBrainz, Util
-        from .util import construct_item
-        from .operations import insert
+        from .operations import insert, construct_item
         item_exists = cls.exists_by_mbid(mbid)
         if item_exists:
             return item_exists.id
@@ -922,7 +905,7 @@ class Label(ArtistOrLabel):
 class Artist(ArtistOrLabel):
     __tablename__ = "artist"
 
-    releases = relationship("Release", back_populates="label", cascade="all, delete-orphan")
+    releases = relationship("Release", back_populates="artist", cascade="all, delete-orphan")
     labels = relationship("Label", secondary=label_artist_association, back_populates="artists")
     genres = relationship("Genre", secondary=artist_genre_association, back_populates="artists")
 
@@ -1001,14 +984,16 @@ class Review(Base):
     __tablename__ = "review"
     timestamp: Mapped[date] = mapped_column(DateTime, default=func.now())
     text: Mapped[str] = mapped_column(String)
+    release_id: Mapped[int] = mapped_column(ForeignKey("release.id"))
 
     release = relationship("Release", back_populates="reviews")
 
 class Genre(Base):
     __tablename__ = "genre"
-    name: Mapped[str] = mapped_column(String)
+    name: Mapped[str] = mapped_column(String, unique=True)
 
-    releases = relationship("Release", back_populates="genres")
+    main_genres = relationship("Release", back_populates="main_genre")
+    releases = relationship("Release", secondary=release_genre_association, back_populates="genres")
     artists = relationship("Artist", secondary=artist_genre_association, back_populates="genres")
     labels = relationship("Label", secondary=label_genre_association, back_populates="genres")
 
@@ -1032,21 +1017,45 @@ class Genre(Base):
     @staticmethod
     def create_genres(genres: str) -> list:
         """
-        Create genres for a given release in the database.
+        Create genres for a given release in the database, if they do not already exist.
 
         Args:
             genres (str): A comma-separated string of genre names to create.
 
         Returns:
-            List of IDs of the newly created genres
+            List of the genre objects
 
         This function splits the `genres` string on commas to get a list of individual genre names.
         For each genre name, it constructs a new `Genre` object with the genre name and inserts it.
         """
         from .util import construct_item
         from .operations import insert
-        ids = []
+        out_genres = []
         for genre in genres.split(','):
-            tag_obj = construct_item('tag', {"name": genre})
-            ids.append(insert(tag_obj))
-        return ids
+            exists = Genre.exists_by_name(genre)
+            if exists:
+                out_genres.append(genre)
+            # new genre, create and insert
+            item = construct_item('genre', {"name": genre})
+            genre_id = insert(item)
+            item.id = genre_id
+            out_genres.append(item)
+        return out_genres
+
+    @staticmethod
+    def create_if_not_exists(name: str) -> Genre:
+        """
+        Create the given genre if it does not already exist
+
+        Returns:
+            Genre object; either newly created or existing
+        """
+        exists = Genre.exists_by_name(name)
+        if exists:
+            return exists
+
+        # No existing entry; create one
+        genre = construct_item(model_name="genre", data_dict={"name": name})
+        genre_id = insert(genre)
+        genre.id = genre_id
+        return genre

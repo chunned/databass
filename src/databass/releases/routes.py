@@ -18,24 +18,24 @@ def release(release_id):
         return redirect('/error', code=302)
     artist_data = models.Artist.exists_by_id(release_data.artist_id)
     label_data = models.Label.exists_by_id(release_data.label_id)
-    existing_reviews = models.Release.reviews
-    label = models.Label.exists_by_id(release_data.label_id)
-    if label.name == '[NONE]':
-        label_releases = []
-    else:
-        label_releases = models.Label.releases
+    label = release_data.label
+    label_releases = []
+    if not label.name == '[NONE]':
+        for rel in label.releases:
+            if not rel.id == release_data.id:
+                label_releases.append(rel)
 
-    artist = models.Artist.exists_by_id(release_data.artist_id)
-    if artist.name in ('Various Artists', '[NONE]'):
-        artist_releases = []
-    else:
-        artist_releases = models.Artist.releases
+    artist = release_data.artist
+    artist_releases = []
+    if artist.name not in ('Various Artists', '[NONE]'):
+        for rel in artist.releases:
+            if not rel.id == release_data.id:
+                artist_releases.append(rel)
 
     data = {
         "release": release_data,
         "artist": artist_data,
         "label": label_data,
-        "reviews": existing_reviews,
         "label_releases": label_releases,
         "artist_releases": artist_releases
     }
@@ -114,7 +114,8 @@ def edit(release_id):
         try:
             main_genre = edit_data["main_genre"]
             if main_genre:
-                submit_data["main_genre"] = main_genre
+                genre = models.Genre.create_if_not_exists(main_genre)
+                submit_data["main_genre"] = genre
         except KeyError:
             pass
 
@@ -144,8 +145,6 @@ def edit(release_id):
             return redirect('/error', code=302)
         db.update(updated_release)
         return redirect('/', 302)
-
-
 
 @release_bp.route('/delete', methods=['POST'])
 def delete():
@@ -186,15 +185,13 @@ def add_review(release_id):
 
 @release_bp.route('/releases', methods=["GET"])
 def releases():
-    genres = sorted(models.Release.get_distinct_column_values('genre'))
-    tags = sorted(models.Genre.get_distinct_column_values('name'))
+    genres = sorted(models.Genre.get_distinct_column_values('name'))
     countries = sorted(models.Release.get_distinct_column_values('country'))
     all_labels = sorted(models.Label.get_distinct_column_values('name'))
     all_artists = sorted(models.Artist.get_distinct_column_values('name'))
     all_releases = sorted(models.Release.get_distinct_column_values('name'))
     data = {
         "genres": genres,
-        "tags": tags,
         "countries": countries,
         "labels": all_labels,
         "releases": all_releases,
@@ -210,6 +207,7 @@ def releases():
 def release_search():
     from ..pagination import Pager
     data = request.get_json()
+    print(data)
     search_results = models.Release.dynamic_search(data)
 
     page = Pager.get_page_param(request)

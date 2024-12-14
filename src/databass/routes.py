@@ -195,7 +195,6 @@ def register_routes(app):
                     "genres": data["genres"],
                     "image": None
                 }
-            if release_data:
 
             try:
                 handle_submit_data(release_data)
