@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
 from .base import app_db
 
+
 load_dotenv()
 TIMEZONE = getenv('TIMEZONE')
 

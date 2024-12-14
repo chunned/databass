@@ -8,7 +8,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.engine.row import Row
-
 from .operations import construct_item, insert
 from .base import app_db
 
@@ -430,6 +429,7 @@ class Release(MusicBrainzEntity):
         from .util import apply_comparison_filter
         query = app_db.session.query(cls)
         search_keys = [
+new-models
             "name", "artist", "country", "main_genre",
             "label", "rating", "release_year"
         ]
@@ -534,6 +534,7 @@ class Release(MusicBrainzEntity):
                 label_name=data["label_name"],
                 mbid=data["release_group_mbid"]
             )
+
         try:
             image_filepath = Util.get_image(
                 item_type='release',
@@ -545,9 +546,7 @@ class Release(MusicBrainzEntity):
             )
         except KeyError:
             image_filepath = "/static/img/none.png"
-        new_release.image = image_filepath
-        update(new_release)
-        return new_release.id
+
 
 class ArtistOrLabel(MusicBrainzEntity):
     """
