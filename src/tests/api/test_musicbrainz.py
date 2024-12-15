@@ -1,6 +1,6 @@
 import pytest
 from databass.api.musicbrainz import MusicBrainz
-from databass.api.types import ReleaseInfo, ArtistInfo, LabelInfo, EntityInfo, SearchResult
+from databass.api.types import ReleaseInfo
 import musicbrainzngs as mbz
 import datetime
 
@@ -184,7 +184,7 @@ class TestMusicBrainzLabelSearch:
         result = MusicBrainz.label_search(name=name, mbid=mbid)
 
         assert isinstance(result, dict)
-        assert all(key in result for key in ['name', 'mbid', 'begin_date', 'end_date', 'country', 'type'])
+        assert all(key in result for key in ['name', 'mbid', 'begin', 'end', 'country', 'type'])
         assert result['name'] == "Test Label"
         assert result['mbid'] == "test-id-123"
         assert result['country'] == "US"
@@ -202,7 +202,7 @@ class TestMusicBrainzLabelSearch:
 
         result = MusicBrainz.label_search(name="Found Label")
         assert isinstance(result, dict)
-        assert all(key in result for key in ['name', 'mbid', 'begin_date', 'end_date', 'country', 'type'])
+        assert all(key in result for key in ['name', 'mbid', 'begin', 'end', 'country', 'type'])
         assert result['name'] == "Test Label"
 
     def test_label_search_invalid_input(self):
@@ -243,11 +243,11 @@ class TestMusicBrainzLabelSearch:
 
         result = MusicBrainz.label_search(name="Partial", mbid="partial-id")
         assert isinstance(result, dict)
-        assert all(key in result for key in ['name', 'mbid', 'begin_date', 'end_date', 'country', 'type'])
+        assert all(key in result for key in ['name', 'mbid', 'begin', 'end', 'country', 'type'])
         assert result['name'] == "Partial Label"
         assert result['mbid'] == "partial-id"
-        assert result['begin_date'] == datetime.date(1, 1, 1)
-        assert result['end_date'] == datetime.date(9999, 12, 31)
+        assert result['begin'] == datetime.date(1, 1, 1)
+        assert result['end'] == datetime.date(9999, 12, 31)
         assert result['country'] is None
         assert result['type'] is None
 
@@ -280,7 +280,7 @@ class TestMusicBrainzArtistSearch:
         result = MusicBrainz.artist_search(name=name, mbid=mbid)
 
         assert isinstance(result, dict)
-        assert all(key in result for key in ['name', 'mbid', 'begin_date', 'end_date', 'country', 'type'])
+        assert all(key in result for key in ['name', 'mbid', 'begin', 'end', 'country', 'type'])
         assert result['name'] == "Test Artist"
         assert result['mbid'] == "test-id-123"
         assert result['country'] == "US"
@@ -299,7 +299,7 @@ class TestMusicBrainzArtistSearch:
 
         result = MusicBrainz.artist_search(name="Found Artist")
         assert isinstance(result, dict)
-        assert all(key in result for key in ['name', 'mbid', 'begin_date', 'end_date', 'country', 'type'])
+        assert all(key in result for key in ['name', 'mbid', 'begin', 'end', 'country', 'type'])
         assert result['name'] == "Test Artist"
 
     @pytest.mark.parametrize("invalid_input", [
@@ -348,11 +348,11 @@ class TestMusicBrainzArtistSearch:
 
         result = MusicBrainz.artist_search(name="Partial", mbid="partial-id")
         assert isinstance(result, dict)
-        assert all(key in result for key in ['name', 'mbid', 'begin_date', 'end_date', 'country', 'type'])
+        assert all(key in result for key in ['name', 'mbid', 'begin', 'end', 'country', 'type'])
         assert result['name'] == "Partial Artist"
         assert result['mbid'] == "partial-id"
-        assert result['begin_date'] == datetime.date(1, 1, 1)
-        assert result['end_date'] == datetime.date(9999, 12, 31)
+        assert result['begin'] == datetime.date(1, 1, 1)
+        assert result['end'] == datetime.date(9999, 12, 31)
         assert result['country'] is None
         assert result['type'] is None
 
@@ -380,8 +380,8 @@ class TestParseSearchResult:
         assert isinstance(result, dict)
         assert result["name"] == "Test Entity"
         assert result["mbid"] == "test-id-123"
-        assert result["begin_date"] == datetime.date(1990, 1, 1)
-        assert result["end_date"] == datetime.date(2020, 12, 31)
+        assert result["begin"] == datetime.date(1990, 1, 1)
+        assert result["end"] == datetime.date(2020, 12, 31)
         assert result["country"] == "US"
         assert result["type"] == "Group"
 
@@ -401,8 +401,8 @@ class TestParseSearchResult:
         assert result["name"] == "Test Entity"
         assert result["mbid"] == "test-id-123"
         if missing_field == "life_span":
-            assert result["begin_date"] == datetime.date(1, 1, 1)
-            assert result["end_date"] == datetime.date(9999, 12, 31)
+            assert result["begin"] == datetime.date(1, 1, 1)
+            assert result["end"] == datetime.date(9999, 12, 31)
         elif missing_field == "country":
             assert result["country"] is None
         elif missing_field == "type":
@@ -431,8 +431,8 @@ class TestParseSearchResult:
         valid_search_result["life_span"] = {"begin": "1990-01-01"}
         result = MusicBrainz.parse_search_result(valid_search_result)
 
-        assert result["begin_date"] == datetime.date(1990, 1, 1)
-        assert result["end_date"] == datetime.date(9999, 12, 31)
+        assert result["begin"] == datetime.date(1990, 1, 1)
+        assert result["end"] == datetime.date(9999, 12, 31)
 
     @pytest.mark.parametrize("date_format", [
         "1990",
@@ -447,8 +447,8 @@ class TestParseSearchResult:
         valid_search_result["life_span"]["begin"] = date_format
         result = MusicBrainz.parse_search_result(valid_search_result)
 
-        assert isinstance(result["begin_date"], datetime.date)
-        assert result["begin_date"].year == 1990
+        assert isinstance(result["begin"], datetime.date)
+        assert result["begin"].year == 1990
 
 class TestGetReleaseLength:
     @pytest.mark.parametrize("mbid", [

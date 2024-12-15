@@ -23,16 +23,16 @@ class TestArtist:
     def test_artist_successful_page_load(self, client, mocker):
         import datetime
         mock_artist_data = mocker.MagicMock()
-        mock_artist_data.begin_date = datetime.date(1986, 10, 26)
+        mock_artist_data.begin = datetime.date(1986, 10, 26)
         mock_artist_data.country = None
-        mock_artist_data.end_date = datetime.date(9999, 12, 31)
+        mock_artist_data.end = datetime.date(9999, 12, 31)
         mock_artist_data.id = 1
         mock_artist_data.image = "./static/img/artist/1.jpg"
         mock_artist_data.mbid = 'bce6d667-cde8-485e-b078-c0a05adea36d'
         mock_artist_data.name = "ScHoolboy Q"
         mock_artist_data.type = "Person"
 
-        mock_artist_releases = mocker.patch('databass.db.models.Artist.get_releases', return_value=[])
+        mock_artist_releases = mocker.patch('databass.db.models.Artist.releases', return_value=[])
 
         response = client.get("/artist/1")
         assert response.status_code == 200

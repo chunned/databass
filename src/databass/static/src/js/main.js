@@ -217,18 +217,19 @@ function loadSearchTable(type, direction) {
             rating: document.querySelector("#rating").value,
             year_comparison: document.querySelector("#year-filter").value,
             release_year: document.querySelector("#release_year").value,
-            genre: document.querySelector("#genre").value,
-            tags: [document.querySelector("#tags").value]
+            main_genre: document.querySelector("#genre").value,
+            genres: [document.querySelector("#genres").value]
         };
+        console.log(formData);
     }
     if (type === 'artist') {
         formData = {
             name: document.querySelector("#artist").value,
             country: document.querySelector("#country").value,
             begin_comparison: document.querySelector("#begin_filter").value,
-            begin_date: document.querySelector("#begin_date").value,
+            begin_date: document.querySelector("#begin").value,
             end_comparison: document.querySelector("#end_filter").value,
-            end_date: document.querySelector("#end_date").value,
+            end_date: document.querySelector("#end").value,
             type: document.querySelector("#type").value
         };
     }
@@ -237,9 +238,9 @@ function loadSearchTable(type, direction) {
             name: document.querySelector("#label").value,
             country: document.querySelector("#country").value,
             begin_comparison: document.querySelector("#begin_filter").value,
-            begin_date: document.querySelector("#begin_date").value,
+            begin_date: document.querySelector("#begin").value,
             end_comparison: document.querySelector("#end_filter").value,
-            end_date: document.querySelector("#end_date").value,
+            end_date: document.querySelector("#end").value,
             type: document.querySelector("#type").value,
         }
     }

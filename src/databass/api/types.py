@@ -4,8 +4,8 @@ from typing import TypedDict, Optional
 class EntityInfo(TypedDict, total=False):
     name: str
     mbid: str
-    begin_date: Optional[date]
-    end_date: Optional[date]
+    begin: Optional[date]
+    end: Optional[date]
     country: Optional[str]
     type: Optional[str]
 

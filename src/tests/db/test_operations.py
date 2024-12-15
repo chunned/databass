@@ -1,13 +1,87 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
-from databass.db.operations import insert, update, delete
+from databass.db.operations import insert, update, delete, get_model, construct_item
 from databass.db.models import Artist, Label, Release
+
+class MockModel:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+mock_models = {
+    'Release': MockModel,
+    'Artist': MockModel,
+    'Label': MockModel,
+    'Goal': MockModel,
+    'Review': MockModel,
+    'Tag': MockModel,
+}
+
+@pytest.fixture
+def mock_model_fixture():
+    return lambda model_name: mock_models.get(model_name.capitalize(), None)
 
 
 @pytest.fixture
 def mock_db_session(mocker):
     """Fixture to mock database session"""
     return mocker.patch('databass.db.operations.app_db.session')
+
+class TestGetModel:
+    # Tests for get_model()
+    def test_get_model_success(self, mocker):
+        class MockModel:
+            pass
+        result = get_model("release")
+        assert result == Release
+
+    @pytest.mark.parametrize(
+        "model",
+        [1, [1], {"1": 1}, 1.0]
+    )
+    def test_get_model_fail_invalid_input(self, model):
+        with pytest.raises(ValueError, match="model_name must be a string"):
+            get_model(model)
+
+    def test_get_model_fail_model_not_found(self, mocker):
+        class MockModel:
+            pass
+        mock_globals = mocker.patch("databass.db.util.globals", return_value={"Model": MockModel})
+        with pytest.raises(NameError, match="No model with the name"):
+            get_model("TestModel")
+
+
+class TestConstructItem:
+    # Tests for construct_item()
+    @pytest.mark.parametrize(
+        "model,data_dict",
+        [
+            ('release',{"name": "Test Release"}),
+            ('artist', {"name": "Test Artist"}),
+            ('label', {"name": "Test Label"}),
+            ('goal', {"name": "Test Goal"}),
+            ('review', {"name": "Test Review"}),
+            ('tag', {"name": "Test Tag"})
+        ]
+    )
+    def test_construct_item_success(self, model, data_dict, mocker, mock_model_fixture):
+        mocker.patch("databass.db.operations.get_model", side_effect=mock_model_fixture)
+        item = construct_item(model_name=model, data_dict=data_dict)
+        expected_class = mock_model_fixture(model)
+        name = "Test " + model.capitalize()
+        assert isinstance(item, expected_class)
+        assert item.name == name
+
+
+    def test_construct_item_fail_invalid_model_name(self, mocker, mock_model_fixture):
+        """
+        Test for successful handling of a model name not found in valid_models
+        """
+        mock_get_model = mocker.patch("databass.db.operations.get_model", side_effect=mock_model_fixture)
+        data_dict = {"name": "asdf"}
+        bad_name = "asdf"
+        with pytest.raises(NameError):
+            construct_item(model_name=bad_name, data_dict=data_dict)
+            mock_get_model.assert_called_once_with(bad_name)
 
 
 class TestInsert:

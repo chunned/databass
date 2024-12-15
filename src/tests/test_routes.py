@@ -1,7 +1,6 @@
 import pytest
-from databass import create_app, routes
+from databass import create_app
 from datetime import datetime
-from databass.db.models import Goal
 
 @pytest.fixture()
 def client():
@@ -94,21 +93,34 @@ class TestSubmit:
         assert response.status_code == 302
         assert response.location == '/error'
 
+
     @pytest.mark.parametrize(
         'data_dict',
         [
-            {'manual_submit': 'false', 'artist': 'Silly Goose', 'artist_mbid': 'da677401-713b-4b4a-969f-a0a6655fe2d3', 'country': '', 'genre': 'a', 'label': 'Rap Rock Records', 'label_mbid': '16a5347b-2d21-4ea6-b2b1-340374587cc8', 'rating': '5', 'release_group_id': '15332fc6-a448-49c0-b057-2596bf0d96a8', 'release_mbid': '52feb9b9-98f5-46af-a108-b5f01540419c', 'release_name': 'King Of The Hill', 'release_year': '3452', 'tags': '', 'track_count': '1'},
-            {'art': '', 'artist': 'asfd', 'genre': 'asdf', 'label': 'asdf', 'manual_submit': 'true', 'name': 'asdf', 'rating': '50', 'release_year': '2100', 'tags': 'asdf'}
+            {'manual_submit': 'false', 'artist': 'Silly Goose', 'artist_mbid': 'da677401-713b-4b4a-969f-a0a6655fe2d3',
+             'country': '', 'main_genre': 'a', 'label': 'Rap Rock Records',
+             'label_mbid': '16a5347b-2d21-4ea6-b2b1-340374587cc8', 'rating': '5',
+             'release_group_id': '15332fc6-a448-49c0-b057-2596bf0d96a8',
+             'release_mbid': '52feb9b9-98f5-46af-a108-b5f01540419c', 'release_name': 'King Of The Hill',
+             'year': '3452', 'genres': '', 'track_count': '1'},
+            {'art': '', 'artist': 'asfd', 'main_genre': 'asdf', 'label': 'asdf', 'manual_submit': 'true', 'name': 'asdf',
+             'rating': '50', 'year': '2100', 'genres': 'asdf'}
         ]
     )
     def test_submit_successful_page_load(self, client, mocker, data_dict):
-        """
-        Test for successful submission and redirection 
-        """
+        """Test for successful submission and redirection"""
+
+        # Mock the handle_submit_data function
         mock_handler = mocker.patch("databass.routes.handle_submit_data")
+
+        # Ensure that the mock handler is correctly called in the test
         response = client.post("/submit", data=data_dict)
+
+        # Assert the response contains "redirected" in the data and that it's a 302 redirect
         assert b"redirected" in response.data
         assert response.status_code == 302
+
+        # Check if handle_submit_data was called
         mock_handler.assert_called_once()
 
 class TestStats:
@@ -138,25 +150,25 @@ class TestGoals:
         mock_goals = [
             {
                 "id": 1,
-                "start_date": datetime(2024, 1, 1),
-                "end_goal": datetime(2025, 1, 1),
-                "end_actual": None,
+                "start": datetime(2024, 1, 1),
+                "end": datetime(2025, 1, 1),
+                "completed": None,
                 "type": 'release',
                 "amount": 50
             },
             {
                 "id": 2,
-                "start_date": datetime(2024, 1, 1),
-                "end_goal": datetime(2026, 1, 1),
-                "end_actual": None,
+                "start": datetime(2024, 1, 1),
+                "end": datetime(2026, 1, 1),
+                "completed": None,
                 "type": 'album',
                 "amount": 10
             },
             {
                 "id": 3,
-                "start_date": datetime(2024, 1, 1),
-                "end_goal": datetime(2027, 1, 1),
-                "end_actual": None,
+                "start": datetime(2024, 1, 1),
+                "end": datetime(2027, 1, 1),
+                "completed": None,
                 "type": 'label',
                 "amount": 250
             }

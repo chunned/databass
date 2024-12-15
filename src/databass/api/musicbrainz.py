@@ -205,8 +205,8 @@ class MusicBrainz:
         Parse a search result from the MusicBrainz API into a dictionary with the following keys:
         - name: The name of the item (e.g. label, artist)
         - mbid: The MusicBrainz ID of the item
-        - begin_date: The start date of the item, as a datetime object or None if not available
-        - end_date: The end date of the item, as a datetime object or None if not available
+        - begin: The start date of the item, as a datetime object or None if not available
+        - end: The end date of the item, as a datetime object or None if not available
         - country: The country of the item, or None if not available
         - type: The type of the item (e.g. "Label", "Artist"), or None if not available
 
@@ -229,8 +229,8 @@ class MusicBrainz:
         except KeyError:
             end_raw = None
             # Parse from string to datetime
-        begin_date = Util.to_date('begin', begin_raw)
-        end_date = Util.to_date('end', end_raw)
+        begin = Util.to_date('begin', begin_raw)
+        end = Util.to_date('end', end_raw)
 
         try:
             country = search_result["country"]
@@ -245,8 +245,8 @@ class MusicBrainz:
         item = EntityInfo(
             name=search_result["name"],
             mbid=search_result["id"],
-            begin_date=begin_date,
-            end_date=end_date,
+            begin=begin,
+            end=end,
             country=country,
             type=item_type,
         )

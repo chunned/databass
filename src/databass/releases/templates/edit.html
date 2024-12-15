@@ -8,13 +8,13 @@
     <div id="bottom">
         <form id="edit_form" method="POST" action="/release/{{ release.id }}/edit">
             <div>
-                <label for="release_year">release year</label>
-                <input id="release_year" name="release_year" value="{{ release.release_year }}" type="number">
+                <label for="year">release year</label>
+                <input id="year" name="year" value="{{ release.year }}" type="number">
             </div>
 
             <div>
-                <label for="genre">genre</label>
-                <input id="genre" name="genre" value="{{ release.genre }}">
+                <label for="main_genre">main genre</label>
+                <input id="main_genre" name="main_genre" value="{{ release.main_genre.name }}">
             </div>
 
             <div>

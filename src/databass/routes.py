@@ -6,6 +6,8 @@ Implements the main routes for the databass application, including
 - goals page
 """
 from datetime import datetime
+from os.path import join, abspath
+from glob import glob
 import flask
 from flask import render_template, request, redirect, abort, flash, make_response, send_file
 from sqlalchemy.exc import IntegrityError
@@ -131,9 +133,9 @@ def register_routes(app):
             if data["manual_submit"] == "true":
                 # try to grab optional fields
                 try:
-                    tags = data["tags"]
+                    genres = data["genres"]
                 except KeyError:
-                    tags = ""
+                    genres = ""
                 try:
                     image = data["image"]
                 except KeyError:
@@ -163,10 +165,10 @@ def register_routes(app):
                     "artist_mbid": None,
                     "label_name": data["label"],
                     "label_mbid": None,
-                    "release_year": data["release_year"],
-                    "genre": data["genre"],
+                    "year": data["year"],
+                    "main_genre": data["main_genre"],
                     "rating": data["rating"],
-                    "tags": tags,
+                    "genres": genres,
                     "image": image,
                     "listen_date": Util.today(),
                     "runtime": runtime,
@@ -184,13 +186,13 @@ def register_routes(app):
                     "artist_mbid": data["artist_mbid"],
                     "label_name": data["label"],
                     "label_mbid": data["label_mbid"],
-                    "release_year": int(data["release_year"]),
-                    "genre": data["genre"],
+                    "year": int(data["year"]),
+                    "main_genre": data["main_genre"],
                     "rating": int(data["rating"]),
                     "track_count": data["track_count"],
                     "listen_date": Util.today(),
                     "country": data["country"],
-                    "tags": data["tags"],
+                    "genres": data["genres"],
                     "image": None
                 }
 
@@ -254,7 +256,13 @@ def register_routes(app):
             item = models.Release.exists_by_id(itemid)
 
         try:
-            img_path = item.image
+            img_dir = abspath(join("databass", "static", "img", itemtype))
+            img_pattern = join(img_dir, f"{item.id}.*")
+            match = glob(img_pattern)
+            if match:
+                img_path = match[0]
+            else:
+                img_path = "./static/img/none.png"
         except KeyError:
             img_path = "./static/img/none.png"
         try:
@@ -406,8 +414,8 @@ def process_goal_data(goal: models.Goal):
 
     Returns:
         dict: A dictionary containing the following keys:
-            - start_date (datetime): The start date of the goal.
-            - end_goal (datetime): The end date of the goal.
+            - start (datetime): The start date of the goal.
+            - end (datetime): The end date of the goal.
             - type (str): The type of the goal.
             - amount (int): The total amount of the goal.
             - progress (float): The current progress of the goal as a percentage.
@@ -416,14 +424,14 @@ def process_goal_data(goal: models.Goal):
     """
     current = goal.new_releases_since_start_date
     remaining = goal.amount - current
-    days_left = (goal.end_goal - datetime.today()).days
+    days_left = (goal.end - datetime.today()).days
     try:
         target = round((remaining / days_left), 2)
     except ZeroDivisionError:
         target = 0
     return {
-        "start_date": goal.start_date,
-        "end_goal": goal.end_goal,
+        "start": goal.start,
+        "end": goal.end,
         "type": goal.type,
         "amount": goal.amount,
         "progress": round((current / goal.amount) * 100),

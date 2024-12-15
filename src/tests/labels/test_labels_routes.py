@@ -42,7 +42,6 @@ class TestLabel:
         mock_release = mocker.MagicMock()
         mock_release.Release = mocker.MagicMock()
         mock_release.Release.id = 1
-        mock_releases = mocker.patch("databass.db.models.Label.get_releases", return_value=[mock_release])
 
         mock_country = mocker.MagicMock()
         mock_country.name = "United States"
