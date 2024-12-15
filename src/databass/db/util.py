@@ -151,15 +151,14 @@ def handle_submit_data(submit_data: dict) -> None:
     submit_data["artist_id"] = artist_id
 
     if submit_data["main_genre"] is not None:
-        main_genre = Genre.create_genres(submit_data["main_genre"])[0]
+        main_genre = Genre.create_if_not_exists(submit_data["main_genre"])
         submit_data["main_genre"] = main_genre
         submit_data["main_genre_id"] = main_genre.id
 
-    if submit_data["genres"] != []:
-        genres = Genre.create_genres(submit_data["genres"])
-        submit_data["genres"] = genres
-    print(submit_data)
+    genres = []
+    if submit_data["genres"]:
+        for g in submit_data["genres"].split(','):
+            genres.append(Genre.create_if_not_exists(g))
+    submit_data["genres"] = genres
     Release.create_new(submit_data)
     Goal.check_goals()
-
-
