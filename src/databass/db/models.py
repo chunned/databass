@@ -431,7 +431,7 @@ class Release(MusicBrainzEntity):
         query = app_db.session.query(cls)
         search_keys = [
             "name", "artist", "country", "main_genre",
-            "label", "rating", "release_year"
+            "label", "rating", "year"
         ]
         for key, value in data.items():
             if value == '' or value == [''] or key not in search_keys:
@@ -455,7 +455,7 @@ class Release(MusicBrainzEntity):
                     operator=operator,
                     value=value
                 )
-            elif key == 'release_year':
+            elif key == 'year':
                 operator = data["year_comparison"] # <, ==, or >
                 query = apply_comparison_filter(
                     query=query,
@@ -878,6 +878,12 @@ class ArtistOrLabel(MusicBrainzEntity):
             else:
                 raise ValueError(f"Unsupported class: {cls} - supported classes are Label and Artist")
 
+            # check if we got a mbid from the above search
+            if item_search["mbid"]:
+                item_exists = cls.exists_by_mbid(item_search["mbid"])
+                if item_exists:
+                    return item_exists.id
+
             item_id = insert(new_item)
             # TODO: see if Util.get_image() can be refactored; instead of label_name and artist_name use item_name
             if cls.__name__ == 'Label':
@@ -1033,12 +1039,13 @@ class Genre(Base):
         for genre in genres.split(','):
             exists = Genre.exists_by_name(genre)
             if exists:
-                out_genres.append(genre)
-            # new genre, create and insert
-            item = construct_item('genre', {"name": genre})
-            genre_id = insert(item)
-            item.id = genre_id
-            out_genres.append(item)
+                out_genres.append(exists)
+            else:
+                # new genre, create and insert
+                item = construct_item('genre', {"name": genre})
+                genre_id = insert(item)
+                item.id = genre_id
+                out_genres.append(item)
         return out_genres
 
     @staticmethod

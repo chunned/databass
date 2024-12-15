@@ -132,7 +132,7 @@ def register_routes(app):
                 try:
                     genres = data["genres"]
                 except KeyError:
-                    genres = ""
+                    genres = []
                 try:
                     image = data["image"]
                 except KeyError:
@@ -141,12 +141,12 @@ def register_routes(app):
                 try:
                     # convert minutes to ms
                     runtime = int(data["runtime"]) * 60000
-                except KeyError:
+                except (KeyError, ValueError):
                     runtime = 0
 
                 try:
                     track_count = int(data["track_count"])
-                except KeyError:
+                except (KeyError, ValueError):
                     track_count = 0
 
 

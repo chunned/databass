@@ -10,18 +10,6 @@ from .models import *
 def get_valid_models():
     return [cls.__name__.lower() for cls in Base.__subclasses__()]
 
-def next_item(item_type: str,
-         prev_id: int) -> Base:
-    """
-    Fetches the next entry in the database with an id greater than prev_id
-    :return: False if no entry exists; object for the entry otherwise
-    """
-    if item_type not in ['artist', 'release', 'label']:
-        raise ValueError(f'Invalid item_type: {item_type}')
-    model = get_model(item_type)
-    query = model.query
-    item = query.filter(model.id > prev_id).first()
-    return item if item else False
 
 def apply_comparison_filter(query,
                       model: Type[MusicBrainzEntity],
@@ -167,8 +155,11 @@ def handle_submit_data(submit_data: dict) -> None:
         submit_data["main_genre"] = main_genre
         submit_data["main_genre_id"] = main_genre.id
 
-    if submit_data["genres"] is not None:
+    if submit_data["genres"] != []:
         genres = Genre.create_genres(submit_data["genres"])
         submit_data["genres"] = genres
+    print(submit_data)
     Release.create_new(submit_data)
     Goal.check_goals()
+
+

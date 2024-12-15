@@ -217,7 +217,7 @@ function loadSearchTable(type, direction) {
             rating_comparison: document.querySelector("#rating-filter").value,
             rating: document.querySelector("#rating").value,
             year_comparison: document.querySelector("#year-filter").value,
-            release_year: document.querySelector("#year").value,
+            year: document.querySelector("#year").value,
             main_genre: document.querySelector("#main_genre").value,
             // genres: [document.querySelector("#genres").value]
         };
@@ -280,8 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.location.pathname === "/new") {
         document.addEventListener('click', function(event) {
-            event.preventDefault();
             if (event.target && event.target.classList.contains('manual_entry')) {
+                event.preventDefault();
                 fetch('/search', {
                     method: 'GET'
                 })
