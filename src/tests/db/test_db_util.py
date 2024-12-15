@@ -20,63 +20,7 @@ def mock_model_fixture():
     return lambda model_name: mock_models.get(model_name.capitalize(), None)
 
 
-class TestGetModel:
-    # Tests for get_model()
-    def test_get_model_success(self, mocker):
-        class MockModel:
-            pass
-        mock_globals = mocker.patch("databass.db.util.globals", return_value={"Model": MockModel})
-        result = get_model("Model")
-        assert result == MockModel
-        mock_globals.assert_called_once()
 
-    @pytest.mark.parametrize(
-        "model",
-        [1, [1], {"1": 1}, 1.0]
-    )
-    def test_get_model_fail_invalid_input(self, model):
-        with pytest.raises(ValueError, match="model_name must be a string"):
-            get_model(model)
-
-    def test_get_model_fail_model_not_found(self, mocker):
-        class MockModel:
-            pass
-        mock_globals = mocker.patch("databass.db.util.globals", return_value={"Model": MockModel})
-        with pytest.raises(NameError, match="No model with the name"):
-            get_model("TestModel")
-
-class TestConstructItem:
-    # Tests for construct_item()
-    @pytest.mark.parametrize(
-        "model,data_dict",
-        [
-            ('release',{"name": "Test Release"}),
-            ('artist', {"name": "Test Artist"}),
-            ('label', {"name": "Test Label"}),
-            ('goal', {"name": "Test Goal"}),
-            ('review', {"name": "Test Review"}),
-            ('tag', {"name": "Test Tag"})
-        ]
-    )
-    def test_construct_item_success(self, model, data_dict, mocker, mock_model_fixture):
-        mocker.patch("databass.db.util.get_model", side_effect=mock_model_fixture)
-        item = construct_item(model_name=model, data_dict=data_dict)
-        expected_class = mock_model_fixture(model)
-        name = "Test " + model.capitalize()
-        assert isinstance(item, expected_class)
-        assert item.name == name
-
-
-    def test_construct_item_fail_invalid_model_name(self, mocker, mock_model_fixture):
-        """
-        Test for successful handling of a model name not found in valid_models
-        """
-        mock_get_model = mocker.patch("databass.db.util.get_model", side_effect=mock_model_fixture)
-        data_dict = {"name": "asdf"}
-        bad_name = "asdf"
-        with pytest.raises(ValueError, match="Invalid model name"):
-            construct_item(model_name=bad_name, data_dict=data_dict)
-            mock_get_model.assert_called_once_with(bad_name)
 
 # class TestNextItem:
     # Tests for next_item()

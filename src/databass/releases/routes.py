@@ -52,7 +52,10 @@ def edit(release_id):
         return redirect('/error', code=302)
 
     if request.method == 'GET':
-        release_image = release_data.image[1:]
+        try:
+            release_image = release_data.image[1:]
+        except TypeError:
+            release_image = None
         label_data = models.Label.exists_by_id(release_data.label_id)
         artist_data = models.Artist.exists_by_id(release_data.artist_id)
         countries = sorted(models.Release.get_distinct_column_values('country'))

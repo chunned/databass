@@ -430,7 +430,6 @@ class Release(MusicBrainzEntity):
         from .util import apply_comparison_filter
         query = app_db.session.query(cls)
         search_keys = [
-new-models
             "name", "artist", "country", "main_genre",
             "label", "rating", "release_year"
         ]
@@ -466,8 +465,7 @@ new-models
                     value=value
                 )
             elif key == 'main_genre':
-                genre = Genre.exists_by_name(name=value)
-                query = query.filter(cls.main_genre == genre)
+                query = query.filter(cls.main_genre.has(name=value))
             else:
                 # generic handler for any other search key not matching above (country, genre)
                 query = query.filter(
@@ -517,7 +515,7 @@ new-models
         """
         if not isinstance(data, dict):
             raise ValueError("data argument must be a dictionary")
-        from .operations import insert, update, construct_item
+        from .operations import insert, construct_item
         from ..api import Util
         new_release = construct_item('release', data)
         release_id = insert(new_release)
@@ -547,6 +545,8 @@ new-models
             )
         except KeyError:
             image_filepath = "/static/img/none.png"
+
+        return release_id
 
 
 class ArtistOrLabel(MusicBrainzEntity):
@@ -1028,8 +1028,7 @@ class Genre(Base):
         This function splits the `genres` string on commas to get a list of individual genre names.
         For each genre name, it constructs a new `Genre` object with the genre name and inserts it.
         """
-        from .util import construct_item
-        from .operations import insert
+        from .operations import insert, construct_item
         out_genres = []
         for genre in genres.split(','):
             exists = Genre.exists_by_name(genre)
