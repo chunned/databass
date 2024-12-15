@@ -141,6 +141,23 @@ select {
   }
 }
 
+/* Pure-CSS modifiers */
+.pure-table {
+  .grey_border();
+  td,
+  th {
+    border-left: 1px solid @grey;
+  }
+}
+.pure-table-bordered td,
+.pure-table-horizontal th,
+.pure-table-horizontal td {
+  border-bottom: 1px solid @grey;
+}
+.pure-button {
+  background-color: @grey;
+  color: @white;
+}
 
 /* /, /home */
 #home {
@@ -172,6 +189,7 @@ select {
     border-collapse: collapse;
     text-align: center;
     vertical-align: middle;
+
   }
 
   #home_release_table {
