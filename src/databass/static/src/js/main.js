@@ -216,9 +216,9 @@ function loadSearchTable(type, direction) {
             rating_comparison: document.querySelector("#rating-filter").value,
             rating: document.querySelector("#rating").value,
             year_comparison: document.querySelector("#year-filter").value,
-            release_year: document.querySelector("#release_year").value,
-            main_genre: document.querySelector("#genre").value,
-            genres: [document.querySelector("#genres").value]
+            release_year: document.querySelector("#year").value,
+            main_genre: document.querySelector("#main_genre").value,
+            // genres: [document.querySelector("#genres").value]
         };
         console.log(formData);
     }

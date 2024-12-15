@@ -52,12 +52,12 @@
                             <option value="=">=</option>
                             <option value=">">></option>
                         </select>
-                        <input type="number" min=0 max="2100" id="release_year" name="release_year" class="box">
+                        <input type="number" min=0 max="2100" id="year" name="year" class="box">
                     </div>
                 </div>
                 <div class="search_div">
-                    <label for="genre">genre</label>
-                    <select id="genre" name="genre" class="box">
+                    <label for="main_genre">genre</label>
+                    <select id="main_genre" name="main_genre" class="box">
                         <option value="" selected></option>
                         {% for genre in data.genres %}
                             <option value="{{ genre }}">{{ genre }}</option>
