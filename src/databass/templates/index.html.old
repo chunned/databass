@@ -1,0 +1,137 @@
+{% extends '_base.html' %}
+{% block content %}
+    <div id="home">
+        <article>
+            <section>
+                <div id="home_release_table"></div>
+            </section>
+        </article>
+        <aside id="home_aside">
+            <section>
+                <h4>STATS</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>
+                                <p>total</p>
+                            </th>
+                            <th>
+                                <p>{{ year }}</p>
+                            </th>
+                            <th>
+                                <p>daily</p>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>
+                            <p>releases</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.total_listens }}</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.releases_this_year}}</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.releases_per_day }}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>artists</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.total_artists }}</p>
+                        </td>
+                        <td><p>{{ stats.artists_this_year }}</p></td>
+                        <td><p>{{ stats.artists_per_day }}</p></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>labels</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.total_labels }}</p>
+                        </td>
+                        <td><p>{{ stats.labels_this_year }}</p></td>
+                        <td><p>{{ stats.labels_per_day }}</p></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>runtime</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.total_runtime }}h</p>
+                        </td>
+                        <td></td>
+                        <td>
+                            <p>{{ stats.average_runtime }}m</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>rating</p>
+                        </td>
+                        <td>
+                            <p>{{ stats.average_rating }}%</p>
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                </table>
+            </section>
+            <section id="home_goals">
+                <h4>GOALS</h4>
+                {% if goals[0] %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th colspan="2">
+                                <p>{{ goals[0]["amount"] }} {{ goals[0]["type"] }}s by {{ goals[0]["end"].date() }}</p>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>
+                                <p>progress</p>
+                            </th>
+                            <td>
+                                <p>{{ goals[0]["progress"] }}%</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <p>target</p>
+                            </th>
+                            <td>
+                                <p>{{ goals[0]["target"] }} / day</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <p>remaining</p>
+                            </th>
+                            <td>
+                                <p>{{ goals[0]["amount"] - goals[0]["current"] }}</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <p>start</p>
+                            </th>
+                            <td>
+                                <p>{{ goals[0]["start"].date() }}</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                {% endif %}
+            </section>
+        </aside>
+    </div>
+
+{% endblock %}

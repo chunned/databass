@@ -1,0 +1,75 @@
+<table class="pure-table pure-table-horizontal" style="height: 100%;">
+    <thead style="text-align: center; vertical-align: middle;">
+        <tr>
+            <th>
+                <p>STATS</p>
+            </th>
+            <th>
+                <p>total</p>
+            </th>
+            <th>
+                <p>{{ year }}</p>
+            </th>
+            <th>
+                <p>daily</p>
+            </th>
+        </tr>
+    </thead>
+    <tr>
+        <td>
+            <p>releases</p>
+        </td>
+        <td>
+            <p>{{ stats.total_listens }}</p>
+        </td>
+        <td>
+            <p>{{ stats.releases_this_year}}</p>
+        </td>
+        <td>
+            <p>{{ stats.releases_per_day }}</p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <p>artists</p>
+        </td>
+        <td>
+            <p>{{ stats.total_artists }}</p>
+        </td>
+        <td><p>{{ stats.artists_this_year }}</p></td>
+        <td><p>{{ stats.artists_per_day }}</p></td>
+    </tr>
+    <tr>
+        <td>
+            <p>labels</p>
+        </td>
+        <td>
+            <p>{{ stats.total_labels }}</p>
+        </td>
+        <td><p>{{ stats.labels_this_year }}</p></td>
+        <td><p>{{ stats.labels_per_day }}</p></td>
+    </tr>
+    <tr>
+        <td>
+            <p>runtime</p>
+        </td>
+        <td>
+            <p>{{ stats.total_runtime }}h</p>
+        </td>
+        <td></td>
+        <td>
+            <p>{{ stats.average_runtime }}m</p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <p>rating</p>
+        </td>
+        <td>
+            <p>{{ stats.average_rating }}%</p>
+        </td>
+        <td></td>
+        <td></td>
+    </tr>
+
+</table>

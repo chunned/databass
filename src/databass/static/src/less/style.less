@@ -118,11 +118,12 @@ body {
   width: 100%;
   height: 100%;
   max-height: 92.5vh;
-  margin: 10px;
-  display: flex;
+  overflow-y: scroll;
 }
 
-input, button, select {
+//button,
+input,
+select {
   margin-left: 7px;
   margin-right: 7px;
   .grey_bg();
@@ -141,113 +142,61 @@ input, button, select {
 }
 
 
-/* pagination */
-.pagination {
-  /* pagination should be a <nav> element that contains only the pagination buttons */
-  /* this styling will make the buttons appear in the horizontal center of the <nav> */
-  /* home page does not use this styling*/
-  display: flex;
-  justify-content: center;
-
-  button {
-    /* make some space between the buttons */
-    margin-left: 1vw;
-    margin-right: 1vw;
-    //margin-bottom: 1vw;
-
-    &:disabled {
-      color: @black;
-    }
-  }
-}
-
-.pagination_button {
-  height: @row_height_small;
-  .black_border();
-
-  &:disabled {
-    color: @grey;
-  }
-}
-
-
-
 /* /, /home */
 #home {
-  width: 100%;
   height: 100%;
-  flex: 1;
-  .grid();
-  grid-template-columns: 1fr 22.5vw;
+  div {
+    height: 100%;
+    article {
+      height: 100%;
+    }
+    aside {
+      height: 100%;
+      div {
+        height: 100%;
+        div {
+          height: 50%;
+          section {
+            height: 100%;
+          }
+        }
+      }
+    }
+  }
 
-  #home_table, #home_aside {
+  #home_table,
+  #home_goals,
+  #home_goals thead,
+  #home_aside {
     width: 100%;
     border-collapse: collapse;
     text-align: center;
+    vertical-align: middle;
   }
 
-  #home_table {
-    #home_table_pagination {
-      .grid();
-      grid-template-columns: 1fr 1fr;
-    }
-    thead {
-      height: @row_height_small;
-    }
-    td, th {
-      .grey_border();
-    }
-    td {
-      &:empty {
-        height: @row_height_small;
-      }
-    }
-    /* cell widths */
-    tbody, thead {
-      tr {
-        td, th {
-          width: 12vw;
-          &:first-child {
-            width: 8vw;
-          }
-          &:nth-child(4) {
-            width: 5vw;
-          }
-          &:nth-child(7) {
-            width: auto;
-          }
-
-        }
-      }
-    }
-
-    img {
-      width: 100%;
-    }
-  }
-
-  #home_aside {
-    display: flex;
-    flex-direction: column;
-
-    h4 {
-      .grid();
-      align-items: center;
-      height: @row_height_small;
-    }
-
+  #home_release_table {
+    height: 100%;
     table {
+      height: 100%;
+      max-height: 100%;
       width: 100%;
-      border-collapse: collapse;
-
-      tr {
-        height: @row_height_small;
-
-        td, th {
-          border-top: 1px solid @grey;  /* not the same as .grey_border() */
+      align-items: center;
+      text-align: center;
+      th {
+        text-align: center;
+      }
+      td {
+        text-align: center;
+        img {
+          max-height: 13vh;
+          display: inline-block;
         }
       }
     }
+  }
+
+  #home_goals {
+    height: 90%;
   }
 }
 

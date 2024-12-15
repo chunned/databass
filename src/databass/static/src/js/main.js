@@ -205,6 +205,7 @@ function loadHomeTable(direction) {
         });
 }
 
+
 function loadSearchTable(type, direction) {
     let formData;
     if (type === 'release') {

@@ -40,7 +40,6 @@ def register_routes(app):
 
     @app.route("/home_release_table")
     def home_release_table():
-
         data = models.Release.home_data()
 
         page = Pager.get_page_param(request)
