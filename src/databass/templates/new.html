@@ -1,23 +1,19 @@
 {% extends '_base.html' %}
 {% block content %}
+<div id="new_release">
+    <div>
+        <form class="pure-form" action="/search" method="POST">
+            <fieldset>
+                <legend>search for a new release</legend>
+                <input type="text" id="release" name="release" placeholder="release">
+                <input type="text" id="artist" name="artist" placeholder="artist">
+                <input type="text" id="label" name="label" placeholder="label">
 
-    <div id="new_release">
-        <div id="search_form">
-            <form action="/search" method="POST">
-                <label for="release">release: </label>
-                <input type="text" id="release" name="release" class="box">
-
-                <label for="artist">artist: </label>
-                <input type="text" id="artist" name="artist" class="box">
-
-                <label for="label">label: </label>
-                <input type="text" id="label" name="label" class="box">
-
-                <button class="search-btn new-release-search" type="button" data-action="search" id="search">search</button>
-                <button type="button" class="manual-entry">manual entry</button>
-            </form>
-        </div>
-        <div id="search_results"></div>
-
+                <button type="button" class="new_search pure-button" data-action="search" id="search">search</button>
+                <button class="manual_entry pure-button">manual entry</button>
+            </fieldset>
+        </form>
     </div>
+    <div id="search_results"></div>
+</div>
 {% endblock %}

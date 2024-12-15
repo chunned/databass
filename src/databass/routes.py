@@ -57,8 +57,7 @@ def register_routes(app):
 
     @app.route("/new")
     def new():
-        actions = ["search"]
-        return render_template("new.html", actions=actions, active_page='new')
+        return render_template("new.html", active_page='new')
 
     @app.route("/search", methods=["POST", "GET"])
     def search() -> str | flask.Response:
@@ -73,7 +72,6 @@ def register_routes(app):
                 data_full=release_data,
                 per_page=per_page
             )
-
 
         data = request.get_json()
         try:

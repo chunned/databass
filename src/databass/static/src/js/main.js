@@ -280,7 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.location.pathname === "/new") {
         document.addEventListener('click', function(event) {
-            if (event.target && event.target.classList.contains('manual-entry')) {
+            event.preventDefault();
+            if (event.target && event.target.classList.contains('manual_entry')) {
                 fetch('/search', {
                     method: 'GET'
                 })
@@ -292,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Fetch error:', error);
                     });
             }
-            if (event.target && event.target.classList.contains('new-release-search')) {
+            if (event.target && event.target.classList.contains('new_search')) {
                 handleSearchButton();
             }
             if (event.target && event.target.classList.contains('page-btn')) {
