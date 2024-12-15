@@ -59,4 +59,5 @@ def create_app():
         @app.before_request
         def before_request():
             g.app_version = VERSION
+
         return app

@@ -521,11 +521,11 @@ class Release(MusicBrainzEntity):
         release_id = insert(new_release)
 
         if data["image"] is not None:
-            image_filepath = Util.get_image(
+            Util.get_image(
                 item_type="release", item_id=release_id, url=data["image"]
             )
         else:
-            image_filepath = Util.get_image(
+            Util.get_image(
                 item_type='release',
                 item_id=release_id,
                 release_name=data["name"],
@@ -535,7 +535,7 @@ class Release(MusicBrainzEntity):
             )
 
         try:
-            image_filepath = Util.get_image(
+            Util.get_image(
                 item_type='release',
                 item_id=release_id,
                 release_name=data["name"],
@@ -544,7 +544,7 @@ class Release(MusicBrainzEntity):
                 mbid=data["release_group_mbid"]
             )
         except KeyError:
-            image_filepath = "/static/img/none.png"
+            pass
 
         return release_id
 
