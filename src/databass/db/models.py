@@ -431,7 +431,7 @@ class Release(MusicBrainzEntity):
         query = app_db.session.query(cls)
         search_keys = [
             "name", "artist", "country", "main_genre",
-            "label", "rating", "release_year"
+            "label", "rating", "year"
         ]
         for key, value in data.items():
             if value == '' or value == [''] or key not in search_keys:
@@ -455,7 +455,7 @@ class Release(MusicBrainzEntity):
                     operator=operator,
                     value=value
                 )
-            elif key == 'release_year':
+            elif key == 'year':
                 operator = data["year_comparison"] # <, ==, or >
                 query = apply_comparison_filter(
                     query=query,
