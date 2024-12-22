@@ -106,7 +106,8 @@
 }
 
 body {
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   height: 100vh;
   padding: 10px;
   overflow: hidden;
@@ -139,6 +140,10 @@ body {
   th {
     border-left: 1px solid @grey;
   }
+  word-wrap: break-word;
+  table-layout: fixed;
+  max-width: 100%;
+  width: 100%;
 }
 .pure-table-bordered td,
 .pure-table-horizontal th,
@@ -210,6 +215,10 @@ body {
 
   #home_goals {
     height: 90%;
+  }
+  #home_stats {
+    height: 100%;
+    font-size: medium;
   }
 }
 
