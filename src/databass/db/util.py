@@ -133,8 +133,10 @@ def handle_submit_data(submit_data: dict) -> None:
             mbid=submit_data["label_mbid"],
             name=submit_data["label_name"],
         )
-    else:
+    elif submit_data["label_name"]:
         label_id = Label.create_if_not_exist(name=submit_data["label_name"])
+    else:
+        label_id = 0
 
     submit_data["label_id"] = label_id
 
@@ -143,10 +145,12 @@ def handle_submit_data(submit_data: dict) -> None:
             mbid=submit_data["artist_mbid"],
             name=submit_data["artist_name"],
         )
-    else:
+    elif submit_data["artist_name"]:
         artist_id = Artist.create_if_not_exist(
             name=submit_data["artist_name"]
         )
+    else:
+        artist_id = 0
 
     submit_data["artist_id"] = artist_id
 

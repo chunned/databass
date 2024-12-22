@@ -2,12 +2,11 @@
     <br>
     <h3>No search results. Search again, or enter the release data manually below.</h3>
     <br>
-    <p>* - optional</p>
     <form action="/submit" method="POST" class="pure-form pure-form-stacked">
         <fieldset>
             <input id="name" name="name" type="text" placeholder="release name" required>
             <input id="artist" name="artist" type="text" placeholder="artist" required>
-            <input id="label" name="label" type="text" placeholder="label" required>
+            <input id="label" name="label" type="text" placeholder="label">
             <input id="year" name="year" type="number" min="0" max="2100" placeholder="release year" required>
             <input id="rating" name="rating" type="number" min="0" max="100" placeholder="rating" required>
             <input id="main_genre" name="main_genre" type="text" placeholder="main genre" required>

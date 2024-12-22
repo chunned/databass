@@ -139,6 +139,7 @@ body {
   td,
   th {
     border-left: 1px solid @grey;
+    vertical-align: middle;
   }
   word-wrap: break-word;
   table-layout: fixed;
@@ -150,12 +151,16 @@ body {
 .pure-table-horizontal td {
   border-bottom: 1px solid @grey;
 }
+
 .pure-button {
+  padding: .4em .5em;
   background-color: @grey;
   color: @white;
 }
 
-.pure-form input[type="text"] {
+.pure-form input[type="text"],
+.pure-form input[type="number"],
+.pure-form input[type="date"] {
     .grey_border();
 }
 
@@ -238,6 +243,19 @@ body {
   }
 
   #search_results {
+    height: 80%;
+    form {
+      height: 100%;
+    }
+    .pure-table {
+      height: 100%;
+      th,
+      td {
+        text-align: center;
+      }
+    }
+
+
     #manual_release_container {
       text-align: center;
       form {
