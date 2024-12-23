@@ -1,24 +1,24 @@
 <input type="hidden" id="current_page" value="{{ pagination.page }}">
-<table class="pure-table pure-table-bordered">
+<table class="pure-table">
     <thead>
         <tr>
             <th style="width: 13%;">
                 {% if pagination.has_prev %}
                     <button class="pure-button pagination_button prev_page">back</button>
                 {% else %}
-                    <button class="pure-button-disabled pagination_button">back</button>
+                    <button disabled class="pure-button pagination_button">back</button>
                 {% endif %}
 
                 {% if pagination.has_next %}
                     <button class="pure-button pagination_button next_page">next</button>
                 {% else %}
-                    <button class="pure-button-disabled pagination_button">next</button>
+                    <button disabled class="pure-button pagination_button">next</button>
                 {% endif %}
             </th>
-            <th style="width: 25%;">TITLE</th>
+            <th style="width: 22%;">TITLE</th>
             <th style="width: 20%;">ARTIST</th>
             <th style="width: 7%;">RATING</th>
-            <th style="width: 8%;">LISTENED</th>
+            <th style="width: 11%;">LISTENED</th>
             <th style="width: 10%;">GENRE</th>
             <th style="width: 17%;">SUBGENRES</th>
         </tr>

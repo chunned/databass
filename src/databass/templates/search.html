@@ -10,13 +10,13 @@
                {% if pagination.has_prev %}
                     <button type="button" class="pure-button pagination_button page-btn prev_page">back</button>
                 {% else %}
-                    <button type="button" class="pure-button-disabled pagination_button">back</button>
+                    <button type="button" disabled class="pure-button pagination_button">back</button>
                 {% endif %}
 
                 {% if pagination.has_next %}
                     <button type="button" class="pure-button pagination_button page-btn next_page">next</button>
                 {% else %}
-                    <button type="button" class="pure-button-disabled pagination_button">next</button>
+                    <button type="button" disabled class="pure-button pagination_button">next</button>
                 {% endif %}
             </th>
             <th>RELEASE</th>
