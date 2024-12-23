@@ -589,92 +589,52 @@ body {
   }
 }
 
-/* /stats */
+/* stats */
 #stats {
-  width: 100%;
-  padding-right: 15px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-  #stats_container {
-    height: 100%;
-    #stats_quick {
-      .stats_grid {
-        .grid();
-        grid-template-columns: repeat(7, 1fr);
-        gap: 5rem;
-        width: 100%;
-        padding: 10px;
-        .grey_border();
-
-        .stat_item {
-          text-align: center;
-        }
-      }
-    }
-    #stats_full {
-      height: 100%;
-      .grid();
-      grid-template-columns: 1fr 1fr;
-
-      .stats_column {
-        height: 100%;
-        .grid();
-        grid-template-rows: 5vh 1fr;
-        .grey_border();
-        padding: 5px 20px 5px 20px;
-
-        h2 {
-          text-align: center;
-          place-self: center;
-        }
-
-        .stats_inner {
-          .grid();
-          grid-template-columns: repeat(3, 1fr);
-
-          .stats_inner_column {
-            .grey_border();
-            padding: 1vw 1vw 1vw 1vw;
-
-            .stats_table {
-              text-align: left;
-              .grid();
-              grid-template-rows: 5vh 1fr;
-              width: 95%;
-              margin-top: 3vh;
-
-              .stats_table_head, .stats_table_body {
-                .grid();
-                grid-template-columns: 1fr 4vw;
-              }
-
-              .stats_table_head_3, .stats_table_body_3 {
-                .grid();
-                grid-template-columns: 1fr 3vw 2vw;
-              }
-
-              .stats_table_body, .stats_table_body_3 {
-                p {
-                  padding-top: 1vh;
-                  padding-bottom: 1vh;
-                }
-              }
-            }
-
-            .bayesian {
-              .grid();
-              grid-template-columns: 1fr 1fr;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .text_center {
-    text-align: center;
+#stats_quick {
+  justify-content: center;
+  text-align: center;
+  div {
+    .grey_border();
+    padding: 10px;
   }
 }
 
+#stats_data {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#stats_full {
+  flex: 1;
+  text-align: center;
+  div {
+    .grey_border();
+  }
+  .col {
+    display: flex;
+    flex-direction: column;
+    height: 85%;
+    table {
+      flex: 1;
+      th {
+        text-align: center;
+      }
+    }
+  }
+  #favourite {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    justify-content: center;
+  }
+}
 
 #error {
   display: block;

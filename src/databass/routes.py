@@ -213,6 +213,25 @@ def register_routes(app):
         statistics = get_all_stats()
         return render_template('stats.html', data=statistics, active_page='stats')
 
+    @app.route('/stats/get/<string:stats_type>', methods=['GET'])
+    def stats_get(stats_type):
+        statistics = get_all_stats()
+        data = ""
+        if stats_type == "labels":
+            data = {
+                "most_frequent": statistics["top_frequent_labels"],
+                "highest_average": statistics["top_average_labels"],
+                "favourite": statistics["top_rated_labels"]
+            }
+        if stats_type == "artists":
+            data = {
+                "most_frequent": statistics["top_frequent_artists"],
+                "highest_average": statistics["top_average_artists"],
+                "favourite": statistics["top_rated_artists"]
+            }
+        return render_template('stats_data.html', type=stats_type, stats=data)
+
+
     @app.route('/goals', methods=['GET'])
     def goals():
         if request.method != 'GET':
