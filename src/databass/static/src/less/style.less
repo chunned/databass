@@ -160,8 +160,14 @@ body {
 
 .pure-form input[type="text"],
 .pure-form input[type="number"],
+.pure-form select,
 .pure-form input[type="date"] {
     .grey_border();
+}
+
+.pure-form select {
+  height: auto !important;
+  background-color: @black;
 }
 
 /* /, /home */
@@ -542,46 +548,27 @@ body {
   }
 }
 
-
-/* /releases, /artists, /labels */
-#label_search, #artist_search, #release_search {
-  width: 100%;
-  .grid();
-  grid-template-rows: 10vh 1fr;
-  align-items: center;
-
-
-  .search_div {
-    .grid();
-    grid-template-rows: 1fr 1fr;
-    place-items: center;
-  }
-
-  #release_search_bar {
-    width: 80%;
-    .grid();
-    grid-template-columns: repeat(9, 1fr);
-    margin: 0 auto;
-  }
-
-  #label_search_bar, #artist_search_bar {
-    width: 80%;
-    .grid();
-    grid-template-columns: repeat(6, 1fr);
-    margin: 0 auto;
-  }
-
-  #search-results {
-    height: 100%;
+#artist_search,
+#label_search,
+#release_search {
+  #search_form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-left: 10vw;
+    margin-right: 10vw;
   }
 }
 
-#entity_search_results {
-  .grid();
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(3, 25vh);
+#entity_page {
+  display: flex;
+  gap: 10px;
   justify-content: center;
-  align-items: baseline;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#entity_search_results {
   height: 100%;
   max-height: 100%;
 

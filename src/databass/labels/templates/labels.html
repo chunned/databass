@@ -2,56 +2,38 @@
 {% block content %}
 <article id="label_search">
     <section>
-        <form action="/dynamic_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
-            <div id="label_search_bar">
-                <div class="search_div">
-                    <label for="label">name</label>
-                    <input type="text" id="label" name="label">
-                </div>
-                <div class="search_div">
-                    <label for="country">country</label>
-                    <select id="country" name="country" class="box">
-                        <option value="" selected></option>
-                        {% for country in data.countries %}
-                            <option value="{{ country }}">{{ country|country_name }}</option>
-                        {% endfor %}
+        <form class="pure-form"> <!-- this form action is not actually used, but keeping it here for readability -->
+            <div id="search_form" class="pure-g">
+                <input type="text" id="label" name="label" placeholder="name" class="pure-u-1-2 pure-u-lg-1-6">
+                <select id="country" name="country" class="pure-u-1-2 pure-u-lg-1-6">
+                    <option value="" disabled selected>country</option>
+                    {% for country in data.countries %}
+                        <option value="{{ country }}">{{ country|country_name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="pure-u-1-2 pure-u-lg-1-6">
+                    <select id="begin_filter" name="begin" class="pure-u-1-5">
+                        <option value="<"><</option>
+                        <option value="=">=</option>
+                        <option value=">">></option>
                     </select>
+                    <input type="number" min=0 max="2100" id="begin" name="begin" placeholder="begin" class="pure-u-17-24">
                 </div>
-                <div class="search_div">
-                    <label for="begin">begin</label>
-                    <div>
-                        <select id="begin_filter" name="begin" class="box">
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                        </select>
-                        <input type="number" min=0 max="2100" id="begin" name="begin" class="box">
-                    </div>
-                </div>
-                <div class="search_div">
-                    <label for="end">end</label>
-                    <div>
-                        <select id="end_filter" name="end_comparison" class="box">
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                        </select>
-                        <input type="number" min=0 max="2100" id="end" name="end" class="box">
-                    </div>
-                </div>
-                <div class="search_div">
-                    <label for="type">type</label>
-                    <select id="type" name="type" class="box">
-                        <option value="" selected></option>
-                        {% for type in data.types %}
-                            <option value="{{ type }}">{{ type }}</option>
-                        {% endfor %}
+                <div class="pure-u-1-2 pure-u-lg-1-6">
+                    <select id="end_filter" name="end_comparison" class="pure-u-1-5">
+                        <option value="<"><</option>
+                        <option value="=">=</option>
+                        <option value=">">></option>
                     </select>
+                    <input type="number" min=0 max="2100" id="end" name="end" placeholder="end" class="pure-u-17-24">
                 </div>
-                <div class="search_div">
-                    <p></p>
-                    <button type="button" id="label-search" value="submit">submit</button>
-                </div>
+                <select id="type" name="type" class="pure-u-1-2 pure-u-lg-1-6">
+                    <option value="" disabled selected>type</option>
+                    {% for type in data.types %}
+                        <option value="{{ type }}">{{ type }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" id="label-search" value="submit" class="pure-button pure-u-1-2 pure-u-lg-1-6">submit</button>
             </div>
         </form>
     </section>
