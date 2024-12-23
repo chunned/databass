@@ -9,6 +9,7 @@
 @white: #c6c6c5;
 @black: #0c0d0e;
 @grey: #3c3e3c;
+@grey_light: #7b7f7b;
 
 /* sizes */
 @row_height_small: 4vh;
@@ -340,90 +341,174 @@ body {
 
 /* /release/# */
 #release_container {
-  .entity_container();
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-left: 20px;
+  margin-right: 20px;
   #release {
-    #top {
-      .grid();
-      grid-template-columns: 1.5fr 1fr;
-      #image {
-        height: 250px;
-        width: 250px;
-        img {
-          max-width: 100%;
-        }
-      }
-      #buttons {
-        .grid();
-        grid-template-rows: 1fr 1fr;
-        button {
-          .black_border();
-          font-size: larger;
-        }
-
-        #edit-btn {
-          margin-bottom: 1vh;
-        }
-
-        #delete-btn {
-          margin-top: 1vh;
-        }
-      }
+    .grey_border();
+    gap: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    img {
+      height: 250px;
+      align-self: center;
+      display: block;
+      margin: 0 auto;
     }
-
+    #buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: center;
+    }
     #info {
-      .grid();
-      grid-template-rows: 0.5fr 1fr 0.75fr auto;
-      #rating {
-        .grid();
-        grid-template-columns: 1fr 1fr;
-        align-items: center;
-        height: @row_height_small;
-      }
-      #genres {
-        ul {
-          list-style-type: none;
-        }
+      margin-left: 25px;
+      align-content: center;
+      text-align: center;
+    }
+    #other {
+      align-content: center;
+      text-align: center;
+      p {
+        font-size: large;
+        margin: 15px;
       }
     }
-
+  }
+  #bottom {
+    .grey_border();
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
     #reviews {
-      text-align: center;
+      height: 100%;
+      padding-top: 15px;
+      padding-left: 10px;
+      padding-right: 10px;
       .grey_border();
-      padding: 5%;
-
-      #new {
-        margin-bottom: 2%;
-        .grid();
-        align-items: center;
-        grid-template-columns: 1fr 1fr;
+      h2 {
+        text-align: center;
+        margin-bottom: 10px;
       }
-
+      form {
+        * {
+          margin-bottom: 10px;
+        }
+      }
       #existing {
         #review_table {
-          .grid();
-          grid-template-rows: 1fr auto;
-          align-items: start;
-          font-size: 0.75rem;
-
-          div {
-            .grid();
-            grid-template-columns: 1fr 4fr;
-            border-bottom: 1px solid @grey;
-            margin-bottom: 1vh;
-
-            #review_text {
-              margin-left: 1vw;
-              text-align: left;
+          p {
+            margin-bottom: 10px;
+            .timestamp {
+              font-style: italic;
+              color: @grey_light;
             }
           }
         }
       }
     }
-  }
-  aside {
-    grid-template-rows: 1fr 1fr;
+    #artist,
+    #label {
+      height: 100%;
+      padding-top: 15px;
+      padding-left: 10px;
+      padding-right: 10px;
+      overflow-y: auto;
+      .grey_border();
+      img {
+        height: 250px;
+      }
+    }
   }
 }
+//#release_container {
+//  .entity_container();
+//  #release {
+//    #top {
+//      .grid();
+//      grid-template-columns: 1.5fr 1fr;
+//      #image {
+//        height: 250px;
+//        width: 250px;
+//        img {
+//          max-width: 100%;
+//        }
+//      }
+//      #buttons {
+//        .grid();
+//        grid-template-rows: 1fr 1fr;
+//        button {
+//          .black_border();
+//          font-size: larger;
+//        }
+//
+//        #edit-btn {
+//          margin-bottom: 1vh;
+//        }
+//
+//        #delete-btn {
+//          margin-top: 1vh;
+//        }
+//      }
+//    }
+//
+//    #info {
+//      .grid();
+//      grid-template-rows: 0.5fr 1fr 0.75fr auto;
+//      #rating {
+//        .grid();
+//        grid-template-columns: 1fr 1fr;
+//        align-items: center;
+//        height: @row_height_small;
+//      }
+//      #genres {
+//        ul {
+//          list-style-type: none;
+//        }
+//      }
+//    }
+//
+//    #reviews {
+//      text-align: center;
+//      .grey_border();
+//      padding: 5%;
+//
+//      #new {
+//        margin-bottom: 2%;
+//        .grid();
+//        align-items: center;
+//        grid-template-columns: 1fr 1fr;
+//      }
+//
+//      #existing {
+//        #review_table {
+//          .grid();
+//          grid-template-rows: 1fr auto;
+//          align-items: start;
+//          font-size: 0.75rem;
+//
+//          div {
+//            .grid();
+//            grid-template-columns: 1fr 4fr;
+//            border-bottom: 1px solid @grey;
+//            margin-bottom: 1vh;
+//
+//            #review_text {
+//              margin-left: 1vw;
+//              text-align: left;
+//            }
+//          }
+//        }
+//      }
+//    }
+//  }
+//  aside {
+//    grid-template-rows: 1fr 1fr;
+//  }
+//}
 
 #delete_popup {
   height: 25vh;
