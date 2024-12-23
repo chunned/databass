@@ -49,7 +49,7 @@
                 {% for goal in data.existing_goals %}
                     <tr>
                         <td>
-                            <button class="pure-button" id="delete-btn" data-id="{{ goal.id }}" data-type="goal">x</button>
+                            <button class="pure-button delete-btn" id="delete-btn" data-id="{{ goal.id }}" data-type="goal">x</button>
                         </td>
                         <td>{{ goal.start.date() }}</td>
                         <td>{{ goal.end.date() }}</td>
