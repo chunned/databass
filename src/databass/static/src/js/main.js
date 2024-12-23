@@ -7,8 +7,8 @@ function handleDeleteButton(deleteButton) {
     popup.innerHTML = `
     <h1>Are you sure?&nbsp;This cannot be undone.</h1>
     <div>
-    <button id="confirm" class="delete">delete</button>
-    <button id="cancel" class="delete">cancel</button>
+    <button id="confirm" class="delete pure-button">delete</button>
+    <button id="cancel" class="delete pure-button">cancel</button>
     </div>
     `;
     document.body.appendChild(popup);
