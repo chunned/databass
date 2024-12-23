@@ -636,41 +636,25 @@ body {
   }
 }
 
+#goals {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  form {
+    display: flex;
+    margin-left: 15%;
+    margin-right: 15%;
+  }
+  th {
+    text-align: center;
+  }
+}
+
 #error {
   display: block;
   width: 100%;
   padding: 2%;
   * {
     padding: 2%;
-  }
-}
-
-.goals {
-  width: 100%;
-  display: grid;
-  grid-template-rows: 10vh 10vh 1fr;
-  justify-content: center;
-  text-align: center;
-
-  h3, p, input, label, select {
-    align-content: center;
-  }
-  #new_goal {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-  }
-
-  #goal_table {
-    display: grid;
-    grid-template-rows: repeat(auto-fill, 10vh);
-
-    div {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-    }
-
-    button {
-      margin: 15% 15% 15% 15%;
-    }
   }
 }
