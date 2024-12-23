@@ -1,8 +1,8 @@
 {% extends '_base.html' %}
 {% block content %}
 
-<article id="label_container">
-    <section id="label">
+<article id="label_container" class="pure-g">
+    <section id="label" class="pure-u-1 pure-u-md-4-24">
         <div id="top">
             <div id="label_image">
                 <img src="/img/label/{{ data.label.id }}" alt="Label image">
@@ -14,25 +14,29 @@
                 <h2>{{ data.label.country|country_name }}</h2>
             </div>
             <div id="start">
+                started:
                 {% if data.label.begin != data.no_start %}
-                    started:
                     {{ data.label.begin }}
+                {% else %}
+                    ?
                 {% endif %}
             </div>
             <div id="end">
+                ended:
                 {% if data.label.end != data.no_end %}
-                    ended:
                     {{ data.label.end }}
+                {% else %}
+                    ?
                 {% endif %}
             </div>
         </div>
     </section>
-    <aside>
+    <aside class="pure-u-1 pure-u-md-20-24">
         <div id="release_info">
             <h1>releases</h1>
-            <div>
+            <div class="pure-g">
                 {% for item in data.label.releases %}
-                    <div>
+                    <div class="pure-u-1-2 pure-u-md-1-3 pure-u-xl-1-4 pure-u-xxl-1-5">
                         <a href="/release/{{ item.id }}"><img src="/img/release/{{ item.id }}" alt="Release image"></a>
                     </div>
                 {% endfor %}

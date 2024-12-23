@@ -467,112 +467,43 @@ body {
   }
 }
 
-//#edit_popup {
-//  height: 40vh;
-//  .black_bg();
-//  padding: 2%;
-//
-//  .grid();
-//  grid-template-rows: @row_height_small auto;
-//
-//  #top {
-//    .grid();
-//    grid-template-columns: 1fr 1fr 1fr 1fr;
-//
-//    button {
-//      .black_border;
-//      font-size: larger;
-//    }
-//
-//    #edit_submit {
-//      margin-right: 3vh;
-//    }
-//
-//    #edit_cancel {
-//      margin-left: 3vh;
-//    }
-//  }
-//
-//  #bottom {
-//    margin-top: 3vh;
-//    form {
-//      .grid();
-//      grid-template-rows: repeat(6, @row_height_small);
-//      justify-content: center;
-//
-//      div {
-//        .grid();
-//        grid-template-columns: 1fr 1fr;
-//        align-items: center;
-//        font-size: large;
-//
-//        label {
-//          text-align: right;
-//          margin-right: 0.6vw;
-//        }
-//
-//        input {
-//          height: @row_height_small;
-//          .black_border();
-//        }
-//        select,
-//        input {
-//          padding-left: 0.5vw;
-//          height: 100%;
-//          width: 100%;
-//        }
-//      }
-//    }
-//  }
-//}
-
 /* /artist/# */
-#artist_container {
-  .entity_container();
-  #artist {
-    #top {
-      #artist_image {
-        overflow: hidden;
-      }
-    }
-
-    #info {
-      #name {
-        .grid();
-        grid-template-rows: 1fr 1fr;
-        justify-content: center;
-        p {
-          align-content: center;
-        }
-      }
-    }
-  }
-  aside {
-    grid-template-rows: 100%;
-    #release_info {
-      max-height: 92vh;
-    }
-  }
-}
-
-
-/* /label/# */
+#artist_container,
 #label_container {
-  .entity_container();
-  #label {
+  margin-left: 20px;
+  margin-right: 20px;
+  height: 100%;
+  #artist {
+    height: 100%;
     #top {
-      #label_image {
-        overflow-y: scroll;
+      img {
+        max-width: 100%;
+        max-height: 100%;
+      }
+    }
+    #info {
+      div {
+        margin: 10px;
       }
     }
   }
   aside {
-    grid-template-rows: 100%;
-    #release_info {
-      max-height: 92vh;
+  }
+  aside {
+    padding-left: 15px;
+    height: 100%;
+    overflow: hidden;
+  }
+  #release_info {
+    height: 100%;
+    overflow-y: auto;
+    img {
+      height: 250px;
     }
   }
+
 }
+
 
 #artist_search,
 #label_search,

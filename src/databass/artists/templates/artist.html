@@ -1,8 +1,8 @@
 {% extends '_base.html' %}
 {% block content %}
 
-<article id="artist_container">
-    <section id="artist">
+<article id="artist_container" class="pure-g">
+    <section id="artist" class="pure-u-1 pure-u-md-4-24">
         <div id="top">
             <div id="artist_image">
                 <img src="/img/artist/{{ data.artist.id }}" alt="Artist image">
@@ -11,32 +11,39 @@
         <div id="info">
             <div id="name">
                 <h1>{{ data.artist.name }}</h1>
-                <p>{{ data.artist.country|country_name }}</p>
+                {% set country = data.artist.country|country_name %}
+                {% if country %}
+                    <p>{{ country }}</p>
+                {% endif %}
             </div>
             <div id="start">
+                {% if data.artist.type == 'person' %}born:
+                {% elif data.artist.type == 'group' %}founded:
+                {% endif %}
                 {% if data.artist.begin != data.no_start %}
-                    {% if data.artist.type == 'person' %}born:
-                    {% elif data.artist.type == 'group' %}founded:
-                    {% endif %}
                     {{ data.artist.begin }}
+                {% else %}
+                    ?
                 {% endif %}
             </div>
             <div id="end">
+                {% if data.artist.type == 'person' %}died:
+                {% elif data.artist.type == 'group' %}ended:
+                {% endif %}
                 {% if data.artist.end != data.no_end %}
-                    {% if data.artist.type == 'person' %}died:
-                    {% elif data.artist.type == 'group' %}ended:
-                    {% endif %}
-                {{ data.artist.end }}
+                    {{ data.artist.end }}
+                {% else %}
+                    ?
                 {% endif %}
             </div>
         </div>
     </section>
-    <aside>
+    <aside class="pure-u-1 pure-u-md-20-24">
         <div id="release_info">
             <h1>releases</h1>
-            <div>
+            <div class="pure-g">
                 {% for item in data.artist.releases %}
-                    <div>
+                    <div class="pure-u-1-2 pure-u-md-1-3 pure-u-xl-1-4 pure-u-xxl-1-5">
                         <a href="/release/{{ item.id }}"><img src="/img/release/{{ item.id }}" alt="Release image"></a>
                     </div>
                 {% endfor %}
