@@ -16,37 +16,40 @@
         <fieldset>
             <div class="pure-control-group">
                 <label for="release">RELEASE</label>
-                <input id="release" type="text" value="{{ data.release.name }}">
+                <input id="release" type="text" value="{{ data.release.name }}" class="pure-input-1-2">
             </div>
             <div class="pure-control-group">
                 <label for="artist">ARTIST</label>
-                <input id="artist" type="text" value="{{ data.artist.name }}">
+                <input id="artist" type="text" value="{{ data.artist.name }}" class="pure-input-1-2">
             </div>
             <div class="pure-control-group">
                 <label for="label">LABEL</label>
-                <input id="label" type="text" value="{{ data.label.name }}">
+                <input id="label" type="text" value="{{ data.label.name }}" class="pure-input-1-2">
             </div>
             <div class="pure-control-group">
                 <label for="tracks">TRACKS</label>
-                <input id="tracks" type="number" value="{{ data.track_count }}">
+                <input id="tracks" type="number" value="{{ data.track_count }}" class="pure-input-1-2">
             </div>
             <div class="pure-control-group">
-                <label for="rating" class="left_side">RATING</label>
-                <input type="number" min="0" max="100" required id="rating" name="rating" class="right_side">
+                <label for="rating">RATING</label>
+                <input type="number" min="0" max="100" required id="rating" name="rating" class="pure-input-1-2">
             </div>
             <div class="pure-control-group">
-                <label for="year" class="left_side">YEAR</label>
-                <input type="number" min="0" max="3000" required id="year" name="year" value="{{ data.date }}" class="right_side">
+                <label for="year">YEAR</label>
+                <input type="number" min="0" max="3000" required id="year" name="year" value="{{ data.date }}" class="pure-input-1-2">
             </div>
             <div class="pure-control-group">
-                <label for="main_genre" class="left_side">GENRE</label>
-                <input type="text" required id="main_genre" name="main_genre" class="right_side">
+                <label for="main_genre">GENRE</label>
+                <input type="text" required id="main_genre" name="main_genre" class="pure-input-1-2">
             </div>
             <div class="pure-control-group">
-                <label for="genres" class="left_side">SUBGENRES</label>
-                <input type="text" id="genres" name="genres" class="right_side">
+                <label for="genres">SUBGENRES</label>
+                <input type="text" id="genres" name="genres" class="pure-input-1-2">
             </div>
-            <button type="submit" class="pure-button">SUBMIT</button>
+            <div class="pure-control-group" style="display: flex; justify-content: center;">
+                <button type="submit" class="pure-button">SUBMIT</button>
+            </div>
         </fieldset>
     </form>
 </div>
+
