@@ -1,6 +1,7 @@
 <div class="popup_content">
-    <button class="close-btn">&times;</button>
-    <form action="/submit" method="POST" id="popup-form">
+    <button class="close-btn pure-button">&times;</button>
+    <form action="/submit" method="POST" class="pure-form pure-form-aligned">
+        <!-- hidden fields used by backend -->
         <input type="hidden" name="manual_submit" value="false">
         <input type="hidden" name="release_group_id" value="{{ data.release_group_id }}">
         <input type="hidden" name="release_name" value="{{ data.release.name }}">
@@ -11,40 +12,41 @@
         <input type="hidden" name="label_mbid" value="{{ data.label.mbid }}">
         <input type="hidden" name="track_count" value="{{ data.track_count }}">
         <input type="hidden" name="country" value="{{ data.country }}">
-        <div>
-            <div>
-                <p class="left_side">RELEASE</p>
-                <p class="right_side">{{ data.release.name }}</p>
+        <!-- visible fields -->
+        <fieldset>
+            <div class="pure-control-group">
+                <label for="release">RELEASE</label>
+                <input id="release" type="text" value="{{ data.release.name }}">
             </div>
-            <div>
-                <p class="left_side">ARTIST</p>
-                <p class="right_side">{{ data.artist.name }}</p>
+            <div class="pure-control-group">
+                <label for="artist">ARTIST</label>
+                <input id="artist" type="text" value="{{ data.release.name }}">
             </div>
-            <div>
-                <p class="left_side">LABEL</p>
-                <p class="right_side">{{ data.label.name }}</p>
+            <div class="pure-control-group">
+                <label for="label">LABEL</label>
+                <input id="label" type="text" value="{{ data.release.name }}">
             </div>
-            <div>
-                <p class="left_side">TRACKS</p>
-                <p class="right_side">{{ data.track_count }}</p>
+            <div class="pure-control-group">
+                <label for="tracks">TRACKS</label>
+                <input id="tracks" type="number" value="{{ data.track_count }}">
             </div>
-            <div>
+            <div class="pure-control-group">
                 <label for="rating" class="left_side">RATING</label>
                 <input type="number" min="0" max="100" required id="rating" name="rating" class="right_side">
             </div>
-            <div>
+            <div class="pure-control-group">
                 <label for="year" class="left_side">YEAR</label>
                 <input type="number" min="0" max="3000" required id="year" name="year" value="{{ data.date }}" class="right_side">
             </div>
-            <div>
+            <div class="pure-control-group">
                 <label for="main_genre" class="left_side">GENRE</label>
                 <input type="text" required id="main_genre" name="main_genre" class="right_side">
             </div>
-            <div>
+            <div class="pure-control-group">
                 <label for="genres" class="left_side">SUBGENRES</label>
                 <input type="text" id="genres" name="genres" class="right_side">
             </div>
-            <button type="submit" id="submit-btn" class="search-submit-btn">SUBMIT</button>
-        </div>
+            <button type="submit" class="pure-button">SUBMIT</button>
+        </fieldset>
     </form>
 </div>

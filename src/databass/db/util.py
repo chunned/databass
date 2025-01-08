@@ -10,6 +10,7 @@ from .models import *
 def get_valid_models():
     return [cls.__name__.lower() for cls in Base.__subclasses__()]
 
+  
 def apply_comparison_filter(query,
                       model: Type[MusicBrainzEntity],
                       key: str,
@@ -115,7 +116,7 @@ def handle_submit_data(submit_data: dict) -> None:
     Process dictionary data from routes.submit()
     - Fetches release runtime from MusicBrainz, if a MBID is provided
     - Checks if matching label/artist exists in the db, creates one if it doesn't
-    - Inserts the new release and subgenres (tags)
+    - Inserts the new release and subgenres
     :param submit_data:
     :return:
     """
@@ -132,8 +133,10 @@ def handle_submit_data(submit_data: dict) -> None:
             mbid=submit_data["label_mbid"],
             name=submit_data["label_name"],
         )
-    else:
+    elif submit_data["label_name"]:
         label_id = Label.create_if_not_exist(name=submit_data["label_name"])
+    else:
+        label_id = 0
 
     submit_data["label_id"] = label_id
 
@@ -142,10 +145,12 @@ def handle_submit_data(submit_data: dict) -> None:
             mbid=submit_data["artist_mbid"],
             name=submit_data["artist_name"],
         )
-    else:
+    elif submit_data["artist_name"]:
         artist_id = Artist.create_if_not_exist(
             name=submit_data["artist_name"]
         )
+    else:
+        artist_id = 0
 
     submit_data["artist_id"] = artist_id
 

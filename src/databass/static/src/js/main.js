@@ -7,8 +7,8 @@ function handleDeleteButton(deleteButton) {
     popup.innerHTML = `
     <h1>Are you sure?&nbsp;This cannot be undone.</h1>
     <div>
-    <button id="confirm" class="delete">delete</button>
-    <button id="cancel" class="delete">cancel</button>
+    <button id="confirm" class="delete pure-button">delete</button>
+    <button id="cancel" class="delete pure-button">cancel</button>
     </div>
     `;
     document.body.appendChild(popup);
@@ -66,9 +66,8 @@ function formatDataString(data) {
         .replace(/(12|10|7)" Vinyl/g, '$1\\" Vinyl');
 }
 
-
 function addPopupListeners(html) {
-    document.querySelector("#search_results").innerHTML = html;
+    document.getElementById("search_results").innerHTML = html;
     let tableRows = document.querySelectorAll(".row");
     tableRows.forEach((tableRow) => {
         tableRow.addEventListener("click", function() {
@@ -133,61 +132,24 @@ function handleSearchButton() {
     });
 }
 
-function handleSearchPageButton(direction) {
-    // Retrieve next page and per_page numbers as integer
-    let next = getPageButtonDirection(direction);
-    let perPage = +document.querySelector("#per_page").innerHTML;
-    // Retrieve raw data list and parse it as JSON
-    let data = document.querySelector("#data_full").innerHTML;
-    let formatted = formatDataString(data);
-    let parsed = JSON.parse(formatted);
-    let requestData = {
-        "next_page": next,
-        "per_page": perPage,
-        "data": parsed,
-        "referrer": "page_button"
-    }
-    fetch('/search', {
+function loadSearchResults(direction) {
+    let targetPage = getTargetPage(direction);
+    let data = document.getElementById("data_full").innerHTML;
+    let formattedData = formatDataString(data);
+    let parsedData = JSON.parse(formattedData);
+    fetch('/search_results?page=' + targetPage, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(parsedData)
     })
-    .then(response => response.text())
-    .then(html => {addPopupListeners(html)})
+        .then(response => response.text())
+        .then(html => {
+            addPopupListeners(html);
+            // document.getElementById('search_results').innerHTML = html;
+        });
 }
 
-function getPageButtonDirection(direction) {
-    let next;
-    if (direction === 'next') {
-        next = +document.querySelector("#next_page").value;
-    } else if (direction === 'prev') {
-        next = +document.querySelector("#prev_page").value;
-    }
-    return next;
-}
-
-// function handleStatsSearch() {
-//     let data = document.getElementById("stats-filter")
-//     let vars = data.querySelectorAll("select");
-//
-//     let formData = {};
-//     vars.forEach(input => {
-//         formData[input.name] = input.value;
-//     });
-//     Object.keys(formData).forEach(key => {
-//         if (formData[key] === '') {
-//             let alertStr = `Empty form field: ${key}`
-//             alert(alertStr);
-//         }
-//     });
-//     fetch('/stats_search', {
-//         method: 'GET',
-//         headers: {'Content-Type': 'application/json'},
-//         body: JSON.stringify(formData)
-//     })
-// }
-
-function loadHomeTable(direction) {
+function getTargetPage(direction) {
     let currentPage;
     try {
         currentPage = document.getElementById('current_page').value;
@@ -197,7 +159,11 @@ function loadHomeTable(direction) {
     let targetPage = currentPage;
     if (direction === 'prev') targetPage = parseInt(currentPage) - 1;
     if (direction === 'next') targetPage = parseInt(currentPage) + 1;
+    return targetPage
+}
 
+function loadHomeTable(direction) {
+    let targetPage = getTargetPage(direction);
     fetch('/home_release_table?page=' + targetPage)
         .then(response => response.text())
         .then(html => {
@@ -244,15 +210,7 @@ function loadSearchTable(type, direction) {
             type: document.querySelector("#type").value,
         }
     }
-    let currentPage;
-    try {
-        currentPage = document.getElementById('current_page').value;
-    } catch(e) {
-        currentPage = "1";
-    }
-    let targetPage = currentPage;
-    if (direction === 'prev') targetPage = parseInt(currentPage) - 1;
-    if (direction === 'next') targetPage = parseInt(currentPage) + 1;
+    let targetPage = getTargetPage(direction);
     fetch('/' + type + '_search?page=' + targetPage, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -279,7 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.location.pathname === "/new") {
         document.addEventListener('click', function(event) {
-            if (event.target && event.target.classList.contains('manual-entry')) {
+            if (event.target && event.target.classList.contains('manual_entry')) {
+                event.preventDefault();
                 fetch('/search', {
                     method: 'GET'
                 })
@@ -291,12 +250,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Fetch error:', error);
                     });
             }
-            if (event.target && event.target.classList.contains('new-release-search')) {
+            if (event.target && event.target.classList.contains('new_search')) {
                 handleSearchButton();
-            }
-            if (event.target && event.target.classList.contains('page-btn')) {
-                let direction = event.target.dataset.direction;
-                handleSearchPageButton(direction);
+                document.addEventListener('click', function(event) {
+                    if (event.target.classList.contains('prev_page')) {
+                        loadSearchResults('prev')
+                    }
+                    if (event.target.classList.contains('next_page')) {
+                        loadSearchResults('next')
+                    }
+                });
             }
         });
         document.addEventListener('keydown', function (event) {
@@ -365,9 +328,6 @@ document.addEventListener('DOMContentLoaded', () => {
             handleEditButton(editButton);
         }
 
-        // if (event.target && event.target.classList.contains('stats-search')) {
-        //     handleStatsSearch();
-        // }
     });
 });
 

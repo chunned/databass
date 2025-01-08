@@ -40,7 +40,6 @@ def register_routes(app):
 
     @app.route("/home_release_table")
     def home_release_table():
-
         data = models.Release.home_data()
 
         page = Pager.get_page_param(request)
@@ -58,8 +57,7 @@ def register_routes(app):
 
     @app.route("/new")
     def new():
-        actions = ["search"]
-        return render_template("new.html", actions=actions, active_page='new')
+        return render_template("new.html", active_page='new')
 
     @app.route("/search", methods=["POST", "GET"])
     def search() -> str | flask.Response:
@@ -75,38 +73,23 @@ def register_routes(app):
                 per_page=per_page
             )
 
-
         data = request.get_json()
         try:
-            origin = data["referrer"]
+            search_release = data["release"]
+            search_artist = data["artist"]
+            search_label = data["label"]
         except KeyError:
-            error = (
-                "Request referrer missing. You should only be coming to "
-                "this page from /new or from the pagination buttons.")
+            error = "Request missing one of the expected keys"
             flash(error)
             # TODO: move this error handling into errors/routes.py
             return redirect('/error')
-        if origin == 'search':
-            try:
-                search_release = data["release"]
-                search_artist = data["artist"]
-                search_label = data["label"]
-            except KeyError:
-                error = "Request missing one of the expected keys"
-                flash(error)
-                # TODO: move this error handling into errors/routes.py
-                return redirect('/error')
-            if not search_release and not search_artist and not search_label:
-                error = "ERROR: Search requires at least one search term"
-                return error
-            release_data = MusicBrainz.release_search(release=search_release,
-                                                          artist=search_artist,
-                                                          label=search_label)
-            page = Pager.get_page_param(request)
-        elif origin == 'page_button':
-            page = data["next_page"]
-            release_data = data["data"]
-
+        if not search_release and not search_artist and not search_label:
+            error = "ERROR: Search requires at least one search term"
+            return error
+        release_data = MusicBrainz.release_search(release=search_release,
+                                                      artist=search_artist,
+                                                      label=search_label)
+        page = Pager.get_page_param(request)
         if all(
             var is not None for var in [page, release_data]
         ):
@@ -123,6 +106,25 @@ def register_routes(app):
                 data_full=release_data,
                 per_page=per_page
             )
+        
+    @app.route("/search_results", methods=["POST"])
+    def search_results():
+        data = request.get_json()
+        per_page = 10
+        page = Pager.get_page_param(request)
+        paged_data, flask_pagination = Pager.paginate(
+            per_page=per_page,
+            current_page=page,
+            data=data
+        )
+        return render_template(
+            "search.html",
+            page=page,
+            data=paged_data,
+            pagination=flask_pagination,
+            data_full=data,
+            per_page=per_page
+        )
 
     @app.route("/submit", methods=["POST"])
     def submit():
@@ -135,7 +137,7 @@ def register_routes(app):
                 try:
                     genres = data["genres"]
                 except KeyError:
-                    genres = ""
+                    genres = []
                 try:
                     image = data["image"]
                 except KeyError:
@@ -144,14 +146,13 @@ def register_routes(app):
                 try:
                     # convert minutes to ms
                     runtime = int(data["runtime"]) * 60000
-                except KeyError:
+                except (KeyError, ValueError):
                     runtime = 0
 
                 try:
                     track_count = int(data["track_count"])
-                except KeyError:
+                except (KeyError, ValueError):
                     track_count = 0
-
 
                 try:
                     country = country_code(data["country"])
@@ -199,10 +200,10 @@ def register_routes(app):
             try:
                 handle_submit_data(release_data)
             except IntegrityError as err:
-                flash(err)
+                flash(str(err))
                 return redirect('/error')
-        except KeyError:
-            error = "Request missing one of the expected keys"
+        except KeyError as err:
+            error = f"Request missing one of the expected keys: {err}"
             flash(error)
             return redirect('/error')
         return redirect("/", code=302)
@@ -211,6 +212,25 @@ def register_routes(app):
     def stats():
         statistics = get_all_stats()
         return render_template('stats.html', data=statistics, active_page='stats')
+
+    @app.route('/stats/get/<string:stats_type>', methods=['GET'])
+    def stats_get(stats_type):
+        statistics = get_all_stats()
+        data = ""
+        if stats_type == "labels":
+            data = {
+                "most_frequent": statistics["top_frequent_labels"],
+                "highest_average": statistics["top_average_labels"],
+                "favourite": statistics["top_rated_labels"]
+            }
+        if stats_type == "artists":
+            data = {
+                "most_frequent": statistics["top_frequent_artists"],
+                "highest_average": statistics["top_average_artists"],
+                "favourite": statistics["top_rated_artists"]
+            }
+        return render_template('stats_data.html', type=stats_type, stats=data)
+
 
     @app.route('/goals', methods=['GET'])
     def goals():
