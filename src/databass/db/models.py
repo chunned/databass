@@ -2,6 +2,7 @@ from __future__ import annotations
 from datetime import datetime, date
 from typing import Any, Optional, List
 
+import sqlalchemy.exc
 from sqlalchemy import (
     String, Integer, ForeignKey, DateTime, Date,
     func, extract, distinct,
@@ -70,9 +71,14 @@ class Base(DeclarativeBase):
         """
         if not name or not isinstance(name, str):
             return None
-        result = app_db.session.query(cls).filter(
-            cls.name.ilike(f'%{name}%')
-        ).one_or_none()
+        try:
+            result = app_db.session.query(cls).filter(
+                cls.name.ilike(f'%{name}%')
+            ).one_or_none()
+        except sqlalchemy.exc.MultipleResultsFound:
+            result = app_db.session.query(cls).filter(
+                cls.name.ilike(f'%{name}%')
+            ).first()
         return result
 
 # Relationship tables
@@ -357,7 +363,7 @@ class Release(MusicBrainzEntity):
     def home_data(cls) -> list[Row]:
         """
         Retrieves a list of data for the home page, including artist information,
-        release information, and associated tags.
+        release information, and associated genres.
 
         Returns:
             list[Row]: A list of Release database entries
@@ -400,30 +406,11 @@ class Release(MusicBrainzEntity):
         """
         Dynamically search for Release objects based on the provided search criteria.
 
-        The search criteria is passed as a dictionary, where the keys represent the fields to
-        filter on and the values represent the desired values for those fields. The function
-        will construct a SQLAlchemy query based on the provided criteria and return a list
-        of Release objects that match the search.
-
-        The function supports the following search criteria:
-        - label: Filter by the name of the label associated with the release.
-        - artist: Filter by the name of the artist associated with the release.
-        - rating: Filter by the rating of the release, using a comparison operator.
-        - year: Filter by the year the release was listened to, using a comparison operator.
-        - name: Filter by the name of the release, using a case-insensitive partial match.
-        - tags: Filter by the tags associated with the release.
-
-        Any other keys in the search criteria dictionary will be used to filter the query
-        directly on the Release model attributes.
-
         Args:
             data (dict): A dictionary containing the search criteria.
 
         Returns:
             list[Release]: A list of Release objects representing the matching releases.
-
-        Raises:
-            ValueError: If `data` is not a dictionary.
         """
         if not isinstance(data, dict):
             raise ValueError("Search criteria must be a dictionary")
