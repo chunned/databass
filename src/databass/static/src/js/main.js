@@ -325,10 +325,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (event.target && event.target.id === 'edit-btn') {
             let editButton = document.querySelector('#edit-btn');
-            handleEditButton(editButton);
+            if (window.location.pathname.startsWith('/artist')) {
+                editEntity(editButton, 'artist');
+            }
+            if (window.location.pathname.startsWith('/release')) {
+                editEntity(editButton, 'release');
+            }
+            if (window.location.pathname.startsWith('/label')) {
+                editEntity(editButton, 'label');
+            }
         }
 
     });
 });
+
+function editEntity(editButton, entityType) {
+    let entityId = editButton.getAttribute('data-id');
+    fetch('/' + entityType + '/' + entityId + '/edit')
+        .then(response => response.text())
+        .then(html => {
+            let popup = document.createElement('div');
+            popup.id = 'edit_popup';
+            popup.className = 'popup';
+            popup.innerHTML = html;
+            document.body.appendChild(popup);
+
+            popup.querySelector('#edit_cancel').addEventListener('click', () => {
+                document.body.removeChild(popup);
+            });
+        })
+}
 
 

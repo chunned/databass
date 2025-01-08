@@ -8,6 +8,10 @@
                 <img src="/img/artist/{{ data.artist.id }}" alt="Artist image">
             </div>
         </div>
+        <div id="buttons">
+            <button class="pure-button" id="edit-btn" data-id="{{ data.artist.id }}">edit</button>
+{#            <button class="pure-button delete-btn" id="delete-btn" data-id="{{ data.release.id }}" data-type="release">delete</button>#}
+        </div>
         <div id="info">
             <div id="name">
                 <h1>{{ data.artist.name }}</h1>
