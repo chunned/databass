@@ -10,7 +10,7 @@ from .models import *
 def get_valid_models():
     return [cls.__name__.lower() for cls in Base.__subclasses__()]
 
-
+  
 def apply_comparison_filter(query,
                       model: Type[MusicBrainzEntity],
                       key: str,

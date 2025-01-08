@@ -136,7 +136,7 @@ class TestInsert:
     @pytest.mark.parametrize("model_class,test_data", [
         (Artist, {"name": "Test Artist"}),
         (Label, {"name": "Test Label"}),
-        (Release, {"name": "Test Release", "release_year": 2024})
+        (Release, {"name": "Test Release", "year": 2024})
     ])
     def test_insert_different_models(self, mock_db_session, model_class, test_data):
         """
@@ -200,8 +200,8 @@ class TestUpdate:
         (Artist, {"name": "Initial Artist"}, {"name": "Updated Artist"}),
         (Label, {"name": "Initial Label"}, {"name": "Updated Label"}),
         (Release,
-         {"name": "Initial Release", "release_year": 2023},
-         {"name": "Updated Release", "release_year": 2024})
+         {"name": "Initial Release", "year": 2023},
+         {"name": "Updated Release", "year": 2024})
     ])
     def test_update_different_models(self, mock_db_session, model_class, initial_data, updated_data):
         """

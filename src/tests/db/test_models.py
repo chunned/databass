@@ -919,7 +919,7 @@ class TestReleaseDynamicSearch:
         Release.dynamic_search({
             "rating": "5",
             "rating_comparison": ">",
-            "release_year": "2023",
+            "year": "2023",
             "year_comparison": "="
         })
 
