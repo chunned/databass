@@ -262,11 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         });
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter') {
-                handleSearchButton();
-            }
-        });
     }
 
     if (window.location.pathname === "/releases") {
