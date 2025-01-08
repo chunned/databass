@@ -26,6 +26,9 @@
             <p>rating: {{ data.release.rating }}%</p>
             <p>country: {{ country|country_name }}</p>
             <p>genre: {{ data.release.main_genre.name }}</p>
+            <p>subgenres:
+            {% for g in data.release.genres %}{{ g.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+            </p>
         </div>
     </section>
     <section id="bottom" class="pure-g">

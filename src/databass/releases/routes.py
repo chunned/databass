@@ -130,6 +130,17 @@ def edit(release_id):
         except KeyError:
             pass
 
+        # genres
+        try:
+            genres = edit_data["genres"]
+            genre_objs = []
+            if genres:
+                for g in genres.split(','):
+                    genre_objs.append(models.Genre.create_if_not_exists(g))
+                submit_data["genres"] = genre_objs
+        except KeyError:
+            pass
+
         updated_release = db.construct_item('release', submit_data)
         # construct_item() will produce a unique ID primary key, so we need to set it to the original one for update() to work
         try:
@@ -140,7 +151,6 @@ def edit(release_id):
             updated_release.label_id = old_release.label_id
             updated_release.runtime = old_release.runtime
             updated_release.track_count = old_release.track_count
-            updated_release.genres = old_release.genres # TODO: allow editing for genres
 
         except KeyError:
             error = "Edit data missing ID, unable to update an existing entry without ID."

@@ -40,6 +40,11 @@
                 </select>
             </div>
 
+            <div class="pure-g">
+                <label for="genres" class="pure-u-1-3">genres</label>
+                <input id="genres" name="genres" class="pure-u-2-3" value="{% for g in release.genres %}{{ g.name }}{% if not loop.last %}, {% endif %}{% endfor %}">
+            </div>
+
         </form>
     </div>
 </div>
