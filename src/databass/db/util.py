@@ -116,7 +116,7 @@ def handle_submit_data(submit_data: dict) -> None:
     Process dictionary data from routes.submit()
     - Fetches release runtime from MusicBrainz, if a MBID is provided
     - Checks if matching label/artist exists in the db, creates one if it doesn't
-    - Inserts the new release and subgenres (tags)
+    - Inserts the new release and subgenres
     :param submit_data:
     :return:
     """
