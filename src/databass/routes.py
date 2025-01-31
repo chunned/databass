@@ -86,6 +86,10 @@ def register_routes(app):
         if not search_release and not search_artist and not search_label:
             error = "ERROR: Search requires at least one search term"
             return error
+        app.logger.info(
+            "Searching MusicBrainz for: %s - %s - %s",
+            search_release, search_artist, search_label
+        )
         release_data = MusicBrainz.release_search(release=search_release,
                                                       artist=search_artist,
                                                       label=search_label)
@@ -117,6 +121,7 @@ def register_routes(app):
             current_page=page,
             data=data
         )
+        app.logger.info("Displaying search results.")
         return render_template(
             "search.html",
             page=page,
@@ -128,11 +133,13 @@ def register_routes(app):
 
     @app.route("/submit", methods=["POST"])
     def submit():
+        app.logger.info("Submitting new release data.")
         data = request.form.to_dict()
         try:
             release_data = {}
             # Check if this is a manual submission
             if data["manual_submit"] == "true":
+                app.logger.info("Got a manual submission - parsing fields.")
                 # try to grab optional fields
                 try:
                     genres = data["genres"]
@@ -196,7 +203,7 @@ def register_routes(app):
                     "genres": data["genres"],
                     "image": None
                 }
-
+            app.logger.info("Submitting release data: %s", release_data)
             try:
                 handle_submit_data(release_data)
             except IntegrityError as err:
@@ -210,6 +217,7 @@ def register_routes(app):
 
     @app.route('/stats', methods=['GET'])
     def stats():
+        app.logger.info("Fetching all statistics.")
         statistics = get_all_stats()
         return render_template('stats.html', data=statistics, active_page='stats')
 
@@ -217,23 +225,28 @@ def register_routes(app):
     def stats_get(stats_type):
         statistics = get_all_stats()
         data = ""
+        msg = "Fetching statistics for "
         if stats_type == "labels":
+            msg += "labels"
             data = {
                 "most_frequent": statistics["top_frequent_labels"],
                 "highest_average": statistics["top_average_labels"],
                 "favourite": statistics["top_rated_labels"]
             }
         if stats_type == "artists":
+            msg += "artists"
             data = {
                 "most_frequent": statistics["top_frequent_artists"],
                 "highest_average": statistics["top_average_artists"],
                 "favourite": statistics["top_rated_artists"]
             }
+        app.logger.info("%s", msg)
         return render_template('stats_data.html', type=stats_type, stats=data)
 
 
     @app.route('/goals', methods=['GET'])
     def goals():
+        app.logger.info("Displaying goals.")
         if request.method != 'GET':
             abort(405)
         existing_goals = models.Goal.get_incomplete()
@@ -250,6 +263,7 @@ def register_routes(app):
         data = request.form.to_dict()
         if not data:
             error = "/add_goal received an empty payload"
+            app.logger.error("%s", error)
             # TODO: move this error handling into errors/routes.py
             flash(error)
             return redirect('/error')
@@ -259,14 +273,17 @@ def register_routes(app):
                 raise NameError("Construction of Goal object failed")
         except Exception as e:
             # TODO: move this error handling into errors/routes.py
+            app.logger.error("%s", e)
             flash(str(e))
             return redirect('/error')
 
+        app.logger.info("Adding new goal: %s", data)
         db.insert(goal)
         return redirect('/goals', 302)
 
     @app.route('/img/<string:itemtype>/<int:itemid>', methods=['GET'])
     def serve_image(itemtype: str, itemid: int):
+        app.logger.info("Attempting to serve image for %s %s", itemtype, itemid)
         item = ''
         if itemtype == 'artist':
             item = models.Artist.exists_by_id(itemid)

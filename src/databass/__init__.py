@@ -9,7 +9,6 @@ from .routes import register_routes
 
 load_dotenv()
 VERSION = os.environ.get('VERSION')
-print(f'App version: {VERSION}')
 
 
 def create_app():
