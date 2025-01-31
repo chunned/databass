@@ -24,7 +24,7 @@ def mock_release_data(mocker):
     mock_release.listen_date = datetime.datetime(2024, 3, 3, 0, 0)
     mock_release.mbid = "46004fde-3059-42a8-b399-daa0a18816e0"
     mock_release.rating = 70
-    mock_release.release_year = 2024
+    mock_release.year = 2024
     mock_release.review = None
     mock_release.runtime = 3361000
     mock_release.tags = None
@@ -115,7 +115,7 @@ class TestEdit:
         mock_update = mocker.patch("databass.db.update")
         response = client.post(
             "/release/1/edit",
-            data={'artist_id': '1', 'country': '[Worldwide]', 'genre': 'hiphop', 'id': '1', 'image': './static/img/release/1.jpg', 'label_id': '1', 'listen_date': '2024-03-04', 'name': 'BLUE LIPS', 'rating': '1', 'release_year': '2024', 'tags': 'None'}
+            data={'artist_id': '1', 'country': '[Worldwide]', 'genre': 'hiphop', 'id': '1', 'image': './static/img/release/1.jpg', 'label_id': '1', 'listen_date': '2024-03-04', 'name': 'BLUE LIPS', 'rating': '1', 'year': '2024', 'tags': 'None'}
         )
         assert response.status_code == 302
         assert response.location == "/"

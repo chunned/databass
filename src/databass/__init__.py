@@ -37,7 +37,7 @@ def create_app():
     js_bundle.build()
 
     with app.app_context():
-        from .db.models import Base, Release, Artist, Label, Tag, Review, Goal
+        from .db.models import Base, Release, Artist, Label, Genre, Review, Goal
         Base.metadata.bind = app_db.engine
         Base.metadata.create_all(app_db.engine)
         # app_db.create_all()
@@ -59,4 +59,5 @@ def create_app():
         @app.before_request
         def before_request():
             g.app_version = VERSION
+
         return app

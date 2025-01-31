@@ -1,80 +1,55 @@
 {% extends '_base.html' %}
 {% block content %}
+
+{% if data.release.country %}
+    {% set country = data.release.country %}
+{% else %}
+    {% set country = "?" %}
+{% endif %}
+
 <article id="release_container">
-    <section id="release">
-        <div id="top">
-            <div id="image">
-                <img src="/img/release/{{ data.release.id }}" alt="Album art">
-            </div>
-            <div id="buttons">
-                <button id="edit-btn" data-id="{{ data.release.id }}">edit</button>
-                <button class="delete-btn" id="delete-btn" data-id="{{ data.release.id }}" data-type="release">delete</button>
-            </div>
+    <section id="release" class="pure-g">
+        <div class="pure-u-1 pure-u-md-1-3 pure-u-lg-1-6">
+            <img src="/img/release/{{ data.release.id }}" alt="Album art">
         </div>
-        <div id="info">
-            <div id="rating">
-                <h4>
-                    listened: {{ data.release.listen_date.strftime('%Y-%m-%d') }}
-                </h4>
-                <h4>
-                    rating: <br>{{ data.release.rating }}%
-                </h4>
-            </div>
-            <div id="title">
-                <h1>{{ data.release.name }} </h1>
-                <h2>
-                    <a href="/artist/{{  data.artist.id }}">{{ data.artist.name }}</a>
-                </h2>
-                <p>({{ data.release.release_year }})</p>
-            </div>
-            <div id="release_label">
-                {% if data.release.country %}
-                    {% set country = data.release.country %}
-                {% else %}
-                    {% set country = "?" %}
-                {% endif %}
-                <h2>
-                    <a href="/label/{{ data.label.id }}">{{ data.label.name }}</a>
-                </h2>
-                <p>{{ country|country_name }}</p>
-            </div>
-            <div id="genres">
-                <h3>
-                    primary genre: {{ data.release.genre }}
-                </h3>
-                {% if data.release.tags %}
-                    <h3>
-                        secondary genre(s):
-                    </h3>
-                    {% set tags = data.release.tags.split(',') %}
-                    <ul>
-                        {% for genre in tags %}
-                            <li>{{ genre }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            </div>
+        <div id="buttons" class="pure-u-1 pure-u-md-1-2 pure-u-lg-1-24">
+            <button class="pure-button" id="edit-btn" data-id="{{ data.release.id }}">edit</button>
+            <button class="pure-button delete-btn" id="delete-btn" data-id="{{ data.release.id }}" data-type="release">delete</button>
         </div>
-        <div id="reviews">
+        <div id="info" class="pure-u-1 pure-u-lg-3-8">
+            <h1>{{ data.release.name }} ({{ data.release.year }})</h1>
+            <h1><a href="/artist/{{  data.artist.id }}">{{ data.artist.name }}</a></h1>
+            <h1><a href="/label/{{ data.label.id }}">{{ data.label.name }}</a></h1>
+        </div>
+        <div id="other" class="pure-u-1 pure-u-lg-9-24">
+            <p>listened: {{ data.release.listen_date.strftime('%Y-%m-%d') }}</p>
+            <p>rating: {{ data.release.rating }}%</p>
+            <p>country: {{ country|country_name }}</p>
+            <p>genre: {{ data.release.main_genre.name }}</p>
+            <p>subgenres:
+            {% for g in data.release.genres %}{{ g.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+            </p>
+        </div>
+    </section>
+    <section id="bottom" class="pure-g">
+        <div id="reviews" class="pure-u-4-24">
             <div id="new">
                 <h2>REVIEWS</h2>
-                <form method="POST" action="/release/{{ data.release.id }}/add_review">
-                    <div>
-                        <input type="hidden" id="release_id" name="release_id" value="{{ data.release.id }}">
-                        <label for="review">new review</label>
-                        <button type="submit" class="box">submit</button>
-                    </div>
-                    <textarea name="text" id="review"></textarea>
+                <form method="POST" action="/release/{{ data.release.id }}/add_review" class="pure-form pure-g">
+                    <input type="hidden" id="release_id" name="release_id" value="{{ data.release.id }}">
+                    <label for="review" class="pure-u-1-2">new review</label>
+                    <button type="submit" class="pure-button pure-u-1-2">submit</button>
+                    <textarea name="text" id="review" class="pure-u-1" required></textarea>
                 </form>
             </div>
             <div id="existing">
-                {% if data.reviews %}
+                {% if data.release.reviews %}
                     <div id="review_table">
-                        {% for review in data.reviews %}
-                            <div>
-                                <p>{{ review.timestamp }}</p>
-                                <p id="review_text">{{ review.text }}</p>
-                            </div>
+                        {% for review in data.release.reviews %}
+                            <p>
+                                <span class="timestamp">{{ review.timestamp.date() }}:</span>
+                                {{ review.text }}
+                            </p>
                         {% endfor %}
                     </div>
                 {% else %}
@@ -82,35 +57,33 @@
                 {% endif %}
             </div>
         </div>
-    </section>
-    <aside>
-        <div id="artist_info">
+        <div id="artist" class="pure-u-10-24">
             <h1>also by <a href="/artist/{{ data.artist.id }}">{{ data.artist.name }}:</a></h1>
-            <div>
+            <div class="releases pure-g">
                 {% for item in data.artist_releases %}
-                    {% if not item.Release.id == data.release.id %}
-                        <div>
-                            <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Release image"></a>
+                    {% if not item.id == data.release.id %}
+                        <div class="pure-u-1-3">
+                            <a href="/release/{{ item.id }}"><img src="/img/release/{{ item.id }}" alt="Release image"></a>
                         </div>
                     {% endif %}
                 {% endfor %}
             </div>
         </div>
-        <div id="label_info">
+        <div id="label" class="pure-u-10-24">
             {% if data.label.name %}
                 <h1>also by <a href="/label/{{ data.label.id }}">{{ data.label.name }}:</a></h1>
-                <div>
+                <div class="releases pure-g">
                     {% for item in data.label_releases %}
-                        {% if not item.Release.id == data.release.id %}
-                            <div>
-                                <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Album image"></a>
+                        {% if not item.id == data.release.id %}
+                            <div class="pure-u-1-3">
+                                <a href="/release/{{ item.id }}"><img src="/img/release/{{ item.id }}" alt="Album image"></a>
                             </div>
                         {% endif %}
                     {% endfor %}
                 </div>
             {% endif %}
         </div>
-    </aside>
+    </section>
 </article>
 
 {% endblock %}

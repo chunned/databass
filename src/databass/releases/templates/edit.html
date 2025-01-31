@@ -1,44 +1,48 @@
 <div>
-    <div id="top">
-        <h1>EDIT</h1>
-        <button id="edit_submit" type="submit" form="edit_form">submit</button>
-        <button id="edit_cancel">cancel</button>
-        <span></span>
+    <div id="top" class="pure-g">
+        <h1 class="pure-u-1-3">EDIT</h1>
+        <div class="pure-u-1-4"><button id="edit_submit" type="submit" form="edit_form" class="pure-button">submit</button></div>
+        <div class="pure-u-1-4"><button id="edit_cancel" class="pure-button">cancel</button></div>
     </div>
     <div id="bottom">
-        <form id="edit_form" method="POST" action="/release/{{ release.id }}/edit">
-            <div>
-                <label for="release_year">release year</label>
-                <input id="release_year" name="release_year" value="{{ release.release_year }}" type="number">
+        <form id="edit_form" method="POST" action="/release/{{ release.id }}/edit" class="pure-form">
+            <div class="pure-g">
+                <label for="year" class="pure-u-1-3">year</label>
+                <input id="year" name="year" value="{{ release.year }}" type="number" class="pure-u-2-3">
             </div>
 
-            <div>
-                <label for="genre">genre</label>
-                <input id="genre" name="genre" value="{{ release.genre }}">
+            <div class="pure-g">
+                <label for="main_genre" class="pure-u-1-3">main genre</label>
+                <input id="main_genre" name="main_genre" value="{{ release.main_genre.name }}" class="pure-u-2-3">
             </div>
 
-            <div>
-                <label for="rating">rating</label>
-                <input id="rating" name="rating" value="{{ release.rating }}" type="number">
+            <div class="pure-g">
+                <label for="rating" class="pure-u-1-3">rating</label>
+                <input id="rating" name="rating" value="{{ release.rating }}" type="number" class="pure-u-2-3">
             </div>
 
-            <div>
-                <label for="image">image</label>
-                <input id="image" name="image" placeholder="<url>" type="url">
+            <div class="pure-g">
+                <label for="image" class="pure-u-1-3">image</label>
+                <input id="image" name="image" placeholder="<url>" type="url" class="pure-u-2-3">
             </div>
 
-            <div>
-                <label for="listen_date">listen date</label>
-                <input id="listen_date" name="listen_date" value="{{ release.listen_date.strftime('%Y-%m-%d') }}" type="date">
+            <div class="pure-g">
+                <label for="listen_date" class="pure-u-1-3">listen date</label>
+                <input id="listen_date" name="listen_date" value="{{ release.listen_date.strftime('%Y-%m-%d') }}" type="date" class="pure-u-2-3">
             </div>
 
-            <div>
-                <label for="country">country</label>
-                <select id="country" name="country">
+            <div class="pure-g">
+                <label for="country" class="pure-u-1-3">country</label>
+                <select id="country" name="country" class="pure-u-2-3">
                     {% for country in countries %}
                         <option value="{{ country}}">{{ country|country_name }}</option>
                     {% endfor %}
                 </select>
+            </div>
+
+            <div class="pure-g">
+                <label for="genres" class="pure-u-1-3">genres</label>
+                <input id="genres" name="genres" class="pure-u-2-3" value="{% for g in release.genres %}{{ g.name }}{% if not loop.last %}, {% endif %}{% endfor %}">
             </div>
 
         </form>

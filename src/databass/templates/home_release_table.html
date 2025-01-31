@@ -1,51 +1,39 @@
 <input type="hidden" id="current_page" value="{{ pagination.page }}">
-<table id="home_table">
+<table class="pure-table">
     <thead>
-    <tr>
-        <th id="home_table_pagination">
-            {% if pagination.has_prev %}
-                <button class="pagination_button prev_page">back</button>
-            {% else %}
-                <button disabled class="pagination_button">back</button>
-            {% endif %}
+        <tr>
+            <th style="width: 13%;">
+                {% if pagination.has_prev %}
+                    <button class="pure-button pagination_button prev_page">back</button>
+                {% else %}
+                    <button disabled class="pure-button pagination_button">back</button>
+                {% endif %}
 
-            {% if pagination.has_next %}
-                <button class="pagination_button next_page">next</button>
-            {% else %}
-                <button disabled class="pagination_button">next</button>
-            {% endif %}
-        </th>
-        <th>
-            <p>TITLE</p>
-        </th>
-        <th>
-            <p>ARTIST</p>
-        </th>
-        <th>
-            <p>RATING</p>
-        </th>
-        <th>
-            <p>LISTENED</p>
-        </th>
-        <th>
-            <p>GENRE</p>
-        </th>
-        <th>
-            <p>SUBGENRES</p>
-        </th>
-    </tr>
+                {% if pagination.has_next %}
+                    <button class="pure-button pagination_button next_page">next</button>
+                {% else %}
+                    <button disabled class="pure-button pagination_button">next</button>
+                {% endif %}
+            </th>
+            <th style="width: 22%;">TITLE</th>
+            <th style="width: 20%;">ARTIST</th>
+            <th style="width: 7%;">RATING</th>
+            <th style="width: 11%;">LISTENED</th>
+            <th style="width: 10%;">GENRE</th>
+            <th style="width: 17%;">SUBGENRES</th>
+        </tr>
     </thead>
     <tbody>
     {% for release in data %}
         <tr>
             <td>
-                <img src="/img/release/{{ release.id }}" alt="album art">
+                <img class="pure-img" src="/img/release/{{ release.id }}" alt="album art">
             </td>
             <td>
                 <a href="/release/{{ release.id }}" class="link">{{ release.name }}</a>
             </td>
             <td>
-                <a href="/artist/{{ release.artist_id }}" class="link">{{ release.artist_name }}</a>
+                <a href="/artist/{{ release.artist.id }}" class="link">{{ release.artist.name }}</a>
             </td>
             <td>
                 {{ release.rating }}%
@@ -54,11 +42,13 @@
                 {{ release.listen_date.date() }}
             </td>
             <td>
-                {{ release.genre }}
+                {{ release.main_genre.name }}
             </td>
-            <td style="white-space: normal!important;">
+            <td>
                 <p>
-                    {{ release.tags | join(', ') }}
+                    {% for g in release.genres %}
+                        {{ g.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
                 </p>
             </td>
         </tr>

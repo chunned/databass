@@ -2,6 +2,8 @@ from datetime import date
 from flask import Blueprint, render_template, request, flash, redirect
 from ..db.models import Artist
 from ..pagination import Pager
+from ..api.util import Util
+from ..db import construct_item, update
 
 artist_bp = Blueprint(
     'artist_bp', __name__,
@@ -20,13 +22,10 @@ def artist(artist_id):
         flash(error)
         return redirect('/error', code=302)
 
-    artist_releases = Artist.get_releases(artist_id)
-
     no_end = date(9999, 12, 31)
     no_start = date(1, 1, 1)
     data = {
         "artist": artist_data,
-        "releases": artist_releases,
         "no_end": no_end,
         "no_start": no_start
     }
@@ -55,12 +54,68 @@ def artist_search():
         pagination=flask_pagination
     )
 
-# TODO: implement edit_artist
-# @artist_bp.route('/artist/<string:artist_id>', methods=['GET', 'POST'])
-# def edit_artist(artist_id):
-#     if request.method == 'GET':
-#         pass
-#     elif request.method == 'POST':
-#         pass
+@artist_bp.route('/artist/<string:artist_id>/edit', methods=['GET', 'POST'])
+def edit_artist(artist_id):
+    # Check if artist exists
+    artist_data = Artist.exists_by_id(int(artist_id))
+    if not artist_data:
+        error = f"No artist with id {artist_id} found."
+        flash(error)
+        return redirect('/error', code=302)
+
+    if request.method == 'GET':
+        countries = Artist.get_distinct_column_values('country')
+        countries = sorted([c for c in countries if c is not None])
+        return render_template(
+            'edit_artist.html',
+            artist=artist_data,
+            countries=countries
+        )
+
+    elif request.method == 'POST':
+        edit_data = request.form.to_dict()
+
+        artist_data = Artist.exists_by_id(artist_id)
+        try:
+            start = edit_data['start']
+            if start:
+                artist_data.begin = start
+        except KeyError:
+            pass
+
+        try:
+            end = edit_data['end']
+            if end:
+                artist_data.end = end
+        except KeyError:
+            pass
+
+        try:
+            if edit_data["image"]:
+                image = edit_data["image"]
+                if "http" and "://" in image:
+                    # If image is a URL, download it
+                    new_image = Util.get_image(
+                        item_type='release',
+                        item_id=artist_id,
+                        url=image
+                    )
+                    artist_data.image = image
+                else:
+                    print("Image not a URL. Skipping.")
+        except KeyError:
+            pass
+
+        try:
+            country = edit_data["country"]
+            if country:
+                artist_data.country = country
+        except KeyError:
+            pass
+
+
+        update(artist_data)
+        return redirect('/', 302)
 
 # TODO: implement delete_artist
+

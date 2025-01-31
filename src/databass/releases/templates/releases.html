@@ -2,84 +2,48 @@
 {% block content %}
 
 <article id="release_search">
-    <section>
-        <form action="/release_search" method="POST"> <!-- this form action is not actually used, but keeping it here for readability -->
-            <div id="release_search_bar">
-                <div class="search_div">
-                    <label for="name">name</label>
-                    <input type="text" id="name" name="name">
-                </div>
-                <div class="search_div">
-                    <label for="artist">artist</label>
-                    <input type="text" id="artist" name="artist">
-                </div>
-                <div class="search_div">
-                    <label for="label">label</label>
-                    <select id="label" name="label">
-                        {% for label in data.labels %}
-                            <option value="{{ label }}">{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="search_div">
-                    <label for="country">country</label>
-                    <div>
-                        <select id="country" name="country">
-                            <option value="" selected></option>
-                            {% for country in data.countries %}
-                                <option value="{{ country }}">{{ country|country_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="search_div">
-                    <label for="rating-filter">rating</label>
-                    <div>
-                        <select id="rating-filter" name="rating_comparison">
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                        </select>
-                        <input type="number" min=0 max=100 id="rating" name="rating">
-                    </div>
-                </div>
-                <div class="search_div">
-                    <label for="year-filter">year</label>
-                    <div>
-                        <select id="year-filter" name="year_comparison">
-                            <option value="<"><</option>
-                            <option value="=">=</option>
-                            <option value=">">></option>
-                        </select>
-                        <input type="number" min=0 max="2100" id="release_year" name="release_year" class="box">
-                    </div>
-                </div>
-                <div class="search_div">
-                    <label for="genre">genre</label>
-                    <select id="genre" name="genre" class="box">
-                        {% for genre in data.genres %}
-                            <option value="{{ genre }}">{{ genre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="search_div">
-                    <label for="tags">subgenres</label>
-                    <div class="checkbox-form">
-                        <select id="tags">
-                            <option value="" selected></option>
-                            {% for tag in data.tags %}
-                                <option value="{{ tag }}">{{ tag }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="search_div">
-                    <p></p>
-                    <button type="button" id="release-search" value="submit">submit</button>
-                </div>
+    <form class="pure-form">
+        <div id="search_form" class="pure-g">
+            <input type="text" id="name" name="name" placeholder="release" class="pure-u-1-2 pure-u-lg-1-8">
+            <input type="text" id="artist" name="artist" placeholder="artist" class="pure-u-1-2 pure-u-lg-1-8">
+            <select id="label" name="label" class="pure-u-1-2 pure-u-lg-1-8">
+                <option value="" disabled selected>label</option>
+                {% for label in data.labels %}
+                    <option value="{{ label }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select id="country" name="country" class="pure-u-1-2 pure-u-lg-1-8">
+                <option value="" disabled selected>country</option>
+                {% for country in data.countries %}
+                    <option value="{{ country }}">{{ country|country_name }}</option>
+                {% endfor %}
+            </select>
+            <div class="pure-u-1-2 pure-u-lg-1-8">
+                <select id="rating-filter" name="rating_comparison" class="pure-u-1-5">
+                    <option value="<"><</option>
+                    <option value="=">=</option>
+                    <option value=">">></option>
+                </select>
+                <input type="number" min=0 max=100 id="rating" name="rating" placeholder="rating" class="pure-u-17-24">
             </div>
-        </form>
-    </section>
+            <div class="pure-u-1-2 pure-u-lg-1-8">
+                <select id="year-filter" name="year_comparison" class="pure-u-1-5">
+                    <option value="<"><</option>
+                    <option value="=">=</option>
+                    <option value=">">></option>
+                </select>
+                <input type="number" min=0 max="2100" id="year" name="year" placeholder="year" class="pure-u-17-24">
+            </div>
+            <select id="main_genre" name="main_genre" class="pure-u-1-2 pure-u-lg-1-8">
+                <option value="" selected></option>
+                {% for genre in data.genres %}
+                    <option value="{{ genre }}">{{ genre }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" id="release-search" value="submit" class="pure-button pure-u-1-2 pure-u-lg-1-8">submit</button>
+        </div>
+    </form>
+
     <div id="search-results"></div>
 </article>
 

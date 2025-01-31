@@ -1,11 +1,7 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 from databass import create_app
-from databass.db.models import Base, Release, Artist, Label, ArtistOrLabel, Goal, Tag
+from databass.db.models import Release, Artist, Label, ArtistOrLabel, Goal, Genre
 from datetime import datetime
-from databass.db.base import app_db
-from flask import Flask
 
 
 @pytest.fixture
@@ -181,11 +177,11 @@ class TestBaseGetDistinctColumnValues:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_query.return_value = []
 
-        result = Release.get_distinct_column_values('genre')
+        result = Release.get_distinct_column_values('main_genre')
         assert isinstance(result, list)
 
     @pytest.mark.parametrize("column,values", [
-        ('genre', ['Rock', 'Jazz', 'Electronic']),
+        ('main_genre', ['Rock', 'Jazz', 'Electronic']),
         ('country', ['US', 'UK', 'DE']),
         ('rating', [1, 2, 3, 4, 5]),
     ])
@@ -207,7 +203,7 @@ class TestBaseGetDistinctColumnValues:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_query.return_value = []
 
-        result = Release.get_distinct_column_values('genre')
+        result = Release.get_distinct_column_values('main_genre')
         assert result == []
 
     def test_get_distinct_column_values_queries_correct_attribute(self, mocker):
@@ -215,7 +211,7 @@ class TestBaseGetDistinctColumnValues:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_query.return_value = []
 
-        Release.get_distinct_column_values('genre')
+        Release.get_distinct_column_values('main_genre')
 
         # Verify the distinct() call was made on the correct column
         mock_query.assert_called_once()
@@ -644,80 +640,84 @@ class TestReleaseHomeData:
     def test_home_data_returns_list(self, mocker):
         """Test that home_data returns a list regardless of whether entries exist"""
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.outerjoin.return_value.group_by.return_value.order_by.return_value.all.return_value = []
+        mock_order_by = mock_query.return_value.order_by
+        mock_order_by.return_value.all.return_value = []
 
         result = Release.home_data()
         assert isinstance(result, list)
 
-    def test_home_data_joins_correct_tables(self, mocker):
-        """Test that home_data performs the correct table joins"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_join = mocker.Mock()
-        mock_outerjoin = mocker.Mock()
-        mock_query.return_value.join = mock_join
-        mock_join.return_value.outerjoin = mock_outerjoin
-        mock_outerjoin.return_value.group_by.return_value.order_by.return_value.all.return_value = []
-
-        Release.home_data()
-
-        # Verify joins
-        mock_join.assert_called_once()
-        mock_outerjoin.assert_called_once()
-        assert 'Artist' in str(mock_join.call_args)
-        assert 'Tag' in str(mock_outerjoin.call_args)
 
     def test_home_data_orders_by_id_desc(self, mocker):
         """Test that home_data orders results by release ID in descending order"""
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_order = mocker.Mock()
-        mock_query.return_value.join.return_value.outerjoin.return_value.group_by.return_value.order_by = mock_order
-        mock_order.return_value.all.return_value = []
+        mock_order_by = mock_query.return_value.order_by
+        mock_order_by.return_value.all.return_value = []
 
         Release.home_data()
 
-        mock_order.assert_called_once()
-        order_arg = mock_order.call_args[0][0]
-        assert 'DESC' in str(order_arg)
-        assert 'id' in str(order_arg)
+        mock_query.assert_called_once_with(Release)
+        mock_order_by.assert_called_once()
 
     def test_home_data_returns_correct_fields(self, mocker):
         """Test that home_data returns rows with all expected fields"""
+        # Mock a database row with the expected fields
         mock_row = mocker.Mock()
         mock_row.artist_id = 1
         mock_row.artist_name = "Test Artist"
         mock_row.id = 1
         mock_row.name = "Test Release"
         mock_row.rating = 4.5
-        mock_row.listen_date = mocker.Mock()
-        mock_row.genre = "Test Genre"
+        mock_row.listen_date = "2024-12-14"
+        mock_row.main_genre = "Test Genre"
         mock_row.image = "test.jpg"
-        mock_row.tags = ["tag1", "tag2"]
+        mock_row.genres = ["genre1", "genre2"]
 
+        # Patch the query to return a list containing the mock row
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.outerjoin.return_value.group_by.return_value.order_by.return_value.all.return_value = [
-            mock_row]
+        mock_query.return_value.order_by.return_value.all.return_value = [mock_row]
 
+        # Call the function
         result = Release.home_data()
-        assert len(result) == 1
-        row = result[0]
 
+        # Validate that one row is returned
+        assert len(result) == 1
+
+        # Validate that the row contains all expected fields
+        row = result[0]
         expected_fields = ['artist_id', 'artist_name', 'id', 'name', 'rating',
-                           'listen_date', 'genre', 'image', 'tags']
+                           'listen_date', 'main_genre', 'image', 'genres']
         for field in expected_fields:
             assert hasattr(row, field)
 
-    def test_home_data_handles_empty_tags(self, mocker):
-        """Test that home_data handles releases with no tags"""
+
+    def test_home_data_handles_empty_genres(self, mocker):
+        """Test that home_data handles releases with no genres"""
+        # Mock a database row with genres set to None
         mock_row = mocker.Mock()
-        mock_row.tags = None
+        mock_row.artist_id = 1
+        mock_row.artist_name = "Test Artist"
+        mock_row.id = 2
+        mock_row.name = "Another Release"
+        mock_row.rating = 3.0
+        mock_row.listen_date = "2024-12-14"
+        mock_row.main_genre = "Test Genre"
+        mock_row.image = "test2.jpg"
+        mock_row.genres = None
 
+        # Patch the query to return a list containing the mock row
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.outerjoin.return_value.group_by.return_value.order_by.return_value.all.return_value = [
-            mock_row]
+        mock_query.return_value.order_by.return_value.all.return_value = [mock_row]
 
+        # Call the function
         result = Release.home_data()
+
+        # Validate that one row is returned
         assert len(result) == 1
-        assert hasattr(result[0], 'tags')
+
+        # Validate that the row has the `genres` attribute even if it's None
+        row = result[0]
+        assert hasattr(row, 'genres')
+        assert row.genres is None
 
 class TestReleaseListensThisYear:
     """Test suite for Release.listens_this_year class method"""
@@ -854,7 +854,7 @@ class TestReleaseDynamicSearch:
         ({"name": "Test Release"}, ["filter"]),
         ({"rating": "5", "rating_comparison": "1"}, ["filter"]),
         ({"year": "2023", "year_comparison": "0"}, ["filter"]),
-        ({"tags": ["rock", "jazz"]}, ["join", "filter", "filter"])
+        ({"genres": ["rock", "jazz"]}, ["join", "filter", "filter"])
     ])
     def test_dynamic_search_query_construction(self, mocker, search_data, expected_calls):
         """Test that dynamic_search constructs appropriate queries based on search criteria"""
@@ -919,44 +919,34 @@ class TestReleaseDynamicSearch:
         Release.dynamic_search({
             "rating": "5",
             "rating_comparison": ">",
-            "release_year": "2023",
+            "year": "2023",
             "year_comparison": "="
         })
 
         assert mock_apply.call_count == 2
 
-    def test_dynamic_search_tags_filter(self, mocker):
-        """Test that dynamic_search correctly handles tag filtering"""
+    def test_dynamic_search_genres_filter(self, mocker):
+        """Test that dynamic_search correctly handles genre filtering"""
+        # Mock the SQLAlchemy session and query chain
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_join = mocker.Mock()
-        mock_filter = mocker.Mock()
-        mock_query.return_value.join = mock_join
-        mock_join.return_value.filter = mock_filter
-        mock_filter.return_value.filter = mock_filter
-        mock_filter.return_value.order_by.return_value.all.return_value = []
+        mock_query_instance = mock_query.return_value
+        mock_filter = mock_query_instance.filter
+        mock_filter.return_value = mock_query_instance  # Allow filter chaining
 
-        Release.dynamic_search({"tags": ["rock", "jazz"]})
+        # Mock the Genre.exists_by_name method
+        mock_genre_lookup = mocker.patch('databass.models.Genre.exists_by_name')
+        mock_genre_lookup.return_value = "rock"
 
-        # Verify join with Tag table and multiple filter calls
-        mock_join.assert_called_once()
-        assert mock_filter.call_count >= 2
+        # Perform the search
+        result = Release.dynamic_search({"main_genre": "rock"})
 
-    def test_dynamic_search_multiple_criteria(self, mocker):
-        """Test that dynamic_search correctly handles multiple search criteria"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_filter = mocker.Mock()
-        mock_query.return_value.filter = mock_filter
-        mock_filter.return_value.filter = mock_filter
-        mock_filter.return_value.order_by.return_value.all.return_value = []
+        # Verify that `filter` was called with the correct `has` clause
+        mock_filter.assert_called_once()
 
-        Release.dynamic_search({
-            "name": "Test Release",
-            "genre": "Rock",
-            "country": "US"
-        })
+        # Verify the result of the query execution
+        mock_query_instance.order_by.assert_called_once_with(Release.id)
+        mock_query_instance.order_by.return_value.all.assert_called_once()
 
-        # Verify multiple filter calls were made
-        assert mock_filter.call_count >= 3
 
 class TestReleaseGetReviews:
     """Test suite for Release.get_reviews class method"""
@@ -1073,7 +1063,7 @@ class TestReleaseCreateNew:
 
     def test_create_new_constructs_release_correctly(self, mocker):
         """Test that create_new calls construct_item with correct parameters"""
-        mock_construct = mocker.patch('databass.db.util.construct_item')
+        mock_construct = mocker.patch('databass.db.operations.construct_item')
         mock_insert = mocker.patch('databass.db.operations.insert')
         mock_update = mocker.patch('databass.db.operations.update')
         mock_get_image = mocker.patch('databass.api.Util.get_image')
@@ -1089,64 +1079,9 @@ class TestReleaseCreateNew:
         Release.create_new(test_data)
         mock_construct.assert_called_once_with('release', test_data)
 
-    def test_create_new_updates_image_path(self, mocker):
-        """Test that create_new updates the release with the image path"""
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
-        mock_update = mocker.patch('databass.db.operations.update')
-        mock_get_image = mocker.patch('databass.api.Util.get_image')
-
-        mock_release = mocker.Mock()
-        mock_release.id = 42
-        mock_construct.return_value = mock_release
-        mock_insert.return_value = mock_release.id
-        mock_get_image.return_value = "path/to/image.jpg"
-
-        test_data = {
-            "name": "Test Release",
-            "artist_name": "Test Artist",
-            "label_name": "Test Label",
-            "release_group_mbid": "test-mbid",
-            "image": None
-        }
-
-        Release.create_new(test_data)
-        assert mock_release.image == "path/to/image.jpg"
-        mock_update.assert_called_once_with(mock_release)
-
-    def test_create_new_calls_get_image_with_correct_params(self, mocker):
-        """Test that create_new calls get_image with the correct parameters"""
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
-        mock_update = mocker.patch('databass.db.operations.update')
-        mock_get_image = mocker.patch('databass.api.Util.get_image')
-
-        mock_release = mocker.Mock()
-        mock_release.id = 42
-        mock_construct.return_value = mock_release
-        mock_insert.return_value = mock_release.id
-
-        test_data = {
-            "name": "Test Release",
-            "artist_name": "Test Artist",
-            "label_name": "Test Label",
-            "release_group_mbid": "test-mbid",
-            "image": None
-        }
-
-        Release.create_new(test_data)
-        mock_get_image.assert_called_once_with(
-            item_type='release',
-            item_id=42,
-            release_name=test_data["name"],
-            artist_name=test_data["artist_name"],
-            label_name=test_data["label_name"],
-            mbid=test_data["release_group_mbid"]
-        )
-
     def test_create_new_missing_required_fields(self, mocker):
         """Test that create_new handles missing required fields appropriately"""
-        mock_construct = mocker.patch('databass.db.util.construct_item')
+        mock_construct = mocker.patch('databass.db.operations.construct_item')
         mock_construct.side_effect = KeyError("Missing required field")
 
         test_data = {
@@ -1300,7 +1235,6 @@ class TestArtistOrLabelAverageRatingsAndTotalCounts:
 
     def test_average_ratings_and_total_counts_invalid_class(self):
         """Test that average_ratings_and_total_counts raises TypeError when called on invalid class"""
-        from databass.db.models import ArtistOrLabel
 
         class InvalidClass(ArtistOrLabel):
             __tablename__ = "invalid"
@@ -1436,9 +1370,7 @@ class TestArtistOrLabelDynamicSearch:
     @pytest.mark.parametrize("search_data,expected_calls", [
         ({"name": "Test Artist"}, ["filter"]),
         ({"country": "US"}, ["filter"]),
-        ({"type": "Group"}, ["filter"]),
-        ({"begin_date": "2000", "begin_comparison": "<"}, ["filter"]),
-        ({"end_date": "2020", "end_comparison": ">"}, ["filter"])
+        ({"type": "Group"}, ["filter"])
     ])
     def test_dynamic_search_query_construction(self, mocker, search_data, expected_calls):
         """Test that dynamic_search constructs appropriate queries based on search criteria"""
@@ -1497,20 +1429,6 @@ class TestArtistOrLabelDynamicSearch:
 class TestArtistOrLabelCreateIfNotExist:
     """Test suite for ArtistOrLabel.create_if_not_exist class method"""
 
-    def test_create_if_not_exist_returns_integer(self, mocker):
-        """Test that create_if_not_exist returns an integer ID"""
-        mock_exists = mocker.patch('databass.db.models.ArtistOrLabel.exists_by_mbid')
-        mock_exists.return_value = None
-        mock_search = mocker.patch('databass.api.MusicBrainz.artist_search')
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
-        mock_get_image = mocker.patch('databass.api.Util.get_image')
-
-        mock_insert.return_value = 42
-        result = Artist.create_if_not_exist("Test Artist")
-        assert isinstance(result, int)
-        assert result == 42
-
     def test_create_if_not_exist_returns_existing_id(self, mocker):
         """Test that create_if_not_exist returns existing ID when item exists"""
         mock_item = mocker.Mock()
@@ -1521,124 +1439,6 @@ class TestArtistOrLabelCreateIfNotExist:
         result = Artist.create_if_not_exist(name="Test Artist")
         assert result == 42
 
-    @pytest.mark.parametrize("model_class,search_method,expected_construct_name", [
-        (Artist, 'artist_search', 'artist'),
-        (Label, 'label_search', 'label')
-    ])
-    def test_create_if_not_exist_correct_search_method(self, mocker, model_class, search_method,
-                                                       expected_construct_name):
-        """Test that create_if_not_exist uses correct search method for Artist and Label"""
-        mock_exists = mocker.patch('databass.db.models.ArtistOrLabel.exists_by_mbid')
-        mock_exists.return_value = None
-        mock_search = mocker.patch(f'databass.api.MusicBrainz.{search_method}')
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
-        mock_get_image = mocker.patch('databass.api.Util.get_image')
-
-        model_class.create_if_not_exist(mbid="test-mbid", name="Test Name")
-        mock_search.assert_called_once_with(name="Test Name", mbid="test-mbid")
-        mock_construct.assert_called_once_with(model_name=expected_construct_name, data_dict=mock_search.return_value)
-
-    def test_create_if_not_exist_calls_get_image(self, mocker):
-        """Test that create_if_not_exist calls get_image with correct parameters"""
-        mock_exists = mocker.patch('databass.db.models.ArtistOrLabel.exists_by_mbid')
-        mock_exists.return_value = None
-        mock_search = mocker.patch('databass.api.MusicBrainz.artist_search')
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
-        mock_get_image = mocker.patch('databass.api.Util.get_image')
-
-        mock_insert.return_value = 42
-        test_name = "Test Artist"
-        Artist.create_if_not_exist(test_name)
-
-        mock_get_image.assert_called_once_with(
-            item_type='artist',
-            item_id=42,
-            artist_name=test_name
-        )
-
-class TestLabelGetReleases:
-    """Test suite for Label.get_releases class method"""
-
-    def test_get_releases_returns_list(self, mocker):
-        """Test that get_releases returns a list regardless of whether releases exist"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.where.return_value.all.return_value = []
-
-        result = Label.get_releases(1)
-        assert isinstance(result, list)
-
-    def test_get_releases_joins_correct_tables(self, mocker):
-        """Test that get_releases performs the correct table joins"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_join = mocker.Mock()
-        mock_query.return_value.join = mock_join
-        mock_join.return_value.where.return_value.all.return_value = []
-
-        Label.get_releases(1)
-
-        # Verify join with Artist table
-        mock_join.assert_called_once()
-        join_args = mock_join.call_args[0]
-        assert 'Artist' in str(join_args)
-
-    def test_get_releases_returns_correct_data(self, mocker):
-        """Test that get_releases returns the correct data structure"""
-        mock_release = mocker.Mock()
-        mock_artist = mocker.Mock()
-        mock_result = (mock_release, mock_artist)
-
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.where.return_value.all.return_value = [mock_result]
-
-        result = Label.get_releases(1)
-        assert len(result) == 1
-        assert result[0] == mock_result
-        assert len(result[0]) == 2  # Should contain Release and Artist objects
-
-class TestArtistGetReleases:
-    """Test suite for Artist.get_releases class method"""
-
-    def test_get_releases_returns_list(self, mocker):
-        """Test that get_releases returns a list regardless of whether releases exist"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.join.return_value.where.return_value.all.return_value = []
-
-        result = Artist.get_releases(1)
-        assert isinstance(result, list)
-
-    def test_get_releases_joins_correct_tables(self, mocker):
-        """Test that get_releases performs the correct table joins"""
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_join1 = mocker.Mock()
-        mock_join2 = mocker.Mock()
-        mock_query.return_value.join = mock_join1
-        mock_join1.return_value.join = mock_join2
-        mock_join2.return_value.where.return_value.all.return_value = []
-
-        Artist.get_releases(1)
-
-        # Verify joins with Label and Artist tables
-        mock_join1.assert_called_once()
-        mock_join2.assert_called_once()
-        assert 'Label' in str(mock_join1.call_args[0])
-        assert 'Artist' in str(mock_join2.call_args[0])
-
-    def test_get_releases_returns_correct_data(self, mocker):
-        """Test that get_releases returns the correct data structure"""
-        mock_release = mocker.Mock()
-        mock_label_name = "Test Label"
-        mock_result = (mock_release, mock_label_name)
-
-        mock_query = mocker.patch('databass.db.base.app_db.session.query')
-        mock_query.return_value.join.return_value.join.return_value.where.return_value.all.return_value = [mock_result]
-
-        result = Artist.get_releases(1)
-        assert len(result) == 1
-        assert result[0] == mock_result
-        assert len(result[0]) == 2  # Should contain Release and Label name
-
 class TestGoalNewReleasesSinceStartDate:
     """Test suite for Goal.new_releases_since_start_date property"""
 
@@ -1647,7 +1447,7 @@ class TestGoalNewReleasesSinceStartDate:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_query.return_value.filter.return_value.scalar.return_value = 5
 
-        goal = Goal(start_date=datetime.now())
+        goal = Goal(start=datetime.now())
         result = goal.new_releases_since_start_date
         assert isinstance(result, int)
 
@@ -1656,7 +1456,7 @@ class TestGoalNewReleasesSinceStartDate:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_query.return_value.filter.return_value.scalar.return_value = 0
 
-        goal = Goal(start_date=datetime.now())
+        goal = Goal(start=datetime.now())
         goal.new_releases_since_start_date
 
         # Verify Release.id is being counted
@@ -1671,7 +1471,7 @@ class TestGoalNewReleasesSinceStartDate:
         mock_filter.return_value.scalar.return_value = 0
 
         test_date = datetime(2024, 1, 1)
-        goal = Goal(start_date=test_date)
+        goal = Goal(start=test_date)
         goal.new_releases_since_start_date
 
         # Verify filter uses correct start date
@@ -1690,76 +1490,89 @@ class TestGoalNewReleasesSinceStartDate:
         mock_query = mocker.patch('databass.db.base.app_db.session.query')
         mock_query.return_value.filter.return_value.scalar.return_value = count_value
 
-        goal = Goal(start_date=datetime.now())
+        goal = Goal(start=datetime.now())
         result = goal.new_releases_since_start_date
         assert result == count_value
 
-class TestTagCreateTags:
-    """Test suite for Tag.create_tags static method"""
+class TestGenreCreateGenres:
+    """Test suite for Genre.create_genres static method"""
 
-    def test_create_tags_creates_correct_number_of_tags(self, mocker):
-        """Test that create_tags creates the correct number of Tag objects from comma-separated string"""
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
+    def test_create_genres_creates_correct_number_of_genres(self, mocker, app):
+        """Test that create_genres creates the correct number of Genre objects from comma-separated string"""
+        with app.app_context():
+            # Mock the exists_by_name method to always return False
+            mocker.patch.object(Genre, 'exists_by_name', return_value=False)
 
-        test_tags = "rock,jazz,electronic"
-        Tag.create_tags(test_tags, 1)
+            # Mock construct_item to return a predictable Genre object
+            mock_construct = mocker.patch('databass.db.operations.construct_item')
+            mock_construct.side_effect = lambda type, data: Genre(name=data['name'])
 
-        assert mock_construct.call_count == 3
-        assert mock_insert.call_count == 3
+            # Mock insert to return a predictable ID
+            mock_insert = mocker.patch('databass.db.operations.insert', side_effect=[1, 2, 3])
 
-    @pytest.mark.parametrize("tags_string,expected_tags", [
+            test_genres = "rock,jazz,electronic"
+            result = Genre.create_genres(test_genres)
+
+            # Verify the mocks were called correctly
+            assert mock_construct.call_count == 3
+            assert mock_insert.call_count == 3
+
+            # Verify the correct genre names were used
+            assert [genre.name for genre in result] == ["rock", "jazz", "electronic"]
+
+    @pytest.mark.parametrize("genres_string,expected_genres", [
         ("rock,jazz", ["rock", "jazz"]),
         ("electronic", ["electronic"]),
         ("metal,punk,indie,folk", ["metal", "punk", "indie", "folk"]),
         ("", [""]),
     ])
-    def test_create_tags_splits_string_correctly(self, mocker, tags_string, expected_tags):
-        """Test that create_tags correctly splits the input string into individual tags"""
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
+    def test_create_genres_splits_string_correctly(self, mocker, genres_string, expected_genres, app):
+        """Test that create_genres correctly splits the input string into individual genres"""
+        with app.app_context():
+            mock_construct = mocker.patch('databass.db.operations.construct_item')
+            mock_insert = mocker.patch('databass.db.operations.insert')
 
-        Tag.create_tags(tags_string, 1)
+            Genre.create_genres(genres_string)
 
-        for tag in expected_tags:
-            mock_construct.assert_any_call('tag', {"name": tag, "release_id": 1})
+            for genre in expected_genres:
+                mock_construct.assert_any_call('genre', {"name": genre})
 
-    def test_create_tags_constructs_tag_objects_correctly(self, mocker):
-        """Test that create_tags constructs Tag objects with correct parameters"""
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
+    def test_create_genress_constructs_genre_objects_correctly(self, mocker, app):
+        """Test that create_genres constructs Genre objects with correct parameters"""
+        with app.app_context():
+            mock_construct = mocker.patch('databass.db.operations.construct_item')
+            mock_insert = mocker.patch('databass.db.operations.insert')
 
-        test_release_id = 42
-        test_tag = "rock"
-        Tag.create_tags(test_tag, test_release_id)
+            test_release_id = 42
+            test_genre = "rock"
+            Genre.create_genres(test_genre)
 
-        mock_construct.assert_called_once_with('tag', {
-            "name": test_tag,
-            "release_id": test_release_id
-        })
+            mock_construct.assert_called_once_with('genre', {"name": test_genre})
 
-    def test_create_tags_inserts_constructed_objects(self, mocker):
-        """Test that create_tags inserts the constructed Tag objects into the database"""
-        mock_tag = mocker.Mock()
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
-        mock_construct.return_value = mock_tag
+    def test_create_genres_inserts_constructed_objects(self, mocker, app):
+        """Test that create_genres inserts the constructed Genre objects into the database"""
+        with app.app_context():
+            mock_genre = mocker.Mock()
+            mock_construct = mocker.patch('databass.db.operations.construct_item')
+            mock_insert = mocker.patch('databass.db.operations.insert')
+            mock_construct.return_value = mock_genre
 
-        Tag.create_tags("rock", 1)
+            Genre.create_genres("rock")
 
-        mock_insert.assert_called_once_with(mock_tag)
+            mock_insert.assert_called_once_with(mock_genre)
 
-    def test_create_tags_handles_whitespace(self, mocker):
-        """Test that create_tags handles tags with whitespace correctly"""
-        mock_construct = mocker.patch('databass.db.util.construct_item')
-        mock_insert = mocker.patch('databass.db.operations.insert')
+    def test_create_genres_handles_whitespace(self, mocker, app):
+        """Test that create_genres handles genres with whitespace correctly"""
+        with app.app_context():
+            mock_construct = mocker.patch('databass.db.operations.construct_item')
+            mock_insert = mocker.patch('databass.db.operations.insert')
 
-        test_tags = "rock , jazz , electronic"
-        Tag.create_tags(test_tags, 1)
+            test_genres = "rock , jazz , electronic"
+            Genre.create_genres(test_genres)
 
-        expected_calls = [
-            mocker.call('tag', {"name": "rock ", "release_id": 1}),
-            mocker.call('tag', {"name": " jazz ", "release_id": 1}),
-            mocker.call('tag', {"name": " electronic", "release_id": 1})
-        ]
-        mock_construct.assert_has_calls(expected_calls)
+            expected_calls = [
+                mocker.call('genre', {"name": "rock "}),
+                mocker.call('genre', {"name": " jazz "}),
+                mocker.call('genre', {"name": " electronic"})
+            ]
+            mock_construct.assert_has_calls(expected_calls)

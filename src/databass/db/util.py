@@ -1,66 +1,23 @@
 from typing import Type
-from sqlalchemy import extract, Integer
 from sqlalchemy.orm import query as sql_query
-from sqlalchemy.engine.row import Row
-from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Tag
-
-def get_model(model_name: str) -> Base | None:
-    """
-    :param model_name: String corresponding to a database model class
-    :return: Instance of that model's class if it exists; None otherwise
-    """
-    if not isinstance(model_name, str):
-        raise ValueError("model_name must be a string")
-    model_name = model_name.lower()
-    model_name = model_name.capitalize()
-    instance = globals().get(model_name)
-    if not instance:
-        raise NameError(f"No model with the name '{model_name}' found in globals()."
-                        "Ensure all valid models are imported in databass.db.util.py and "
-                        "reflect existing models as defined in models.py")
-    return instance
+from .models import *
+# above imports all of the below
+# from sqlalchemy import extract, Integer
+# from sqlalchemy.engine.row import Row
+# from .models import Artist, Release, Label, MusicBrainzEntity, Base, Goal, Genre
 
 
-def construct_item(model_name: str,
-                   data_dict: dict) -> Base:
-    """
-    Construct an instance of a model from a dictionary
-    :param model_name: String corresponding to SQLAlchemy model class from models.py
-    :param data_dict: Dictionary containing keys corresponding to the database model class
-    :return: The newly constructed instance of the model class.
-    """
-    valid_models = ['release', 'artist', 'label', 'goal', 'review', 'tag']
-    if model_name not in valid_models:
-        raise ValueError(f"Invalid model name: {model_name} - "
-                         f"Model name should be one of: {', '.join(valid_models)}")
-    model = get_model(model_name)
-    if model is not None:
-        item = model(**data_dict)
-        return item
-    raise NameError(f"No model with the name '{model_name}' found in globals(). Ensure all "
-                    f"valid models are imported and reflect existing models as defined in models.py")
+def get_valid_models():
+    return [cls.__name__.lower() for cls in Base.__subclasses__()]
 
-
-def next_item(item_type: str,
-         prev_id: int) -> Base:
-    """
-    Fetches the next entry in the database with an id greater than prev_id
-    :return: False if no entry exists; object for the entry otherwise
-    """
-    if item_type not in ['artist', 'release', 'label']:
-        raise ValueError(f'Invalid item_type: {item_type}')
-    model = get_model(item_type)
-    query = model.query
-    item = query.filter(model.id > prev_id).first()
-    return item if item else False
-
+  
 def apply_comparison_filter(query,
                       model: Type[MusicBrainzEntity],
                       key: str,
                       operator: str,
                       value: str) -> sql_query:
     """
-    Used by dynamic_search to perform comparisons on begin_date, end_date, year, or rating
+    Used by dynamic_search to perform comparisons on begin, end, year, or rating
     :param query: An SQLAlchemy query class
     :param model: The database model class to filter on
     :param key: The column to filter on - begin_date or end_date
@@ -79,12 +36,12 @@ def apply_comparison_filter(query,
     if operator not in ['<', '=', '>']:
         raise ValueError(f"Unrecognized operator value for year_comparison: {operator}")
 
-    if key in ('begin_date', 'end_date'):
+    if key in ('begin', 'end'):
         query = query.filter(extract('year', attribute).cast(Integer).op(operator)(val))
     elif key == 'rating':
         query = query.filter(Release.rating.op(operator)(value))
-    elif key == 'release_year':
-        query = query.filter(Release.release_year.op(operator)(value))
+    elif key == 'year':
+        query = query.filter(Release.year.op(operator)(value))
     return query
 
 
@@ -159,7 +116,7 @@ def handle_submit_data(submit_data: dict) -> None:
     Process dictionary data from routes.submit()
     - Fetches release runtime from MusicBrainz, if a MBID is provided
     - Checks if matching label/artist exists in the db, creates one if it doesn't
-    - Inserts the new release and subgenres (tags)
+    - Inserts the new release and subgenres
     :param submit_data:
     :return:
     """
@@ -176,8 +133,10 @@ def handle_submit_data(submit_data: dict) -> None:
             mbid=submit_data["label_mbid"],
             name=submit_data["label_name"],
         )
-    else:
+    elif submit_data["label_name"]:
         label_id = Label.create_if_not_exist(name=submit_data["label_name"])
+    else:
+        label_id = 0
 
     submit_data["label_id"] = label_id
 
@@ -186,13 +145,24 @@ def handle_submit_data(submit_data: dict) -> None:
             mbid=submit_data["artist_mbid"],
             name=submit_data["artist_name"],
         )
+    elif submit_data["artist_name"]:
+        artist_id = Artist.create_if_not_exist(
+            name=submit_data["artist_name"]
+        )
     else:
-        artist_id = Artist.create_if_not_exist(name=submit_data["artist_name"])
+        artist_id = 0
 
     submit_data["artist_id"] = artist_id
 
-    release_id = Release.create_new(submit_data)
+    if submit_data["main_genre"] is not None:
+        main_genre = Genre.create_if_not_exists(submit_data["main_genre"])
+        submit_data["main_genre"] = main_genre
+        submit_data["main_genre_id"] = main_genre.id
 
-    if submit_data["tags"] is not None:
-        Tag.create_tags(submit_data["tags"], release_id)
+    genres = []
+    if submit_data["genres"]:
+        for g in submit_data["genres"].split(','):
+            genres.append(Genre.create_if_not_exists(g))
+    submit_data["genres"] = genres
+    Release.create_new(submit_data)
     Goal.check_goals()

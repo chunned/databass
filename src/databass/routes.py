@@ -6,6 +6,8 @@ Implements the main routes for the databass application, including
 - goals page
 """
 from datetime import datetime
+from os.path import join, abspath
+from glob import glob
 import flask
 from flask import render_template, request, redirect, abort, flash, make_response, send_file
 from sqlalchemy.exc import IntegrityError
@@ -38,7 +40,6 @@ def register_routes(app):
 
     @app.route("/home_release_table")
     def home_release_table():
-
         data = models.Release.home_data()
 
         page = Pager.get_page_param(request)
@@ -56,8 +57,7 @@ def register_routes(app):
 
     @app.route("/new")
     def new():
-        actions = ["search"]
-        return render_template("new.html", actions=actions, active_page='new')
+        return render_template("new.html", active_page='new')
 
     @app.route("/search", methods=["POST", "GET"])
     def search() -> str | flask.Response:
@@ -73,38 +73,23 @@ def register_routes(app):
                 per_page=per_page
             )
 
-
         data = request.get_json()
         try:
-            origin = data["referrer"]
+            search_release = data["release"]
+            search_artist = data["artist"]
+            search_label = data["label"]
         except KeyError:
-            error = (
-                "Request referrer missing. You should only be coming to "
-                "this page from /new or from the pagination buttons.")
+            error = "Request missing one of the expected keys"
             flash(error)
             # TODO: move this error handling into errors/routes.py
             return redirect('/error')
-        if origin == 'search':
-            try:
-                search_release = data["release"]
-                search_artist = data["artist"]
-                search_label = data["label"]
-            except KeyError:
-                error = "Request missing one of the expected keys"
-                flash(error)
-                # TODO: move this error handling into errors/routes.py
-                return redirect('/error')
-            if not search_release and not search_artist and not search_label:
-                error = "ERROR: Search requires at least one search term"
-                return error
-            release_data = MusicBrainz.release_search(release=search_release,
-                                                          artist=search_artist,
-                                                          label=search_label)
-            page = Pager.get_page_param(request)
-        elif origin == 'page_button':
-            page = data["next_page"]
-            release_data = data["data"]
-
+        if not search_release and not search_artist and not search_label:
+            error = "ERROR: Search requires at least one search term"
+            return error
+        release_data = MusicBrainz.release_search(release=search_release,
+                                                      artist=search_artist,
+                                                      label=search_label)
+        page = Pager.get_page_param(request)
         if all(
             var is not None for var in [page, release_data]
         ):
@@ -121,6 +106,25 @@ def register_routes(app):
                 data_full=release_data,
                 per_page=per_page
             )
+        
+    @app.route("/search_results", methods=["POST"])
+    def search_results():
+        data = request.get_json()
+        per_page = 10
+        page = Pager.get_page_param(request)
+        paged_data, flask_pagination = Pager.paginate(
+            per_page=per_page,
+            current_page=page,
+            data=data
+        )
+        return render_template(
+            "search.html",
+            page=page,
+            data=paged_data,
+            pagination=flask_pagination,
+            data_full=data,
+            per_page=per_page
+        )
 
     @app.route("/submit", methods=["POST"])
     def submit():
@@ -131,9 +135,9 @@ def register_routes(app):
             if data["manual_submit"] == "true":
                 # try to grab optional fields
                 try:
-                    tags = data["tags"]
+                    genres = data["genres"]
                 except KeyError:
-                    tags = ""
+                    genres = []
                 try:
                     image = data["image"]
                 except KeyError:
@@ -142,14 +146,13 @@ def register_routes(app):
                 try:
                     # convert minutes to ms
                     runtime = int(data["runtime"]) * 60000
-                except KeyError:
+                except (KeyError, ValueError):
                     runtime = 0
 
                 try:
                     track_count = int(data["track_count"])
-                except KeyError:
+                except (KeyError, ValueError):
                     track_count = 0
-
 
                 try:
                     country = country_code(data["country"])
@@ -163,10 +166,10 @@ def register_routes(app):
                     "artist_mbid": None,
                     "label_name": data["label"],
                     "label_mbid": None,
-                    "release_year": data["release_year"],
-                    "genre": data["genre"],
+                    "year": data["year"],
+                    "main_genre": data["main_genre"],
                     "rating": data["rating"],
-                    "tags": tags,
+                    "genres": genres,
                     "image": image,
                     "listen_date": Util.today(),
                     "runtime": runtime,
@@ -184,23 +187,23 @@ def register_routes(app):
                     "artist_mbid": data["artist_mbid"],
                     "label_name": data["label"],
                     "label_mbid": data["label_mbid"],
-                    "release_year": int(data["release_year"]),
-                    "genre": data["genre"],
+                    "year": int(data["year"]),
+                    "main_genre": data["main_genre"],
                     "rating": int(data["rating"]),
                     "track_count": data["track_count"],
                     "listen_date": Util.today(),
                     "country": data["country"],
-                    "tags": data["tags"],
+                    "genres": data["genres"],
                     "image": None
                 }
 
             try:
                 handle_submit_data(release_data)
             except IntegrityError as err:
-                flash(err)
+                flash(str(err))
                 return redirect('/error')
-        except KeyError:
-            error = "Request missing one of the expected keys"
+        except KeyError as err:
+            error = f"Request missing one of the expected keys: {err}"
             flash(error)
             return redirect('/error')
         return redirect("/", code=302)
@@ -209,6 +212,25 @@ def register_routes(app):
     def stats():
         statistics = get_all_stats()
         return render_template('stats.html', data=statistics, active_page='stats')
+
+    @app.route('/stats/get/<string:stats_type>', methods=['GET'])
+    def stats_get(stats_type):
+        statistics = get_all_stats()
+        data = ""
+        if stats_type == "labels":
+            data = {
+                "most_frequent": statistics["top_frequent_labels"],
+                "highest_average": statistics["top_average_labels"],
+                "favourite": statistics["top_rated_labels"]
+            }
+        if stats_type == "artists":
+            data = {
+                "most_frequent": statistics["top_frequent_artists"],
+                "highest_average": statistics["top_average_artists"],
+                "favourite": statistics["top_rated_artists"]
+            }
+        return render_template('stats_data.html', type=stats_type, stats=data)
+
 
     @app.route('/goals', methods=['GET'])
     def goals():
@@ -254,7 +276,13 @@ def register_routes(app):
             item = models.Release.exists_by_id(itemid)
 
         try:
-            img_path = item.image
+            img_dir = abspath(join("databass", "static", "img", itemtype))
+            img_pattern = join(img_dir, f"{item.id}.*")
+            match = glob(img_pattern)
+            if match:
+                img_path = match[0]
+            else:
+                img_path = "./static/img/none.png"
         except KeyError:
             img_path = "./static/img/none.png"
         try:
@@ -406,8 +434,8 @@ def process_goal_data(goal: models.Goal):
 
     Returns:
         dict: A dictionary containing the following keys:
-            - start_date (datetime): The start date of the goal.
-            - end_goal (datetime): The end date of the goal.
+            - start (datetime): The start date of the goal.
+            - end (datetime): The end date of the goal.
             - type (str): The type of the goal.
             - amount (int): The total amount of the goal.
             - progress (float): The current progress of the goal as a percentage.
@@ -416,14 +444,14 @@ def process_goal_data(goal: models.Goal):
     """
     current = goal.new_releases_since_start_date
     remaining = goal.amount - current
-    days_left = (goal.end_goal - datetime.today()).days
+    days_left = (goal.end - datetime.today()).days
     try:
         target = round((remaining / days_left), 2)
     except ZeroDivisionError:
         target = 0
     return {
-        "start_date": goal.start_date,
-        "end_goal": goal.end_goal,
+        "start": goal.start,
+        "end": goal.end,
         "type": goal.type,
         "amount": goal.amount,
         "progress": round((current / goal.amount) * 100),

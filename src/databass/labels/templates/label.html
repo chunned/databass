@@ -1,12 +1,16 @@
 {% extends '_base.html' %}
 {% block content %}
 
-<article id="label_container">
-    <section id="label">
+<article id="label_container" class="pure-g">
+    <section id="label" class="pure-u-1 pure-u-md-4-24">
         <div id="top">
             <div id="label_image">
                 <img src="/img/label/{{ data.label.id }}" alt="Label image">
             </div>
+        </div>
+        <div id="buttons">
+            <button class="pure-button" id="edit-btn" data-id="{{ data.label.id }}">edit</button>
+            {#            <button class="pure-button delete-btn" id="delete-btn" data-id="{{ data.release.id }}" data-type="release">delete</button>#}
         </div>
         <div id="info">
             <div id="name">
@@ -14,26 +18,30 @@
                 <h2>{{ data.label.country|country_name }}</h2>
             </div>
             <div id="start">
-                {% if data.label.begin_date != data.no_start %}
-                    started:
-                    {{ data.label.begin_date }}
+                started:
+                {% if data.label.begin != data.no_start %}
+                    {{ data.label.begin }}
+                {% else %}
+                    ?
                 {% endif %}
             </div>
             <div id="end">
-                {% if data.label.end_date != data.no_end %}
-                    ended:
-                    {{ data.label.end_date }}
+                ended:
+                {% if data.label.end != data.no_end %}
+                    {{ data.label.end }}
+                {% else %}
+                    ?
                 {% endif %}
             </div>
         </div>
     </section>
-    <aside>
+    <aside class="pure-u-1 pure-u-md-20-24">
         <div id="release_info">
             <h1>releases</h1>
-            <div>
-                {% for item in data.releases %}
-                    <div>
-                        <a href="/release/{{ item.Release.id }}"><img src="/img/release/{{ item.Release.id }}" alt="Release image"></a>
+            <div class="pure-g">
+                {% for item in data.label.releases %}
+                    <div class="pure-u-1-2 pure-u-md-1-3 pure-u-xl-1-4 pure-u-xxl-1-5">
+                        <a href="/release/{{ item.id }}"><img src="/img/release/{{ item.id }}" alt="Release image"></a>
                     </div>
                 {% endfor %}
             </div>
